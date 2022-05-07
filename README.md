@@ -1,0 +1,2 @@
+# clipman
+Clip manager
