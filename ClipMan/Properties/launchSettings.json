@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "ClipMan": {
+      "commandName": "Project",
+      "commandLineArgs": "\"Q:\\Videos\\Clip manager test clips\"",
+      "nativeDebugging": false
+    }
+  }
+}

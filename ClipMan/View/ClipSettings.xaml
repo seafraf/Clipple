@@ -1,0 +1,218 @@
+﻿<UserControl x:Class="ClipMan.View.ClipSettings"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:ClipMan.View"
+             xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls" 
+             xmlns:viewmodel="clr-namespace:ClipMan.ViewModel" 
+             xmlns:converters="clr-namespace:ClipMan.Converters"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=viewmodel:ClipViewModel}"
+             d:DesignHeight="450" d:DesignWidth="350">
+    <UserControl.Resources>
+        <converters:ComparisonConverter x:Key="ComparisonConverter" />
+    </UserControl.Resources>
+    
+    <StackPanel>
+
+        <TextBox mah:TextBoxHelper.Watermark="Clip title" mah:TextBoxHelper.UseFloatingWatermark="True" Margin="0 0 0 4" Text="{Binding Path=Title, UpdateSourceTrigger=PropertyChanged}" />
+        <TextBox mah:TextBoxHelper.Watermark="Folder" mah:TextBoxHelper.UseFloatingWatermark="True" Margin="0 0 0 4" Text="{Binding Path=Folder, UpdateSourceTrigger=PropertyChanged}" />
+
+        <Separator Margin="0 8 0 8" />
+
+        <CheckBox Content="Show in video player" IsChecked="{Binding Path=ShowInPlayer}" Margin="2" />
+        <CheckBox Content="Pause video at clip start"  IsChecked="{Binding Path=PauseAtClipStart}" IsEnabled="{Binding Path=ShowInPlayer}" Margin="2"/>
+        <CheckBox Content="Pause video at clip end"  IsChecked="{Binding Path=PauseAtClipEnd}" IsEnabled="{Binding Path=ShowInPlayer}" Margin="2"/>
+
+        <Separator Margin="0 8 0 8" />
+
+        <RadioButton Content="Export audio only" Margin="4" IsChecked="{Binding Path=ExportMode, Converter={StaticResource ComparisonConverter}, ConverterParameter={x:Static viewmodel:ClipExportMode.AudioOnly}}" />
+        <RadioButton Content="Export video only" Margin="4" IsChecked="{Binding Path=ExportMode, Converter={StaticResource ComparisonConverter}, ConverterParameter={x:Static viewmodel:ClipExportMode.VideoOnly}}" />
+        <RadioButton Content="Export both" Margin="4" IsChecked="{Binding Path=ExportMode, Converter={StaticResource ComparisonConverter}, ConverterParameter={x:Static viewmodel:ClipExportMode.Both}}"/>
+
+        <Separator Margin="0 8 0 8" />
+
+        <Expander  Header="Clip start" Margin="0 0 0 4">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="60" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                </Grid.RowDefinitions>
+
+                <Label Grid.Column="0" Grid.Row="0" Content="Frame" Margin="2" />
+                <mah:NumericUpDown Grid.Column="1" Grid.Row="0" MinWidth="150" Minimum="0" Maximum="{Binding Path=EndFrame}"  HorizontalAlignment="Stretch" Value="{Binding Path=StartFrame}" Margin="2" />
+
+                <Label Grid.Column="0" Grid.Row="1" Content="Time" Margin="2"  />
+                <TextBox Grid.Column="1" Grid.Row="1" Text="{Binding Path=StartTime}" Margin="2"  />
+
+                <Button Grid.ColumnSpan="2" Grid.Row="2" Content="Set" Margin="2" Command="{Binding Path=SetStartFrameCommand}" />
+                <Button Grid.ColumnSpan="2" Grid.Row="3" Content="Go to" Margin="2 0 2 0" Command="{Binding Path=GoToStartFrameCommand}" />
+            </Grid>
+        </Expander>
+
+        <Expander Header="Clip end" Margin="0 0 0 4">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="60" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                </Grid.RowDefinitions>
+                
+                <Label Grid.Column="0" Grid.Row="0" Content="Frame" Margin="2" />
+                <mah:NumericUpDown Grid.Column="1" Grid.Row="0" MinWidth="150" Minimum="{Binding Path=StartFrame}" HorizontalAlignment="Stretch" Value="{Binding Path=EndFrame}" Margin="2"  />
+
+                <Label Grid.Column="0" Grid.Row="1" Content="Time" Margin="2"  />
+                <TextBox Grid.Column="1" Grid.Row="1" Text="{Binding Path=EndTime}" Margin="2"  />
+
+                <Button Grid.ColumnSpan="2" Grid.Row="2" Content="Set" Margin="2" Command="{Binding Path=SetEndFrameCommand}" />
+                <Button Grid.ColumnSpan="2" Grid.Row="3" Content="Go to" Margin="2 0 2 0" Command="{Binding Path=GoToEndFrameCommand}" />
+            </Grid>
+        </Expander>
+
+
+        <Expander Header="Encoder settings" Margin="0 0 0 4">
+            <StackPanel>
+                <CheckBox Content="Copy packets" ToolTip="If this setting is enabled packets will be directly copied from the source video instead of decoded and encoded.  Using will result in a very quick clip but also disabled video &amp; audio settings" IsChecked="{Binding Path=CopyPackets}" Margin="2"/>
+            </StackPanel>
+        </Expander>
+
+        <Expander Header="Video settings" Margin="0 0 0 4" IsEnabled="{Binding Path=VideoSettingsEnabled}">
+            <StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <iconPacks:PackIconMaterialDesign Margin="4 0 0 0"  Kind="Warning" VerticalAlignment="Center" />
+                    <TextBlock Text="Clips cannot exceed the input video's resolution or FPS" TextWrapping="WrapWithOverflow" />
+                </StackPanel>
+                
+                <Grid Margin="0 4 0 0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="120" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Label Grid.Column="0" Content="Input video"  />
+                    <TextBox Grid.Column="1" IsReadOnly="True" >
+                        <TextBox.Text>
+                            <MultiBinding StringFormat="{}{0}x{1} @ {2:#.##}fps">
+                                <Binding Path="SourceWidth" />
+                                <Binding Path="SourceHeight" />
+                                <Binding Path="SourceFPS" />
+                            </MultiBinding>
+                        </TextBox.Text>
+                    </TextBox>
+                </Grid>
+                <Separator Margin="0 8 0 8" />
+
+                <Grid Margin="0 0 0 4" >
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="120" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Label Grid.Column="0" Content="Max bitrate (Mbps)"  />
+                    <mah:NumericUpDown Grid.Column="1" MinWidth="150" Minimum="1.000" Interval="0.5" NumericInputMode="All" StringFormat="N2" HorizontalAlignment="Stretch" Value="{Binding Path=VideoBitrate}" />
+                </Grid>
+                <Grid Margin="0 0 0 4" >
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="120" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Label Grid.Column="0" Content="FPS"  />
+                    <mah:NumericUpDown Grid.Column="1" MinWidth="150" Minimum="10" Maximum="{Binding Path=SourceFPS}" Interval="5" NumericInputMode="Numbers" HorizontalAlignment="Stretch" Value="{Binding Path=TargetFPS}" />
+                </Grid>
+                
+                <Grid Margin="0 0 0 4" >
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="120" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Label Grid.Column="0" Content="Clip width"  />
+                    <mah:NumericUpDown Grid.Column="1" MinWidth="150" Minimum="480" Maximum="{Binding Path=SourceWidth}" NumericInputMode="Numbers" HideUpDownButtons="True"  HorizontalAlignment="Stretch" Value="{Binding Path=TargetWidth}" />
+                </Grid>
+
+                <Grid Margin="0 0 0 4" >
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="120" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Label Grid.Column="0" Content="Clip height"  />
+                    <mah:NumericUpDown Grid.Column="1" MinWidth="150" Minimum="480" Maximum="{Binding Path=SourceHeight}" NumericInputMode="Numbers" HideUpDownButtons="True"  HorizontalAlignment="Stretch" Value="{Binding Path=TargetHeight}" />
+                </Grid>
+
+                <Separator Margin="0 8 0 8" />
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="auto" />
+                    </Grid.ColumnDefinitions>
+                    <ComboBox Grid.Column="0" mah:TextBoxHelper.Watermark="Preset" mah:TextBoxHelper.UseFloatingWatermark="True" Margin="0 0 0 4" SelectedItem="{Binding Path=VideoPreset, Mode=TwoWay}" ItemsSource="{Binding Path=VideoClipPresetValues}" />
+                </Grid>
+            </StackPanel>
+        </Expander>
+        <Expander Header="Audio settings" IsEnabled="{Binding Path=AudioSettingsEnabled}">
+            <StackPanel>
+                <DataGrid ItemsSource="{Binding Path=AudioSettings}" AutoGenerateColumns="False" >
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Binding="{Binding Path=TrackName, Mode=OneWay}" Header="Name" IsReadOnly="True" />
+                        <DataGridTextColumn Binding="{Binding Path=TrackID, Mode=OneWay}" Header="ID" IsReadOnly="True" />
+                        <DataGridCheckBoxColumn Binding="{Binding Path=IsEnabled, Mode=TwoWay}" Header="Output track" />
+                        <mah:DataGridNumericUpDownColumn Minimum="0" Maximum="100" Interval="1" Binding="{Binding Path=Volume, Mode=TwoWay}" Header="Volume"  />
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <Separator Margin="0 8 0 8" />
+
+                <CheckBox Margin="2 0 2 2" Content="Merge audio tracks?" IsChecked="{Binding Path=MergeAudio}" />
+            </StackPanel>
+        </Expander>
+
+        <Separator Margin="0 8 0 8" />
+        <!--<Grid Margin="0 0 0 4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="150" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Label Grid.Column="0" Content="Estimated maximum size"  />
+            <TextBox Grid.Column="1" IsReadOnly="True" Text="{Binding Path=EstimatedMaxSize, Mode=OneWay}" />
+        </Grid>-->
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="150" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Label Grid.Column="0" Content="Clip duration"  />
+            <TextBox Grid.Column="1" IsReadOnly="True" Text="{Binding Path=Duration, Mode=OneWay}" />
+        </Grid>
+
+        <Separator Margin="0 8 0 8" />
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" Margin="2" Command="{Binding Path=DeleteCommand}">
+                <StackPanel Orientation="Horizontal" >
+                    <iconPacks:PackIconMaterialDesign Kind="Delete" VerticalAlignment="Center" Foreground="{DynamicResource MahApps.Brushes.Button.Flat.Foreground}" />
+                    <Label Content="Delete" Foreground="{DynamicResource MahApps.Brushes.Button.Flat.Foreground}" />
+                </StackPanel>
+            </Button>
+            <Button Grid.Column="1" Margin="2" Command="{Binding Path=ProcessCommand}">
+                <StackPanel Orientation="Horizontal">
+                    <iconPacks:PackIconMaterialDesign Kind="PlayArrow" VerticalAlignment="Center" Foreground="{DynamicResource MahApps.Brushes.Button.Flat.Foreground}" />
+                    <Label Content="Process now" Foreground="{DynamicResource MahApps.Brushes.Button.Flat.Foreground}" />
+                </StackPanel>
+            </Button>
+        </Grid>
+    </StackPanel>
+</UserControl>
