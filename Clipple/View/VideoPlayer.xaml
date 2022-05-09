@@ -1,0 +1,132 @@
+﻿<UserControl x:Class="Clipple.View.VideoPlayer"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:converters="clr-namespace:Clipple.Converters"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks" 
+             xmlns:ffme="clr-namespace:Unosquare.FFME;assembly=ffme.win"
+             xmlns:viewmodel="clr-namespace:Clipple.ViewModel"
+             xmlns:local="clr-namespace:Clipple" xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls" 
+             xmlns:System="clr-namespace:System;assembly=netstandard"
+             d:DataContext="{d:DesignInstance Type=viewmodel:VideoPlayerViewModel}"
+             mc:Ignorable="d" 
+             d:DesignHeight="1080" d:DesignWidth="1920" >
+    <UserControl.Resources>
+        <converters:InverseBooleanConverter x:Key="InverseBooleanConverter" />
+    </UserControl.Resources>
+    <Grid>
+        <Grid Visibility="{Binding Path=IsWaitingVideo, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <iconPacks:PackIconMaterialDesign Width="100" Height="100" Kind="Info" HorizontalAlignment="Center" Margin="0 0 0 10"  />
+                <Label Content="Clipple does not have any media yet, try:" FontSize="24" HorizontalAlignment="Center" Margin="0 0 0 10"/>
+                <StackPanel>
+                    <Label Content="1. Dragging and dropping videos, or folders of videos into clipple" />
+                    <Label Content="2. Opening the videos tab using the top left button and adding videos through the context menu" />
+                    <Label Content="3. Right clicking files or folders in the windows file explorer and using the 'Open with Clipple' option" />
+                </StackPanel>
+            </StackPanel>
+        </Grid>
+        <Grid Visibility="{Binding Path=IsFailed, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <iconPacks:PackIconMaterialDesign Width="100" Height="100" Kind="Warning" HorizontalAlignment="Center"  />
+                <Label Content="The media could not be loaded" FontSize="24" HorizontalAlignment="Center" />
+                <Label Content="{Binding Path=Video.FileInfo.FullName}" ContentStringFormat="The media could not be loaded" />
+            </StackPanel>
+        </Grid>
+        <Grid Visibility="{Binding Path=IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <mah:ProgressRing />
+        </Grid>
+        <Grid Visibility="{Binding Path=IsReady, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="auto" />
+            </Grid.RowDefinitions>
+
+            <ffme:MediaElement x:Name="videoPlayer" BorderThickness="1" Grid.Row="0" Margin="2, 2, 2, 2" LoadedBehavior="Manual" UnloadedBehavior="Manual" 
+                           MediaOpened="OnMediaOpened" MediaEnded="OnMediaEnded" MediaFailed="OnMediaFailed" MediaClosed="OnMediaClosed" MediaChanged="OnMediaChanged" MediaChanging="OnMediaChanging" RenderingVideo="OnRenderingVideo"
+                           BorderBrush="{StaticResource MahApps.Brushes.Accent}"
+                           Volume="{Binding Path=Volume, Mode=TwoWay}" 
+                           IsMuted="{Binding Path=IsMuted, Mode=TwoWay}" 
+                           Position="{Binding VideoPosition}"  />
+
+            <Grid Margin="8 8 8 8" Grid.Row="1" VerticalAlignment="Bottom">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="auto" />
+                </Grid.RowDefinitions>
+                <StackPanel Grid.Row="0" Grid.ColumnSpan="2">
+                    <StackPanel>
+                        <ItemsControl ItemsSource="{Binding Path=Video.Clips, Mode=TwoWay}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <mah:RangeSlider DataContext="{Binding}" Style="{StaticResource Clipple.Styles.RangeSlider}" MinRangeWidth="0" MinRange="0" 
+                                                     Minimum="0" Maximum="{Binding Path=DataContext.FrameCount, RelativeSource={RelativeSource AncestorType=UserControl}}" IsMoveToPointEnabled="True"
+                                                     Visibility="{Binding Path=ShowInPlayer, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                                     LowerValue="{Binding Path=StartFrame, Mode=TwoWay}"
+                                                     UpperValue="{Binding Path=EndFrame, Mode=TwoWay}"
+                                                     SelectionEnd="{Binding Path=EndFrame, Mode=TwoWay}" ToolTip="{Binding Path=Title}" >
+                                    </mah:RangeSlider>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+
+                    <Slider TickPlacement="TopLeft" TickFrequency="1" IsMoveToPointEnabled="True" Style="{StaticResource Clipple.Styles.Slider}" IsEnabled="{Binding Path=IsReady}" 
+                        Value="{Binding Path=VideoProgressPercent, Mode=TwoWay}" Grid.Column="1" Minimum="0" Maximum="100" 
+                        Thumb.DragStarted="Slider_DragStarted" Thumb.DragCompleted="Slider_DragCompleted"/>
+                    <Grid >
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                            <Label Padding="0" Grid.Column="0" Content="{Binding Path=VideoPosition}" ContentStringFormat="{}{0:hh}:{0:mm}:{0:ss}" FontSize="12"  />
+                            <Label Padding="0" Grid.Column="0" Content="{Binding Path=CurrentFrame}" Margin="4 0 0 0" FontSize="12"  />
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Label Padding="0" Grid.Column="0" Content="{Binding Path=FrameCount}" Margin="0 0 4 0" FontSize="12"  />
+                            <Label Padding="0" Content="{Binding RemainingTime}" ContentStringFormat="{}{0:hh}:{0:mm}:{0:ss}" HorizontalAlignment="Right" />
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+
+                <Grid Grid.Row="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid Grid.Column="0" VerticalAlignment="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="auto" />
+                            <ColumnDefinition Width="*" MaxWidth="200" />
+                            <ColumnDefinition Width="auto" />
+                        </Grid.ColumnDefinitions>
+                        <ToggleButton IsChecked="{Binding Path=IsMuted}" HorizontalAlignment="Left" Grid.Column="0" Width="32" Height="32" Style="{DynamicResource MahApps.Styles.ToggleButton.Circle}" ToolTip="Mute" Margin="0 0 4 0">
+                            <iconPacks:MaterialDesign Width="20" Height="20" Kind="VolumeOff" />
+                        </ToggleButton>
+                        <Slider IsMoveToPointEnabled="True" TickFrequency="0.05" Value="{Binding Path=Volume, Mode=TwoWay}" IsEnabled="{Binding Path=IsMuted, Mode=TwoWay, Converter={StaticResource InverseBooleanConverter}}" Minimum="0" Maximum="1" Style="{StaticResource MahApps.Styles.Slider.Flat}" TickPlacement="Both" Grid.Column="1" HorizontalAlignment="Stretch" Height="30" />
+                        <ComboBox Grid.Column="2" mah:TextBoxHelper.Watermark="Audio track" mah:TextBoxHelper.UseFloatingWatermark="True" MaxWidth="250" Margin="8 0 4 0" ItemsSource="{Binding Path=AudioTracks}" SelectedIndex="{Binding Path=SelectedAudioTrackIndex, Mode=TwoWay}" />
+                    </Grid>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Button Width="48" Height="48" Style="{DynamicResource MahApps.Styles.Button.Circle}" ToolTip="Previous frame" Margin="0 0 4 0" Command="{Binding Source={x:Static local:AppCommands.PreviousFrameCommand}}" IsEnabled="{Binding Path=IsReady}">
+                            <iconPacks:MaterialDesign Kind="ArrowBack" />
+                        </Button>
+                        <Button Width="48" Height="48" Style="{DynamicResource MahApps.Styles.Button.Circle}" ToolTip="Play" Margin="0 0 4 0" Command="{Binding Source={x:Static local:AppCommands.ControlCommand}}" IsEnabled="{Binding Path=IsReady}">
+                            <iconPacks:PackIconMaterialDesign Kind="{Binding Path=ControlButtonIcon}" />
+                        </Button>
+                        <Button Width="48" Height="48" Style="{DynamicResource MahApps.Styles.Button.Circle}" ToolTip="Next frame" Margin="0 0 0 0" Command="{Binding Source={x:Static local:AppCommands.NextFrameCommand}}" IsEnabled="{Binding Path=HasContent}">
+                            <iconPacks:MaterialDesign Kind="ArrowForward"  />
+                        </Button>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right">
+                        <!-- Useful later maybe? Almost every video has a single video track and this control takes up spac -->
+                        <ComboBox Visibility="Hidden" Grid.Column="3" mah:TextBoxHelper.Watermark="Video track" mah:TextBoxHelper.UseFloatingWatermark="True" MaxWidth="250" Margin="0 0 4 0" ItemsSource="{Binding Path=VideoTracks}" SelectedIndex="{Binding Path=SelectedVideoTrackIndex, Mode=TwoWay}" />
+                        
+                        <Button HorizontalAlignment="Right" Width="32" Height="32" Style="{DynamicResource MahApps.Styles.Button.Circle}" ToolTip="New clip from playhead" Command="{Binding Path=AddClipCommand}">
+                            <iconPacks:MaterialDesign Width="20" Height="20" Kind="Add" />
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

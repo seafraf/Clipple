@@ -1,0 +1,111 @@
+﻿<mah:MetroWindow x:Class="Clipple.View.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:mah="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+        xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+        xmlns:views="clr-namespace:Clipple.View"
+        xmlns:vm="clr-namespace:Clipple.ViewModel"
+        mc:Ignorable="d"
+        Title="Clipple" Height="900" Width="1440" AllowDrop="True" DragOver="OnDragOver" Drop="OnDrop">
+    <mah:MetroWindow.DataContext>
+        <vm:RootViewModel />
+    </mah:MetroWindow.DataContext>
+    <mah:MetroWindow.RightWindowCommands>
+        <mah:WindowCommands >
+            <StackPanel Margin="10, 0, 0, 0"  Orientation="Horizontal">
+                <iconPacks:PackIconMaterialDesign VerticalAlignment="Center" Kind="Settings" />
+                <Button Content="Settings" />
+            </StackPanel>
+            <StackPanel Margin="10, 0, 0, 0"  Orientation="Horizontal">
+                <iconPacks:PackIconMaterialDesign VerticalAlignment="Center" Kind="PlayArrow" />
+                <Button Content="Process all clips" Command="{Binding Path=ProcessAllVideos}" IsEnabled="{Binding Path=HasClips}" />
+            </StackPanel>
+        </mah:WindowCommands>
+    </mah:MetroWindow.RightWindowCommands>
+
+    <mah:MetroWindow.LeftWindowCommands>
+        <mah:WindowCommands>
+            <StackPanel Margin="10, 0, 0, 0"  Orientation="Horizontal">
+                <iconPacks:PackIconMaterialDesign VerticalAlignment="Center" Kind="Folder" />
+                <Button Content="Videos" Command="{Binding Path=OpenVideosFlyout}" />
+            </StackPanel>
+        </mah:WindowCommands>
+    </mah:MetroWindow.LeftWindowCommands>
+
+    <mah:MetroWindow.Flyouts>
+        <mah:FlyoutsControl>
+            <mah:Flyout Header="Videos" IsOpen="{Binding Path=IsVideoFlyoutOpen}" Position="Left" Width="auto">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Grid.Column="0" Margin="0 0 0 6">
+                        <DataGrid CanUserAddRows="False" CanUserDeleteRows="False" AutoGenerateColumns="False" SelectedValue="{Binding Path=SelectedVideo}" SelectionMode="Single"
+                      EnableColumnVirtualization="True" EnableRowVirtualization="True" HeadersVisibility="All" SelectionUnit="FullRow" ItemsSource="{Binding Path=Videos}">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Binding="{Binding Path=FileSize, Mode=OneWay}" Header="Size" IsReadOnly="True" />
+                                <DataGridTextColumn Binding="{Binding Path=Clips.Count, Mode=OneWay}" Header="Clips" IsReadOnly="True" />
+                                <DataGridCheckBoxColumn Binding="{Binding Path=Delete, Mode=TwoWay}" Header="Delete" />
+                                <DataGridTextColumn Binding="{Binding Path=FileInfo.FullName, Mode=OneWay}" Header="File path" IsReadOnly="True" />
+                            </DataGrid.Columns>
+                            <DataGrid.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Add video" Command="{Binding Path=AddVideoCommand}">
+                                        <MenuItem.Icon>
+                                            <iconPacks:PackIconMaterialDesign Kind="Add" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="Add folder" Command="{Binding Path=AddFolderCommand}">
+                                        <MenuItem.Icon>
+                                            <iconPacks:PackIconMaterialDesign Kind="FolderOpen" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <Separator />
+                                    <MenuItem Header="Process video's clips" Command="{Binding Path=ProcessClipsCommand}" IsEnabled="{Binding Path=HasSelectedVideoClips}">
+                                        <MenuItem.Icon>
+                                            <iconPacks:PackIconMaterialDesign Kind="PlayArrow" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <Separator />
+                                    <MenuItem Header="Clear video's clips" Command="{Binding Path=ClearClipsCommand}" IsEnabled="{Binding Path=HasSelectedVideoClips}">
+                                        <MenuItem.Icon>
+                                            <iconPacks:PackIconMaterialDesign Kind="Clear" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="Remove video from list" Command="{Binding Path=RemoveVideoCommand}" IsEnabled="{Binding Path=HasSelectedVideo}">
+                                        <MenuItem.Icon>
+                                            <iconPacks:PackIconMaterialDesign Kind="Delete" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                </ContextMenu>
+                            </DataGrid.ContextMenu>
+                        </DataGrid>
+                    </StackPanel>
+                </ScrollViewer>
+            </mah:Flyout>
+        </mah:FlyoutsControl>
+    </mah:MetroWindow.Flyouts>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*" MinWidth="600" />
+            <ColumnDefinition Width="375" MinWidth="200" />
+        </Grid.ColumnDefinitions>
+        <GridSplitter Grid.Column="0" Width="5" HorizontalAlignment="Right" VerticalAlignment="Stretch" ShowsPreview="False" />
+
+        <views:VideoPlayer x:Name="videoPlayer" DataContext="{Binding Path=VideoPlayerViewModel}" Grid.Column="0" Margin="6 6 9 6" />
+
+        <ScrollViewer Grid.Column="1" Margin="6 6 0 6" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <ItemsControl ItemsSource="{Binding SelectedVideo.Clips, Mode=TwoWay}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Expander Margin="0 0 6 0" Header="{Binding Path=Title}" >
+                                <views:ClipSettings DataContext="{Binding}" />
+                            </Expander>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</mah:MetroWindow>
