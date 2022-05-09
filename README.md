@@ -1,4 +1,3 @@
-# clipman
-Clip manager
+# Clipple
 
 not ready yet don't use 👀
