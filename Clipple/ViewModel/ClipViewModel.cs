@@ -84,7 +84,6 @@ namespace Clipple.ViewModel
                     "This action cannot be undone.", MessageDialogStyle.AffirmativeAndNegative) == MessageDialogResult.Affirmative)
                 {
                     App.ViewModel.SelectedVideo?.Clips.Remove(this);
-                    App.ViewModel.NotifyClipsChanged();
                 }
             });
 

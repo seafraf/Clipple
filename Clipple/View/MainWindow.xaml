@@ -7,16 +7,17 @@
         xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
         xmlns:views="clr-namespace:Clipple.View"
         xmlns:vm="clr-namespace:Clipple.ViewModel"
+        xmlns:local="clr-namespace:Clipple"
         mc:Ignorable="d"
-        Title="Clipple" Height="900" Width="1440" AllowDrop="True" DragOver="OnDragOver" Drop="OnDrop">
+        Title="Clipple" Height="900" Width="1440" AllowDrop="True" DragOver="OnDragOver" Drop="OnDrop" PreviewKeyDown="OnPreviewKeyDown" >
     <mah:MetroWindow.DataContext>
         <vm:RootViewModel />
-    </mah:MetroWindow.DataContext>
+    </mah:MetroWindow.DataContext>   
     <mah:MetroWindow.RightWindowCommands>
         <mah:WindowCommands >
             <StackPanel Margin="10, 0, 0, 0"  Orientation="Horizontal">
                 <iconPacks:PackIconMaterialDesign VerticalAlignment="Center" Kind="Settings" />
-                <Button Content="Settings" />
+                <Button Content="Settings" Command="{Binding Path=OpenSettingsFlyout}" />
             </StackPanel>
             <StackPanel Margin="10, 0, 0, 0"  Orientation="Horizontal">
                 <iconPacks:PackIconMaterialDesign VerticalAlignment="Center" Kind="PlayArrow" />
@@ -36,7 +37,7 @@
 
     <mah:MetroWindow.Flyouts>
         <mah:FlyoutsControl>
-            <mah:Flyout Header="Videos" IsOpen="{Binding Path=IsVideoFlyoutOpen}" Position="Left" Width="auto">
+            <mah:Flyout Header="Videos" IsOpen="{Binding Path=IsVideosFlyoutOpen}" Position="Left" Width="auto">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Grid.Column="0" Margin="0 0 0 6">
                         <DataGrid CanUserAddRows="False" CanUserDeleteRows="False" AutoGenerateColumns="False" SelectedValue="{Binding Path=SelectedVideo}" SelectionMode="Single"
@@ -82,9 +83,11 @@
                     </StackPanel>
                 </ScrollViewer>
             </mah:Flyout>
+            <mah:Flyout Header="Settings" IsOpen="{Binding Path=IsSettingsFlyoutOpen}" Position="Right" Width="auto">
+                <views:Settings DataContext="{Binding Path=SettingsViewModel}" />
+            </mah:Flyout>
         </mah:FlyoutsControl>
     </mah:MetroWindow.Flyouts>
-
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="1*" MinWidth="600" />
@@ -94,12 +97,12 @@
 
         <views:VideoPlayer x:Name="videoPlayer" DataContext="{Binding Path=VideoPlayerViewModel}" Grid.Column="0" Margin="6 6 9 6" />
 
-        <ScrollViewer Grid.Column="1" Margin="6 6 0 6" VerticalScrollBarVisibility="Auto">
+        <ScrollViewer Grid.Column="1" Margin="6 6 6 6" VerticalScrollBarVisibility="Auto">
             <StackPanel>
                 <ItemsControl ItemsSource="{Binding SelectedVideo.Clips, Mode=TwoWay}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Expander Margin="0 0 6 0" Header="{Binding Path=Title}" >
+                            <Expander Margin="0 0 6 0" Header="{Binding Path=Title}">
                                 <views:ClipSettings DataContext="{Binding}" />
                             </Expander>
                         </DataTemplate>

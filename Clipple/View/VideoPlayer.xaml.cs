@@ -154,7 +154,7 @@ namespace Clipple.View
             if (DataContext is not VideoPlayerViewModel vm || vm.Video == null)
                 return;
 
-            if (isScrubbing)
+            if (isScrubbing || !videoPlayer.IsPlaying)
                 return;
 
             var currentFrame = (long)Math.Round(e.StartTime.TotalSeconds * vm.VideoFPS);

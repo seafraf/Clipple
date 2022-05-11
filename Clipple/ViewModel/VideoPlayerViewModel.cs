@@ -47,27 +47,12 @@ namespace Clipple.ViewModel
         }
     }
 
+    [Serializable]
     public class VideoPlayerViewModel : ObservableObject
     {
         public VideoPlayerViewModel()
         {
-            AddClipCommand = new RelayCommand(() =>
-            {
-                if (Video == null)
-                    return;
-
-                // Set a default clip length of 10 seconds
-                var numFrames = (long)(10 * VideoFPS);
-                var newClip   = new ClipViewModel(VideoFPS, VideoWidth, VideoHeight, CurrentFrame, Math.Min(CurrentFrame + numFrames, FrameCount),
-                    $"Untitled {Video.Clips.Count + 1}", App.ViewModel.Settings.DefaultOutputFolder);
-
-                foreach (var track in AudioTracks)
-                    newClip.AudioSettings.Add(new AudioSettingsModel(track.Index, Video.TrackNames.ElementAtOrDefault(track.Index) ?? $"Audio track {track.Index}"));
-
-                Video.Clips.Add(newClip);
-
-                App.ViewModel.NotifyClipsChanged();
-            });
+            AddClipCommand = new RelayCommand(CreateClip);
         }
 
         /// <summary>
@@ -315,12 +300,92 @@ namespace Clipple.ViewModel
         #endregion
 
         #region Methods
+        /// <summary>
+        /// Tries to seek a specific frame in the video
+        /// </summary>
+        /// <param name="frame">The frame to seek to</param>
         public void SeekFrame(long frame)
         {
             if (frame == 0 || frame > FrameCount)
                 return;
 
             VideoPosition = TimeSpan.FromSeconds((double)frame / VideoFPS);
+        }
+
+        /// <summary>
+        /// Creates a new clip at the playhead
+        /// </summary>
+        /// <exception cref="NotImplementedException"></exception>
+        internal void CreateClip()
+        {
+            if (Video == null)
+                return;
+
+            // Set a default clip length of 10 seconds
+            var numFrames = (long)(10 * VideoFPS);
+            var newClip = new ClipViewModel(VideoFPS, VideoWidth, VideoHeight, CurrentFrame, Math.Min(CurrentFrame + numFrames, FrameCount),
+                $"Untitled {Video.Clips.Count + 1}", App.ViewModel.SettingsViewModel.DefaultOutputFolder);
+
+            foreach (var track in AudioTracks)
+                newClip.AudioSettings.Add(new AudioSettingsModel(track.Index, Video.TrackNames.ElementAtOrDefault(track.Index) ?? $"Audio track {track.Index}"));
+
+            Video.Clips.Add(newClip);
+        }
+
+        /// <summary>
+        /// NextClipEdge
+        /// </summary>
+        internal void NextClipEdge()
+        {
+            var edges = GetClipEdges();
+            edges.Sort();
+
+            foreach (var edge in edges)
+            {
+                if (edge > CurrentFrame)
+                {
+                    SeekFrame(edge);
+                    return;
+                }
+            }
+        }
+
+        /// <summary>
+        /// PreviosClipEdge
+        /// </summary>
+        internal void PreviosClipEdge()
+        {
+            var edges = GetClipEdges();
+            edges.Sort();
+
+            for (int i = edges.Count - 1; i >= 0; i--)
+            {
+                var edge = edges[i];
+                if (edge < CurrentFrame)
+                {
+                    SeekFrame(edge);
+                    return;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Generates a list of start and end frames of clips
+        /// </summary>
+        /// <returns>Said list</returns>
+        private List<long> GetClipEdges()
+        {
+            var edges = new List<long>();
+            if (Video == null)
+                return edges;
+
+            foreach (var clip in Video.Clips)
+            {
+                edges.Add(clip.StartFrame);
+                edges.Add(clip.EndFrame);
+            }
+
+            return edges;
         }
         #endregion
     }

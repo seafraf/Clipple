@@ -6,53 +6,30 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Input;
+using System.Xml.Serialization;
 
 namespace Clipple.ViewModel
 {
     public class RootViewModel : ObservableObject
     {
+
         public RootViewModel()
         {
-            VideoPlayerViewModel    = new VideoPlayerViewModel();
-            Settings                = new SettingsViewModel();
+            VideoPlayerViewModel = new VideoPlayerViewModel();
 
             // Create commands
-            SetupCommands();
-
-            // Change HasClips if the videos property changes
-            Videos.CollectionChanged += (s, e) =>
-            {
-                if (SelectedVideo == null || !Videos.Contains(SelectedVideo))
-                {
-                    if (Videos.Count > 0)
-                        SelectedVideo = Videos.First();
-                }
-
-                OnPropertyChanged(nameof(HasClips));
-            };
-
-            var args = Environment.GetCommandLineArgs();
-            if (args.Length > 1)
-            {
-                string open = args[1];
-                if (Directory.Exists(open))
-                {
-                    AddVideosFromFolder(open);
-                }
-                else if (File.Exists(open))
-                    AddVideo(open);
-            }
-        }
-       
-        private void SetupCommands()
-        {
-            OpenVideosFlyout = new RelayCommand(() => IsVideoFlyoutOpen = !IsVideoFlyoutOpen);
+            OpenVideosFlyout = new RelayCommand(() => IsVideosFlyoutOpen = !IsVideosFlyoutOpen);
+            OpenSettingsFlyout = new RelayCommand(() => IsSettingsFlyoutOpen = !IsSettingsFlyoutOpen);
             ProcessAllVideos = new RelayCommand(async () => await ClipProcessor.Process());
 
             AddVideoCommand = new RelayCommand(() =>
@@ -83,8 +60,6 @@ namespace Clipple.ViewModel
             {
                 if (SelectedVideo != null)
                     SelectedVideo.Clips.Clear();
-
-                NotifyClipsChanged();
             });
 
             RemoveVideoCommand = new RelayCommand(() =>
@@ -92,56 +67,173 @@ namespace Clipple.ViewModel
                 if (SelectedVideo != null)
                     Videos.Remove(SelectedVideo);
             });
+
+            // Change HasClips if the videos property changes
+            Videos.CollectionChanged += (s, e) =>
+            {
+                if (SelectedVideo == null || !Videos.Contains(SelectedVideo))
+                {
+                    if (Videos.Count > 0)
+                        SelectedVideo = Videos.First();
+                }
+
+                OnPropertyChanged(nameof(HasClips));
+            };
+
+            //Load settings and videos, or create new instances of the respective types
+            try
+            {
+                var applicationData = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    Application.ProductName);
+
+                var settingsFile = Path.Combine(applicationData, SettingsFileName);
+                var videosFile = Path.Combine(applicationData, VideosFileName);
+
+                var settingsFileReader = new FileStream(settingsFile, FileMode.Open);
+                SettingsViewModel = JsonSerializer.Deserialize<SettingsViewModel>(settingsFileReader) ?? throw new Exception();
+
+                var videosFileReader = new FileStream(videosFile, FileMode.Open);
+                var videos = JsonSerializer.Deserialize<ObservableCollection<VideoViewModel>>(videosFileReader) ?? throw new Exception();
+                foreach (var video in videos)
+                    Videos.Add(video);
+            }
+            catch (Exception)
+            {
+                // Use default settings if disk settings failed to load
+                SettingsViewModel = new SettingsViewModel();
+            }
+
+            var ingestResource = SettingsViewModel.IngestAutomatically ? SettingsViewModel.IngestFolder : null;
+
+            // Handle CLI input path/video
+            var args = Environment.GetCommandLineArgs();
+            if (args.Length > 1)
+                ingestResource = args[1];
+
+            if (ingestResource != null)
+            {
+                if (Directory.Exists(ingestResource))
+                {
+                    AddVideosFromFolder(ingestResource);
+                }
+                else if (File.Exists(ingestResource))
+                    AddVideo(ingestResource);
+            }
         }
 
+        #region Methods
+        /// <summary>
+        /// Using JSON serialization to save the following data to file:
+        /// - The entire SettingsViewModel
+        /// - The currently loaded videos and their respective clips
+        /// </summary>
+        public async void Save()
+        {
+            var applicationData = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                Application.ProductName);
+
+            if (!Directory.Exists(applicationData))
+                Directory.CreateDirectory(applicationData);
+
+            var settingsFile = Path.Combine(applicationData, SettingsFileName);
+            var videosFile = Path.Combine(applicationData, VideosFileName);
+
+            using var settingsWriter = new FileStream(settingsFile, FileMode.Create);
+            await JsonSerializer.SerializeAsync(settingsWriter, SettingsViewModel);
+
+            using var videosWriter = new FileStream(videosFile, FileMode.Create);
+            await JsonSerializer.SerializeAsync(videosWriter, Videos);
+        }
+
+        /// <summary>
+        /// Attempts to add every file in a directory as a video
+        /// </summary>
+        /// <param name="folder">The folder to add videos from</param>
+        /// <returns>True if every file in the specified folder was added successfully, false otherwise</returns>
         public bool AddVideosFromFolder(string folder)
         {
             if (!Directory.Exists(folder))
                 return false;
 
+            var failed = false;
             foreach (var file in Directory.GetFiles(folder))
             {
-                try
-                {
-                    AddVideo(file);
-                }
-                catch
-                {
-                    // Ignore exception for now.. this generally means the input file was not recognised was not an ISOBMFF container
-                }
+                if (!AddVideo(file))
+                    failed = true;
+            }
+
+            return !failed;
+        }
+
+        /// <summary>
+        /// Add a video a video file to the videos list
+        /// </summary>
+        /// <param name="file">The full file name of the video file to add</param>
+        /// <returns>True if the video was added, false otherwise</returns>
+        public bool AddVideo(string file)
+        {
+            // File doesn't exist
+            if (!File.Exists(file))
+                return false;
+
+            // We already have this video in the list
+            if (Videos.Where((x) => x.FileInfo.FullName == file).Any())
+                return false;
+
+            try
+            {
+                Videos.Add(new VideoViewModel(file));
+            }
+            catch (Exception)
+            {
+                return false;
             }
 
             return true;
         }
 
-        public bool AddVideo(string file)
+        /// <summary>
+        /// Selects the next video in the videos list
+        /// </summary>
+        internal void NextVideo()
         {
-            if (!File.Exists(file))
-                return false;
+            if (SelectedVideo == null)
+                return;
 
-            try
-            {
-                var info = new FileInfo(file);
-                var parser = new SimpleParser(file);
-                parser.Parse();
+            var idx = Videos.IndexOf(SelectedVideo);
+            if (idx == -1 || idx == (Videos.Count - 1))
+                return;
 
-                Videos.Add(new VideoViewModel(info, parser.Tracks.Select(track => track.Name).ToArray()));
-            }
-            catch (Exception ex)
-            {
-                // Notify them somehow that a video failed to parse?
-            }
+            SelectedVideo = Videos[idx + 1];
+        }
 
-            return true;
-        } 
+        /// <summary>
+        /// Selects the previous video in the videos list
+        /// </summary>
+        internal void PreviousVideo()
+        {
+            if (SelectedVideo == null)
+                return;
 
+            var idx = Videos.IndexOf(SelectedVideo);
+            if (idx == -1 || idx == 0)
+                return;
+
+            SelectedVideo = Videos[idx - 1];
+        }
+
+        /// <summary>
+        /// Called by various other view models to notify the root view model that clips have changed, we need to know
+        /// this to enable the "process all clips" command
+        /// </summary>
         public void NotifyClipsChanged()
         {
             OnPropertyChanged(nameof(HasClips));
             OnPropertyChanged(nameof(HasSelectedVideoClips));
         }
-
-        public VideoPlayerViewModel VideoPlayerViewModel { get; }
+        #endregion
 
         #region Properties
         private VideoViewModel? selectedVideo;
@@ -159,15 +251,11 @@ namespace Clipple.ViewModel
 
                 // Schedule an open for this video
                 if (value != null)
+                {
+                    Trace.WriteLine(value.FileInfo.FullName);
                     AppCommands.OpenCommand.Execute(value.FileInfo.FullName);
+                }
             }
-        }
-
-        private SettingsViewModel settings;
-        public SettingsViewModel Settings
-        {
-            get => settings;
-            set => SetProperty(ref settings, value);
         }
 
         private ObservableCollection<VideoViewModel> videos = new();
@@ -177,11 +265,18 @@ namespace Clipple.ViewModel
             set { videos = value; }
         }
 
-        private bool isVideoFlyoutOpen;
-        public bool IsVideoFlyoutOpen
+        private bool isVideosFlyoutOpen;
+        public bool IsVideosFlyoutOpen
         {
-            get => isVideoFlyoutOpen;
-            set => SetProperty(ref isVideoFlyoutOpen, value);
+            get => isVideosFlyoutOpen;
+            set => SetProperty(ref isVideosFlyoutOpen, value);
+        }
+
+        private bool isSettingsFlyoutOpen;
+        public bool IsSettingsFlyoutOpen
+        {
+            get => isSettingsFlyoutOpen;
+            set => SetProperty(ref isSettingsFlyoutOpen, value);
         }
 
         /// <summary>
@@ -201,16 +296,33 @@ namespace Clipple.ViewModel
         /// Does the selected video have any clips?
         /// </summary>
         public bool HasSelectedVideoClips => SelectedVideo != null && SelectedVideo.Clips.Count > 0;
+
+        /// <summary>
+        /// Reference to the video player view model
+        /// </summary>
+        [field: XmlIgnore]
+        public VideoPlayerViewModel VideoPlayerViewModel { get; }
+
+        /// <summary>
+        /// Reference to the settings
+        /// </summary>
+        public SettingsViewModel SettingsViewModel { get; }
         #endregion
 
         #region Commands
-        public ICommand OpenVideosFlyout { get; set; }
-        public ICommand ProcessAllVideos { get; set; }
-        public ICommand AddVideoCommand { get; set; }
-        public ICommand AddFolderCommand { get; set; }
-        public ICommand ProcessClipsCommand { get; set; }
-        public ICommand ClearClipsCommand { get; set; }
-        public ICommand RemoveVideoCommand { get; set; }
+        public ICommand OpenVideosFlyout { get; }
+        public ICommand OpenSettingsFlyout { get; }
+        public ICommand ProcessAllVideos { get; }
+        public ICommand AddVideoCommand { get; }
+        public ICommand AddFolderCommand { get; }
+        public ICommand ProcessClipsCommand { get; }
+        public ICommand ClearClipsCommand { get; }
+        public ICommand RemoveVideoCommand { get; }
+        #endregion
+
+        #region Member
+        private const string SettingsFileName = "settings.json";
+        private const string VideosFileName = "videos.json";
         #endregion
     }
 }
