@@ -10,6 +10,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
@@ -53,38 +54,32 @@ namespace Clipple.ViewModel
         NoPreset,
     }
 
-    public class ClipViewModel : ObservableObject, INotifyDataErrorInfo
+    public class ClipViewModel : ObservableObject, INotifyDataErrorInfo, IJsonOnDeserialized, IJsonOnDeserializing
     {
-        public ClipViewModel(double fps, int width, int height, long startFrame, long endFrame, string title, string folder)
+#pragma warning disable CS8618
+        /// <summary>
+        /// Used by the deserializer
+        /// </summary>
+        public ClipViewModel()
+#pragma warning restore CS8618
         {
-            SourceFPS = (int)Math.Round(fps);
-
-            VideoPreset     = VideoClipPreset.NoPreset;
-            
-            SourceWidth     = width;
-            SourceHeight    = height;
-            TargetWidth     = width;
-            TargetHeight    = height;
-            TargetFPS       = SourceFPS;
-            this.title      = title;
-            this.folder     = folder;
-
-            // End frame has to be set first so that it doesn't get clamped
-            EndFrame    = endFrame;
-            StartFrame  = startFrame;
-
-            SetStartFrameCommand    = new RelayCommand(() => StartFrame = App.ViewModel.VideoPlayerViewModel.CurrentFrame);
-            SetEndFrameCommand      = new RelayCommand(() => EndFrame = App.ViewModel.VideoPlayerViewModel.CurrentFrame);
-            GoToStartFrameCommand   = new RelayCommand(() => App.ViewModel.VideoPlayerViewModel.SeekFrame(StartFrame));
-            GoToEndFrameCommand     = new RelayCommand(() => App.ViewModel.VideoPlayerViewModel.SeekFrame(EndFrame));
+            SetStartTimeCommand     = new RelayCommand(() => StartTicks = App.MediaPlayer.CurTime);
+            SetEndTimeCommand       = new RelayCommand(() => EndTicks = App.MediaPlayer.CurTime);
+            GoToStartTimeCommand    = new RelayCommand(() => App.ViewModel.VideoPlayerViewModel.SeekTicks(StartTicks));
+            GoToEndTimeCommand      = new RelayCommand(() => App.ViewModel.VideoPlayerViewModel.SeekTicks(EndTicks));
 
             DeleteCommand = new RelayCommand(async () =>
             {
-                if (await App.Window.ShowMessageAsync($"Delete {title}?", 
+                var oldVisiblity = App.VideoPlayerVisible;
+                App.VideoPlayerVisible = false;
+
+                if (await App.Window.ShowMessageAsync($"Delete {title}?",
                     "This action cannot be undone.", MessageDialogStyle.AffirmativeAndNegative) == MessageDialogResult.Affirmative)
                 {
                     App.ViewModel.SelectedVideo?.Clips.Remove(this);
                 }
+
+                App.VideoPlayerVisible = oldVisiblity;
             });
 
             ProcessCommand = new RelayCommand(async () =>
@@ -95,59 +90,106 @@ namespace Clipple.ViewModel
             });
         }
 
-        #region Properties
-        private long startFrame;
-        public long StartFrame
+        public ClipViewModel(long startTicks, long endTicks, string title, string folder) :
+            this()
         {
-            get => startFrame;
+            VideoPreset     = VideoClipPreset.NoPreset;
+            this.title      = title;
+            this.folder     = folder;
+
+            // End time has to be set first so that it doesn't get clamped
+            EndTicks    = endTicks;
+            StartTicks  = startTicks;
+        }
+
+        #region Members
+        private bool isDeserializing = false;
+        #endregion
+
+        #region Properties
+        private VideoViewModel? parent;
+        [JsonIgnore]
+        public VideoViewModel? Parent
+        {
+            get => parent;
             set
             {
-                value = Math.Min(EndFrame, value);
+                SetProperty(ref parent, value);
 
-                SetProperty(ref startFrame, value);
+                OnPropertyChanged(nameof(SourceWidth));
+                OnPropertyChanged(nameof(SourceHeight));
+                OnPropertyChanged(nameof(SourceFPS));
+
+                // Set defaults
+                if (value != null)
+                {
+                    TargetWidth     = value.VideoWidth;
+                    TargetHeight    = value.VideoHeight;
+                    TargetFPS       = value.VideoFPS;
+                }
+            }
+        }
+
+        private long startTicks;
+        public long StartTicks
+        {
+            get => startTicks;
+            set
+            {
+                value = isDeserializing ? value : Math.Min(EndTicks, value);
+
+                SetProperty(ref startTicks, value);
                 OnPropertyChanged(nameof(EstimatedMaxSize));
                 OnPropertyChanged(nameof(Duration));
                 OnPropertyChanged(nameof(StartTime));
             }
         }
 
-        private long endFrame;
-        public long EndFrame
+        private long endTicks;
+        public long EndTicks
         {
-            get => endFrame;
+            get => endTicks;
             set
             {
-                value = Math.Max(StartFrame, value);
+                value = isDeserializing ? value : Math.Max(StartTicks, value);
 
-                SetProperty(ref endFrame, value);
+                SetProperty(ref endTicks, value);
                 OnPropertyChanged(nameof(EstimatedMaxSize));
                 OnPropertyChanged(nameof(Duration));
                 OnPropertyChanged(nameof(EndTime));
             }
         }
 
+        [JsonIgnore]
         public TimeSpan StartTime
         {
-            get => TimeSpan.FromSeconds((double)StartFrame / SourceFPS);
-            set => StartFrame = (long)Math.Round(value.TotalSeconds * SourceFPS);
+            get => TimeSpan.FromTicks(StartTicks);
+            set => StartTicks = value.Ticks;
         }
 
+        [JsonIgnore]
         public TimeSpan EndTime
         {
-            get => TimeSpan.FromSeconds((double)EndFrame / SourceFPS);
-            set => EndFrame = (long)Math.Round(value.TotalSeconds * SourceFPS);
+            get => TimeSpan.FromTicks(EndTicks);
+            set => EndTicks = value.Ticks;
         }
 
-        private int sourceFPS;
+        [JsonIgnore]
         public int SourceFPS
         {
-            get => sourceFPS;
-            set
-            {
-                SetProperty(ref sourceFPS, value);
-                OnPropertyChanged(nameof(EstimatedMaxSize));
-                OnPropertyChanged(nameof(Duration));
-            }
+            get => Parent?.VideoFPS ?? -1;
+        }
+
+        [JsonIgnore]
+        public int SourceWidth
+        {
+            get => Parent?.VideoWidth ?? -1;
+        }
+
+        [JsonIgnore]
+        public int SourceHeight
+        {
+            get => Parent?.VideoHeight ?? -1;
         }
 
         private ClipExportMode exportMode = ClipExportMode.Both;
@@ -176,29 +218,15 @@ namespace Clipple.ViewModel
             }
         }
 
-        private int fps = 60;
+        private int targetFPS;
         public int TargetFPS
         {
-            get => fps;
+            get => targetFPS;
             set
             {
-                SetProperty(ref fps, Math.Max(1, Math.Min(value, SourceFPS)));
+                SetProperty(ref targetFPS, Math.Max(1, Math.Min(value, SourceFPS)));
                 OnPropertyChanged(nameof(EstimatedMaxSize));
             }
-        }
-
-        private int sourceWidth;
-        public int SourceWidth
-        {
-            get => sourceWidth;
-            set => SetProperty(ref sourceWidth, value);
-        }
-
-        private int sourceHeight;
-        public int SourceHeight
-        {
-            get => sourceHeight;
-            set => SetProperty(ref sourceHeight, value);
         }
 
         private int targetWidth;
@@ -289,7 +317,6 @@ namespace Clipple.ViewModel
         }
 
         private VideoClipPreset videoPreset;
-
         public VideoClipPreset VideoPreset
         {
             get => videoPreset;
@@ -381,6 +408,7 @@ namespace Clipple.ViewModel
         /// <summary>
         /// Enumeration of all video clip presets
         /// </summary>
+        [JsonIgnore]
         public IEnumerable<VideoClipPreset> VideoClipPresetValues
         {
             get => Enum.GetValues(typeof(VideoClipPreset)).Cast<VideoClipPreset>();
@@ -389,12 +417,14 @@ namespace Clipple.ViewModel
         /// <summary>
         /// True when export mode is video only or both
         /// </summary>
+        [JsonIgnore]
         public bool VideoSettingsEnabled => 
             (ExportMode == ClipExportMode.VideoOnly || ExportMode == ClipExportMode.Both) && !CopyPackets;
 
         /// <summary>
         /// True when export mode is audio only or both
         /// </summary>
+        [JsonIgnore]
         public bool AudioSettingsEnabled => 
             (ExportMode == ClipExportMode.AudioOnly || ExportMode == ClipExportMode.Both) && !CopyPackets;
 
@@ -402,11 +432,12 @@ namespace Clipple.ViewModel
         /// Estimated, human-readable maximum size for the output of this clip.  Calculated by using maximum bitrates for
         /// video and audio
         /// </summary>
+        [JsonIgnore]
         public string EstimatedMaxSize
         {
             get
             {
-                var frames = EndFrame - StartFrame;
+                var frames = EndTicks - StartTicks;
                 var seconds = frames / SourceFPS;
                 var megabits = VideoBitrate * seconds;
                 return Formatting.ByteCountToString((long)(megabits * 125000));
@@ -416,14 +447,16 @@ namespace Clipple.ViewModel
         /// <summary>
         /// Duration of the clip
         /// </summary>
+        [JsonIgnore]
         public TimeSpan Duration
         {
-            get => TimeSpan.FromSeconds((EndFrame - StartFrame) / SourceFPS);
+            get => TimeSpan.FromTicks(EndTicks - StartTicks);
         }
 
         /// <summary>
         /// Returns a full file name for this clip, including absolute directory and extension.
         /// </summary>
+        [JsonIgnore]
         public string FullFileName
         {
             get
@@ -440,6 +473,7 @@ namespace Clipple.ViewModel
         /// <summary>
         /// Whether or not the copy packets can be used
         /// </summary>
+        [JsonIgnore]
         public bool CanCopyPackets => ExportMode != ClipExportMode.AudioOnly;
         #endregion
 
@@ -453,6 +487,7 @@ namespace Clipple.ViewModel
         /// <summary>
         /// True if propertyErrors contains any entries
         /// </summary>
+        [JsonIgnore]
         public bool HasErrors => propertyErrors.Any();
 
         /// <summary>
@@ -500,6 +535,10 @@ namespace Clipple.ViewModel
         #region Validators
         private void ValidateTitle()
         {
+            // Don't run validators when deserializing
+            if (isDeserializing)
+                return;
+
             ClearErrors(nameof(Title));
 
             // Check empty
@@ -530,6 +569,10 @@ namespace Clipple.ViewModel
 
         private void ValidateFolder()
         {
+            // Don't run validators when deserializing
+            if (isDeserializing)
+                return;
+
             ClearErrors(nameof(Folder));
 
             // Check empty
@@ -550,14 +593,35 @@ namespace Clipple.ViewModel
                 AddError(nameof(Folder), "Folder does not exist");
             }
         }
+
+        public void OnDeserialized()
+        {
+            isDeserializing = false;
+        }
+
+        public void OnDeserializing()
+        {
+            isDeserializing = true;
+        }
         #endregion
 
         #region Commands
-        public ICommand SetStartFrameCommand { get; }
-        public ICommand GoToStartFrameCommand { get; }
-        public ICommand SetEndFrameCommand { get; }
-        public ICommand GoToEndFrameCommand { get; }
+        [JsonIgnore]
+        public ICommand SetStartTimeCommand { get; }
+
+        [JsonIgnore]
+        public ICommand GoToStartTimeCommand { get; }
+
+        [JsonIgnore]
+        public ICommand SetEndTimeCommand { get; }
+
+        [JsonIgnore]
+        public ICommand GoToEndTimeCommand { get; }
+
+        [JsonIgnore]
         public ICommand DeleteCommand { get; }
+
+        [JsonIgnore]
         public ICommand ProcessCommand { get; }
         #endregion
     }

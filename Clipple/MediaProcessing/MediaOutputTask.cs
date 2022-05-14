@@ -149,7 +149,7 @@ namespace Clipple.MediaProcessing
              *    to copy the "best" audio stream
              * 3. Pass every audio stream to the AudioGraphFilter letting it handle mixing with a "amix" filter
              */
-            if (ClipSettings.MergeAudio)
+            if (ClipSettings.MergeAudio && enabledStreams.Length > 0)
             {
                 var bestStream   = enabledStreams.Last();
                 var newStream    = FE.Null(ffmpeg.avformat_new_stream(outputContext, null));

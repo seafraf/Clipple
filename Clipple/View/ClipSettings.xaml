@@ -47,14 +47,11 @@
                     <RowDefinition Height="auto" />
                 </Grid.RowDefinitions>
 
-                <Label Grid.Column="0" Grid.Row="0" Content="Frame" Margin="2" />
-                <mah:NumericUpDown Grid.Column="1" Grid.Row="0" MinWidth="150" Minimum="0" Maximum="{Binding Path=EndFrame}"  HorizontalAlignment="Stretch" Value="{Binding Path=StartFrame}" Margin="2" />
-
                 <Label Grid.Column="0" Grid.Row="1" Content="Time" Margin="2"  />
-                <TextBox Grid.Column="1" Grid.Row="1" Text="{Binding Path=StartTime}" Margin="2"  />
+                <TextBox Grid.Column="1" Grid.Row="1" Text="{Binding Path=StartTime, StringFormat=hh\\:mm\\:ss\\.fff}" Margin="2"  />
 
-                <Button Grid.ColumnSpan="2" Grid.Row="2" Content="Set" Margin="2" Command="{Binding Path=SetStartFrameCommand}" />
-                <Button Grid.ColumnSpan="2" Grid.Row="3" Content="Go to" Margin="2 0 2 0" Command="{Binding Path=GoToStartFrameCommand}" />
+                <Button Grid.ColumnSpan="2" Grid.Row="2" Content="Set" Margin="2" Command="{Binding Path=SetStartTimeCommand}" />
+                <Button Grid.ColumnSpan="2" Grid.Row="3" Content="Go to" Margin="2 0 2 0" Command="{Binding Path=GoToStartTimeCommand}" />
             </Grid>
         </Expander>
 
@@ -71,14 +68,11 @@
                     <RowDefinition Height="auto" />
                 </Grid.RowDefinitions>
                 
-                <Label Grid.Column="0" Grid.Row="0" Content="Frame" Margin="2" />
-                <mah:NumericUpDown Grid.Column="1" Grid.Row="0" MinWidth="150" Minimum="{Binding Path=StartFrame}" HorizontalAlignment="Stretch" Value="{Binding Path=EndFrame}" Margin="2"  />
-
                 <Label Grid.Column="0" Grid.Row="1" Content="Time" Margin="2"  />
-                <TextBox Grid.Column="1" Grid.Row="1" Text="{Binding Path=EndTime}" Margin="2"  />
+                <TextBox Grid.Column="1" Grid.Row="1" Text="{Binding Path=EndTime, StringFormat=hh\\:mm\\:ss\\.fff}" Margin="2"  />
 
-                <Button Grid.ColumnSpan="2" Grid.Row="2" Content="Set" Margin="2" Command="{Binding Path=SetEndFrameCommand}" />
-                <Button Grid.ColumnSpan="2" Grid.Row="3" Content="Go to" Margin="2 0 2 0" Command="{Binding Path=GoToEndFrameCommand}" />
+                <Button Grid.ColumnSpan="2" Grid.Row="2" Content="Set" Margin="2" Command="{Binding Path=SetEndTimeCommand}" />
+                <Button Grid.ColumnSpan="2" Grid.Row="3" Content="Go to" Margin="2 0 2 0" Command="{Binding Path=GoToEndTimeCommand}" />
             </Grid>
         </Expander>
 
@@ -105,9 +99,9 @@
                     <TextBox Grid.Column="1" IsReadOnly="True" >
                         <TextBox.Text>
                             <MultiBinding StringFormat="{}{0}x{1} @ {2:#.##}fps">
-                                <Binding Path="SourceWidth" />
-                                <Binding Path="SourceHeight" />
-                                <Binding Path="SourceFPS" />
+                                <Binding Path="SourceWidth" Mode="OneWay" />
+                                <Binding Path="SourceHeight" Mode="OneWay" />
+                                <Binding Path="SourceFPS" Mode="OneWay"  />
                             </MultiBinding>
                         </TextBox.Text>
                     </TextBox>
@@ -128,7 +122,7 @@
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
                     <Label Grid.Column="0" Content="FPS"  />
-                    <mah:NumericUpDown Grid.Column="1" MinWidth="150" Minimum="10" Maximum="{Binding Path=SourceFPS}" Interval="5" NumericInputMode="Numbers" HorizontalAlignment="Stretch" Value="{Binding Path=TargetFPS}" />
+                    <mah:NumericUpDown Grid.Column="1" MinWidth="150" Minimum="1" Maximum="{Binding Path=SourceFPS, Mode=OneWay}" Interval="1" NumericInputMode="Numbers" HorizontalAlignment="Stretch" Value="{Binding Path=TargetFPS}" />
                 </Grid>
                 
                 <Grid Margin="0 0 0 4" >
@@ -137,7 +131,7 @@
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
                     <Label Grid.Column="0" Content="Clip width"  />
-                    <mah:NumericUpDown Grid.Column="1" MinWidth="150" Minimum="480" Maximum="{Binding Path=SourceWidth}" NumericInputMode="Numbers" HideUpDownButtons="True"  HorizontalAlignment="Stretch" Value="{Binding Path=TargetWidth}" />
+                    <mah:NumericUpDown Grid.Column="1" MinWidth="150" Minimum="1" Maximum="{Binding Path=SourceWidth, Mode=OneWay}" NumericInputMode="Numbers" HideUpDownButtons="True"  HorizontalAlignment="Stretch" Value="{Binding Path=TargetWidth}" />
                 </Grid>
 
                 <Grid Margin="0 0 0 4" >
@@ -146,7 +140,7 @@
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
                     <Label Grid.Column="0" Content="Clip height"  />
-                    <mah:NumericUpDown Grid.Column="1" MinWidth="150" Minimum="480" Maximum="{Binding Path=SourceHeight}" NumericInputMode="Numbers" HideUpDownButtons="True"  HorizontalAlignment="Stretch" Value="{Binding Path=TargetHeight}" />
+                    <mah:NumericUpDown Grid.Column="1" MinWidth="150" Minimum="1" Maximum="{Binding Path=SourceHeight, Mode=OneWay}" NumericInputMode="Numbers" HideUpDownButtons="True"  HorizontalAlignment="Stretch" Value="{Binding Path=TargetHeight}" />
                 </Grid>
 
                 <Separator Margin="0 8 0 8" />
@@ -192,7 +186,7 @@
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
             <Label Grid.Column="0" Content="Clip duration"  />
-            <TextBox Grid.Column="1" IsReadOnly="True" Text="{Binding Path=Duration, Mode=OneWay}" />
+            <TextBox Grid.Column="1" IsReadOnly="True" Text="{Binding Path=Duration, Mode=OneWay, StringFormat=hh\\:mm\\:ss\\.fff}" />
         </Grid>
 
         <Separator Margin="0 8 0 8" />

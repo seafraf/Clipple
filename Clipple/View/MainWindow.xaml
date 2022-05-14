@@ -9,10 +9,8 @@
         xmlns:vm="clr-namespace:Clipple.ViewModel"
         xmlns:local="clr-namespace:Clipple"
         mc:Ignorable="d"
-        Title="Clipple" Height="900" Width="1440" AllowDrop="True" DragOver="OnDragOver" Drop="OnDrop" PreviewKeyDown="OnPreviewKeyDown" >
-    <mah:MetroWindow.DataContext>
-        <vm:RootViewModel />
-    </mah:MetroWindow.DataContext>   
+        Title="Clipple" Height="900" Width="1440" AllowDrop="True" DragOver="OnDragOver" Drop="OnDrop" PreviewKeyDown="OnPreviewKeyDown" Closing="OnClosing"
+                 DataContext="{StaticResource RootViewModel}">
     <mah:MetroWindow.RightWindowCommands>
         <mah:WindowCommands >
             <StackPanel Margin="10, 0, 0, 0"  Orientation="Horizontal">
@@ -37,7 +35,7 @@
 
     <mah:MetroWindow.Flyouts>
         <mah:FlyoutsControl>
-            <mah:Flyout Header="Videos" IsOpen="{Binding Path=IsVideosFlyoutOpen}" Position="Left" Width="auto">
+            <mah:Flyout Header="Videos" IsOpen="{Binding Path=IsVideosFlyoutOpen}" Position="Left" Width="auto" ClosingFinished="OnFlyoutClosed">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Grid.Column="0" Margin="0 0 0 6">
                         <DataGrid CanUserAddRows="False" CanUserDeleteRows="False" AutoGenerateColumns="False" SelectedValue="{Binding Path=SelectedVideo}" SelectionMode="Single"
@@ -83,7 +81,7 @@
                     </StackPanel>
                 </ScrollViewer>
             </mah:Flyout>
-            <mah:Flyout Header="Settings" IsOpen="{Binding Path=IsSettingsFlyoutOpen}" Position="Right" Width="auto">
+            <mah:Flyout Header="Settings" IsOpen="{Binding Path=IsSettingsFlyoutOpen}" Position="Right" Width="auto" ClosingFinished="OnFlyoutClosed">
                 <views:Settings DataContext="{Binding Path=SettingsViewModel}" />
             </mah:Flyout>
         </mah:FlyoutsControl>

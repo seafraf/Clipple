@@ -27,12 +27,12 @@ namespace Clipple.MediaProcessing
         /// <summary>
         /// Called with the current position in the file
         /// </summary>
-        public event EventHandler<double[]> OnProgressUpdate;
+        public event EventHandler<double[]>? OnProgressUpdate;
 
         /// <summary>
         /// TODO
         /// </summary>
-        public event EventHandler<string> OnStatusUpdate;
+        public event EventHandler<string>? OnStatusUpdate;
         #endregion
 
         public unsafe void ProcessContexts()

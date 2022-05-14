@@ -1,8 +1,10 @@
 ﻿using Clipple.Command;
 using Clipple.ViewModel;
 using MahApps.Metro.Controls;
+using Microsoft.Toolkit.Mvvm.Input;
 using System;
 using System.Collections.Generic;
+using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -50,13 +52,8 @@ namespace Clipple.View
             };
         }
 
-        private void OnSettingsChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-        {
-            throw new NotImplementedException();
-        }
-
         #region Members
-        private List<(HotKey, DelegateCommand)> hotKeys;
+        private List<(HotKey, RelayCommand)> hotKeys;
         #endregion
 
         private void OnDragOver(object sender, DragEventArgs e)
@@ -77,8 +74,16 @@ namespace Clipple.View
                 if (DataContext is not RootViewModel vm)
                     return;
 
+                var addedAny = false;
                 foreach (string file in files)
-                    vm.AddVideo(file);
+                {
+                    if (vm.AddVideo(file))
+                        addedAny = true;
+                }    
+
+                // Select the new(est) video
+                if (addedAny)
+                    vm.SelectedVideo = vm.Videos[vm.Videos.Count - 1];
             }
         }
 
@@ -94,10 +99,26 @@ namespace Clipple.View
             {
                 if (key.Key == e.Key && e.KeyboardDevice.Modifiers == key.ModifierKeys)
                 {
-                    command.Execute();
+                    command.Execute(null);
                     return;
                 }
             }
+        }
+
+        private void OnFlyoutClosed(object sender, RoutedEventArgs e)
+        {
+            var vm = (RootViewModel)DataContext;
+
+            if (!vm.IsSettingsFlyoutOpen && !vm.IsVideosFlyoutOpen)
+                App.VideoPlayerVisible = true;
+        }
+
+        private async void OnClosing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            var vm = (RootViewModel)DataContext;
+
+            if (vm.SettingsViewModel.SaveOnExit)
+                await vm.Save();
         }
     }
 }

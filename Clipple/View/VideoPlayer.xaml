@@ -5,10 +5,11 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:converters="clr-namespace:Clipple.Converters"
              xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks" 
-             xmlns:ffme="clr-namespace:Unosquare.FFME;assembly=ffme.win"
              xmlns:viewmodel="clr-namespace:Clipple.ViewModel"
-             xmlns:local="clr-namespace:Clipple" xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls" 
-             xmlns:System="clr-namespace:System;assembly=netstandard"
+             xmlns:local="clr-namespace:Clipple" 
+             xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls" 
+             xmlns:System="clr-namespace:System;assembly=netstandard" 
+             xmlns:fl="clr-namespace:FlyleafLib.Controls.WPF;assembly=FlyleafLib" xmlns:controlzex="urn:controlzex"
              d:DataContext="{d:DesignInstance Type=viewmodel:VideoPlayerViewModel}"
              mc:Ignorable="d" 
              d:DesignHeight="1080" d:DesignWidth="1920" >
@@ -37,17 +38,13 @@
         <Grid Visibility="{Binding Path=IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}">
             <mah:ProgressRing />
         </Grid>
-        <Grid Visibility="{Binding Path=IsReady, Converter={StaticResource BooleanToVisibilityConverter}}">
+        <Grid >
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" />
                 <RowDefinition Height="auto" />
             </Grid.RowDefinitions>
 
-            <ffme:MediaElement x:Name="videoPlayer" BorderThickness="1" Grid.Row="0" Margin="2, 2, 2, 2" LoadedBehavior="Manual" UnloadedBehavior="Manual" 
-                           MediaOpened="OnMediaOpened" MediaEnded="OnMediaEnded" MediaFailed="OnMediaFailed" MediaClosed="OnMediaClosed" MediaChanged="OnMediaChanged" MediaChanging="OnMediaChanging" RenderingVideo="OnRenderingVideo"
-                           BorderBrush="{StaticResource MahApps.Brushes.Accent}"
-                           Volume="{Binding Path=Volume, Mode=TwoWay}" 
-                           IsMuted="{Binding Path=IsMuted, Mode=TwoWay}" />
+            <fl:VideoView x:Name="videoView" Player="{Binding Path=MediaPlayer}" Visibility="{Binding Path=VideoVisibility}" Loaded="OnLoaded" />
 
             <Grid Margin="8 8 8 8" Grid.Row="1" VerticalAlignment="Bottom">
                 <Grid.RowDefinitions>
@@ -60,28 +57,24 @@
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <mah:RangeSlider DataContext="{Binding}" Style="{StaticResource Clipple.Styles.RangeSlider}" MinRangeWidth="0" MinRange="0"
-                                                     Minimum="0" Maximum="{Binding Path=DataContext.FrameCount, RelativeSource={RelativeSource AncestorType=UserControl}}" IsMoveToPointEnabled="True"
+                                                     Minimum="0" Maximum="{Binding Path=DataContext.MediaPlayer.Duration, RelativeSource={RelativeSource AncestorType=UserControl}}" IsMoveToPointEnabled="True"
                                                      Visibility="{Binding Path=ShowInPlayer, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                                     LowerValue="{Binding Path=StartFrame, Mode=TwoWay}"
-                                                     UpperValue="{Binding Path=EndFrame, Mode=TwoWay}" />
-
+                                                     LowerValue="{Binding Path=StartTicks, Mode=TwoWay}"
+                                                     UpperValue="{Binding Path=EndTicks, Mode=TwoWay}"  />
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                     </StackPanel>
 
-                    <Slider Focusable="False" TickPlacement="TopLeft" TickFrequency="1" IsMoveToPointEnabled="True" Style="{StaticResource Clipple.Styles.Slider}" IsEnabled="{Binding Path=IsReady}" 
-                        Value="{Binding Path=VideoProgressPercent, Mode=TwoWay}" Grid.Column="1" Minimum="0" Maximum="100" 
-                        Thumb.DragStarted="Slider_DragStarted" Thumb.DragCompleted="Slider_DragCompleted" />
+                    <Slider IsMoveToPointEnabled="True" Style="{StaticResource Clipple.Styles.Slider}" IsEnabled="{Binding Path=IsReady}" 
+                        Value="{Binding Path=CurTime, Mode=TwoWay}" Grid.Column="1" Maximum="{Binding Path=MediaPlayer.Duration}" SmallChange="{Binding Path=MediaPlayer.Config.Player.SeekOffset}" LargeChange="{Binding Path=MediaPlayer.Config.Player.SeekOffset2}" />
                     <Grid >
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                            <Label Padding="0" Grid.Column="0" Content="{Binding Path=VideoPosition}" ContentStringFormat="{}{0:hh}:{0:mm}:{0:ss}" FontSize="12"  />
-                            <Label Padding="0" Grid.Column="0" Content="{Binding Path=CurrentFrame}" Margin="4 0 0 0" FontSize="12"  />
+                            <Label Padding="0" Grid.Column="0" Content="{Binding Path=VideoCurrentTime}" ContentStringFormat="{}{0:hh}:{0:mm}:{0:ss\.fff}" FontSize="12"  />
                         </StackPanel>
 
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                            <Label Padding="0" Grid.Column="0" Content="{Binding Path=FrameCount}" Margin="0 0 4 0" FontSize="12"  />
-                            <Label Padding="0" Content="{Binding RemainingTime}" ContentStringFormat="{}{0:hh}:{0:mm}:{0:ss}" HorizontalAlignment="Right" />
+                            <Label Padding="0" Content="{Binding Path=VideoDuration}" ContentStringFormat="{}{0:hh}:{0:mm}:{0:ss\.fff}" HorizontalAlignment="Right" />
                         </StackPanel>
                     </Grid>
                 </StackPanel>
@@ -98,33 +91,68 @@
                             <ColumnDefinition Width="*" MaxWidth="200" />
                             <ColumnDefinition Width="auto" />
                         </Grid.ColumnDefinitions>
-                        <ToggleButton Focusable="False" IsChecked="{Binding Path=IsMuted}" HorizontalAlignment="Left" Grid.Column="0" Width="32" Height="32" Style="{DynamicResource MahApps.Styles.ToggleButton.Circle}" ToolTip="Mute" Margin="0 0 4 0">
+                        <ToggleButton IsChecked="{Binding Path=IsMuted}" HorizontalAlignment="Left" Grid.Column="0" Width="32" Height="32" Style="{DynamicResource MahApps.Styles.ToggleButton.Circle}" ToolTip="Mute" Margin="0 0 4 0">
                             <iconPacks:MaterialDesign Width="20" Height="20" Kind="VolumeOff" />
                         </ToggleButton>
-                        <Slider Focusable="False" IsMoveToPointEnabled="True" TickFrequency="0.05" Value="{Binding Path=Volume, Mode=TwoWay}" IsEnabled="{Binding Path=IsMuted, Mode=TwoWay, Converter={StaticResource InverseBooleanConverter}}" Minimum="0" Maximum="1" Style="{StaticResource MahApps.Styles.Slider.Flat}" TickPlacement="Both" Grid.Column="1" HorizontalAlignment="Stretch" Height="30" />
-                        <ComboBox Focusable="False" Grid.Column="2" mah:TextBoxHelper.Watermark="Audio track" mah:TextBoxHelper.UseFloatingWatermark="True" MaxWidth="250" Margin="8 0 4 0" ItemsSource="{Binding Path=AudioTracks}" SelectedIndex="{Binding Path=SelectedAudioTrackIndex, Mode=TwoWay}" />
+                        <Slider IsMoveToPointEnabled="True" TickFrequency="15" Value="{Binding Path=Volume, Mode=TwoWay}" IsEnabled="{Binding Path=IsMuted, Mode=TwoWay, Converter={StaticResource InverseBooleanConverter}}" Minimum="0" Maximum="150" Style="{StaticResource MahApps.Styles.Slider.Flat}" TickPlacement="Both" Grid.Column="1" />
+
+                        <Button Grid.Column="2" Width="32" Height="32" x:Name="openAudioSettingsButton" Style="{DynamicResource MahApps.Styles.Button.Circle}" ToolTip="Open sound settings" Margin="4 0 0 0" Command="{Binding Path=OpenAudioSettings}" IsEnabled="{Binding Path=HasContent}" >
+                            <iconPacks:MaterialDesign Kind="ViewList" />
+                        </Button>
                     </Grid>
                     <StackPanel Grid.Column="1" Orientation="Horizontal">
-                        <Button Focusable="False" Width="48" Height="48" Style="{DynamicResource MahApps.Styles.Button.Circle}" ToolTip="Previous frame" Margin="0 0 4 0" Command="{Binding Source={x:Static local:AppCommands.PreviousFrameCommand}}" IsEnabled="{Binding Path=IsReady}">
+                        <Button Width="48" Height="48" Style="{DynamicResource MahApps.Styles.Button.Circle}" ToolTip="Previous frame" Margin="0 0 4 0" Command="{Binding Source={x:Static local:AppCommands.PreviousFrameCommand}}" IsEnabled="{Binding Path=IsReady}">
                             <iconPacks:MaterialDesign Kind="ArrowBack" />
                         </Button>
-                        <Button Focusable="False" Width="48" Height="48" Style="{DynamicResource MahApps.Styles.Button.Circle}" ToolTip="Play" Margin="0 0 4 0" Command="{Binding Source={x:Static local:AppCommands.ControlCommand}}" IsEnabled="{Binding Path=IsReady}">
+                        <Button Width="48" Height="48" Style="{DynamicResource MahApps.Styles.Button.Circle}" ToolTip="Play" Margin="0 0 4 0" Command="{Binding Source={x:Static local:AppCommands.ControlCommand}}" IsEnabled="{Binding Path=IsReady}">
                             <iconPacks:PackIconMaterialDesign Kind="{Binding Path=ControlButtonIcon}" />
                         </Button>
-                        <Button Focusable="False" Width="48" Height="48" Style="{DynamicResource MahApps.Styles.Button.Circle}" ToolTip="Next frame" Margin="0 0 0 0" Command="{Binding Source={x:Static local:AppCommands.NextFrameCommand}}" IsEnabled="{Binding Path=HasContent}">
+                        <Button  Width="48" Height="48" Style="{DynamicResource MahApps.Styles.Button.Circle}" ToolTip="Next frame" Margin="0 0 0 0" Command="{Binding Source={x:Static local:AppCommands.NextFrameCommand}}" IsEnabled="{Binding Path=HasContent}">
                             <iconPacks:MaterialDesign Kind="ArrowForward"  />
                         </Button>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right">
                         <!-- Useful later maybe? Almost every video has a single video track and this control takes up spac -->
-                        <ComboBox Focusable="False" Visibility="Hidden" Grid.Column="3" mah:TextBoxHelper.Watermark="Video track" mah:TextBoxHelper.UseFloatingWatermark="True" MaxWidth="250" Margin="0 0 4 0" ItemsSource="{Binding Path=VideoTracks}" SelectedIndex="{Binding Path=SelectedVideoTrackIndex, Mode=TwoWay}" />
+                        <ComboBox Visibility="Hidden" Grid.Column="3" mah:TextBoxHelper.Watermark="Video track" mah:TextBoxHelper.UseFloatingWatermark="True" MaxWidth="250" Margin="0 0 4 0" ItemsSource="{Binding Path=VideoTracks}" SelectedIndex="{Binding Path=SelectedVideoTrackIndex, Mode=TwoWay}" />
 
-                        <Button Focusable="False" HorizontalAlignment="Right" Width="32" Height="32" Style="{DynamicResource MahApps.Styles.Button.Circle}" ToolTip="New clip from playhead" Command="{Binding Path=AddClipCommand}">
+                        <Button HorizontalAlignment="Right" Width="32" Height="32" Style="{DynamicResource MahApps.Styles.Button.Circle}" ToolTip="New clip from playhead" Command="{Binding Path=AddClipCommand}">
                             <iconPacks:MaterialDesign Width="20" Height="20" Kind="Add" />
                         </Button>
                     </StackPanel>
                 </Grid>
             </Grid>
+        </Grid>
+
+        <Grid>
+            <controlzex:PopupEx IsOpen="{Binding Path=IsAudioSettingsOpen}" IsEnabled="{Binding Path=HasContent}" Placement="Top" StaysOpen="False" PlacementTarget="{Binding ElementName=openAudioSettingsButton}">
+                <Border Background="{DynamicResource MahApps.Brushes.ThemeBackground}" BorderThickness="1" BorderBrush="{DynamicResource MahApps.Brushes.Accent}">
+                    <StackPanel>
+                        <ItemsControl ItemsSource="{Binding Path=AudioPlayers, Mode=TwoWay}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Grid Margin="2">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="auto" />
+                                                <ColumnDefinition Width="200" />
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="auto" />
+                                                <RowDefinition Height="auto" />
+                                            </Grid.RowDefinitions>
+                                            <Label Grid.Row="0" Grid.Column="0" Content="{Binding Path=Name}" Grid.ColumnSpan="2" />
+                                            <ToggleButton Grid.Row="1" Grid.Column="0" IsChecked="{Binding Path=IsMuted}" Width="32" Height="32" Style="{DynamicResource MahApps.Styles.ToggleButton.Circle}" ToolTip="Mute" Margin="0 0 4 0">
+                                                <iconPacks:MaterialDesign Width="20" Height="20" Kind="VolumeOff" />
+                                            </ToggleButton>
+                                            <Slider Grid.Row="1" Grid.Column="1" IsMoveToPointEnabled="True" TickFrequency="15" Value="{Binding Path=Volume, Mode=TwoWay}" IsEnabled="{Binding Path=IsMuted, Mode=TwoWay, Converter={StaticResource InverseBooleanConverter}}" Minimum="0" Maximum="150" Style="{StaticResource MahApps.Styles.Slider.Flat}" TickPlacement="Both" />
+                                        </Grid>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+            </controlzex:PopupEx>
         </Grid>
     </Grid>
 </UserControl>

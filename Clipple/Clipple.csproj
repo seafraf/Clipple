@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="FFME.Windows" Version="4.4.350" />
+    <PackageReference Include="FlyleafLib.Controls.WPF" Version="1.1.20" />
     <PackageReference Include="MahApps.Metro" Version="2.4.9" />
     <PackageReference Include="MahApps.Metro.IconPacks" Version="4.11.0" />
     <PackageReference Include="Microsoft.Toolkit.Mvvm" Version="7.1.2" />
@@ -29,10 +29,6 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Types\" />
   </ItemGroup>
 
 </Project>

@@ -96,13 +96,23 @@ namespace Clipple.ViewModel
                 var videosFileReader = new FileStream(videosFile, FileMode.Open);
                 var videos = JsonSerializer.Deserialize<ObservableCollection<VideoViewModel>>(videosFileReader) ?? throw new Exception();
                 foreach (var video in videos)
+                {
+                    // Reset parent after deserialization, the parent is not serialized
+                    foreach (var clip in video.Clips)
+                        clip.Parent = video;
+
                     Videos.Add(video);
+                }
             }
             catch (Exception)
             {
                 // Use default settings if disk settings failed to load
-                SettingsViewModel = new SettingsViewModel();
+                SettingsViewModel ??= new SettingsViewModel();
             }
+
+            // Update timer now that settings are loaded
+            App.AutoSaveTimer.Interval = SettingsViewModel.AutoSaveFrequency * 1000;
+            App.AutoSaveTimer.Start();
 
             var ingestResource = SettingsViewModel.IngestAutomatically ? SettingsViewModel.IngestFolder : null;
 
@@ -128,7 +138,7 @@ namespace Clipple.ViewModel
         /// - The entire SettingsViewModel
         /// - The currently loaded videos and their respective clips
         /// </summary>
-        public async void Save()
+        public async Task Save()
         {
             var applicationData = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -248,13 +258,6 @@ namespace Clipple.ViewModel
 
                 // Set the VideoPlayer's video too so they have easier access to it
                 VideoPlayerViewModel.Video = value;
-
-                // Schedule an open for this video
-                if (value != null)
-                {
-                    Trace.WriteLine(value.FileInfo.FullName);
-                    AppCommands.OpenCommand.Execute(value.FileInfo.FullName);
-                }
             }
         }
 
@@ -269,14 +272,26 @@ namespace Clipple.ViewModel
         public bool IsVideosFlyoutOpen
         {
             get => isVideosFlyoutOpen;
-            set => SetProperty(ref isVideosFlyoutOpen, value);
+            set
+            {
+                if (value)
+                    VideoPlayerViewModel.VideoVisibility = System.Windows.Visibility.Hidden;
+
+                SetProperty(ref isVideosFlyoutOpen, value);
+            }
         }
 
         private bool isSettingsFlyoutOpen;
         public bool IsSettingsFlyoutOpen
         {
             get => isSettingsFlyoutOpen;
-            set => SetProperty(ref isSettingsFlyoutOpen, value);
+            set
+            {
+                if (value)
+                    VideoPlayerViewModel.VideoVisibility = System.Windows.Visibility.Hidden;
+
+                SetProperty(ref isSettingsFlyoutOpen, value);
+            }
         }
 
         /// <summary>

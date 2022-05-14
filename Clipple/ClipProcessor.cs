@@ -10,13 +10,6 @@ using System.Threading.Tasks;
 
 namespace Clipple
 {
-    internal class ClipProcessingException : Exception
-    {
-        public ClipProcessingException(string? message) : base(message)
-        {
-        }
-    }
-
     internal class ClipProcessor
     {
         private static async Task CreateMediaOutputTask(string file, string titlePrefix, ProgressDialogController controller, params ClipViewModel[] clips)
@@ -59,6 +52,9 @@ namespace Clipple
         /// <param name="clip">The clip to process</param>
         public static async Task Process(VideoViewModel video, ClipViewModel clip)
         {
+            var oldVisiblity        = App.VideoPlayerVisible;
+            App.VideoPlayerVisible  = false;
+
             var controller = await App.Window.ShowProgressAsync("Please wait", $"Processing \"{clip.Title}\" for file:\n \"{video.FileInfo.FullName}\"");
 
             try
@@ -71,6 +67,8 @@ namespace Clipple
                 await controller.CloseAsync();
                 await App.Window.ShowMessageAsync($"Encoding error", $"An encoding error occurred: {e.Message}");
             }
+
+            App.VideoPlayerVisible = oldVisiblity;
         }
 
         /// <summary>
@@ -79,6 +77,9 @@ namespace Clipple
         /// <param name="video">The video to process all clips from</param>
         public static async Task Process(VideoViewModel video)
         {
+            var oldVisiblity        = App.VideoPlayerVisible;
+            App.VideoPlayerVisible  = false;
+
             var controller = await App.Window.ShowProgressAsync("Please wait", $"Processing file \"{video.FileInfo.FullName}\"");
 
             try
@@ -91,6 +92,8 @@ namespace Clipple
                 await controller.CloseAsync();
                 await App.Window.ShowMessageAsync($"Encoding error", $"An encoding error occurred: {e.Message}");
             }
+
+            App.VideoPlayerVisible = oldVisiblity;
         }
 
         /// <summary>
@@ -98,6 +101,9 @@ namespace Clipple
         /// </summary>
         public static async Task Process()
         {
+            var oldVisiblity        = App.VideoPlayerVisible;
+            App.VideoPlayerVisible  = false;
+
             var controller = await App.Window.ShowProgressAsync("Please wait", "Please wait");
 
             try
@@ -118,6 +124,8 @@ namespace Clipple
                 await controller.CloseAsync();
                 await App.Window.ShowMessageAsync($"Encoding error", $"An encoding error occurred: {e.Message}");
             }
+
+            App.VideoPlayerVisible = oldVisiblity;
         }
     }
 }
