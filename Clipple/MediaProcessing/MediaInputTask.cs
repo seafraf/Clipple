@@ -74,58 +74,70 @@ namespace Clipple.MediaProcessing
                 codecContextArray[i] = codecContext;
             }
 
+            // Initialise tasks
             foreach (var outputTask in outputTasks)
+            {
                 outputTask.CreateStreams(streams);
-
-            // Get handles ready to write to disk
-            foreach (var outputTask in outputTasks)
                 outputTask.Initialise();
+            }   
 
             var frame  = FE.Null(ffmpeg.av_frame_alloc());
             var packet = FE.Null(ffmpeg.av_packet_alloc());
 
-            // Write packets
-            while (ffmpeg.av_read_frame(formatContext, packet) >= 0)
+            // Batch together tasks that overlap and 
+            var taskBatches = BatchOutputTasks();
+
+            foreach (var (pts, batchTasks) in taskBatches)
             {
-                var interestedTasks = new List<MediaOutputTask>();
-                foreach (var outputTask in outputTasks)
+                // Seek to the beginning of this batch of clips
+                FE.Code(ffmpeg.av_seek_frame(formatContext, 0, pts, ffmpeg.AVSEEK_FLAG_BACKWARD));
+
+                while (ffmpeg.av_read_frame(formatContext, packet) >= 0)
                 {
-                    if (outputTask.HandlePacket(packet))
-                        interestedTasks.Add(outputTask);
-                }
+                    var filteredTasks = new List<MediaOutputTask>();
+                    var lateCount     = 0;
+                    foreach (var task in batchTasks)
+                    {
+                        var interest = task.HandlePacket(packet);
+                        if (interest == MediaPacketAction.Decode)
+                            filteredTasks.Add(task);
 
-                if (interestedTasks.Count == 0)
-                {
-                    ffmpeg.av_packet_unref(packet);
-                    continue;
-                }
+                        if (interest == MediaPacketAction.Late)
+                            lateCount++;
+                    }
 
-                var codecContext = codecContextArray[packet->stream_index];
-
-                // Send packet to codec
-                int res = ffmpeg.avcodec_send_packet(codecContext, packet);
-
-                // Read frames
-                while (res >= 0)
-                {
-                    res = ffmpeg.avcodec_receive_frame(codecContext, frame);
-                    if (res == ffmpeg.AVERROR(ffmpeg.EAGAIN) || res == ffmpeg.AVERROR_EOF)
+                    // Stop processing this batch of tasks if all tasks in this batch think the current packet is too late
+                    if (lateCount == batchTasks.Count)
                         break;
 
-                    if (res < 0)
-                        throw new MediaProcessingException("couldn't receive frame?");
+                    var codecContext = codecContextArray[packet->stream_index];
 
-                    foreach (var outputTask in interestedTasks)
-                        outputTask.HandleFrame(packet, frame);
+                    // Send packet to codec
+                    int res = ffmpeg.avcodec_send_packet(codecContext, packet);
+
+                    // Read frames
+                    while (res >= 0)
+                    {
+                        res = ffmpeg.avcodec_receive_frame(codecContext, frame);
+                        if (res == ffmpeg.AVERROR(ffmpeg.EAGAIN) || res == ffmpeg.AVERROR_EOF)
+                            break;
+
+                        if (res < 0)
+                            throw new MediaProcessingException("couldn't receive frame?");
+
+                        // Run each frame through each task that was interested in the packet
+                        foreach (var task in filteredTasks)
+                            task.HandleFrame(packet, frame);
+                    }
+
+                    // Send an array of progress updates to any event listener
+                    SetProgress(outputTasks.Select((t) => t.CompletionEstimate).ToArray());
+
+                    ffmpeg.av_packet_unref(packet);
                 }
-
-                // Send an array of progress updates to any event listener
-                SetProgress(outputTasks.Select((t) => t.CompletionEstimate).ToArray());
-
-                ffmpeg.av_packet_unref(packet);
             }
 
-            // Write trailer (finish) all clips
+            // Write trailer and close file handles
             foreach (var clipContext in outputTasks)
                 clipContext.Finalise();
 
@@ -133,6 +145,55 @@ namespace Clipple.MediaProcessing
             ffmpeg.av_frame_free(&frame);
 
             ffmpeg.avformat_close_input(&formatContext);
+        }
+
+        /// <summary>
+        /// Create a list of batched output tasks, where each entry contains the start of 1 or more tasks.
+        /// </summary>
+        /// <returns></returns>
+        private List<(long, List<MediaOutputTask>)> BatchOutputTasks()
+        {
+            var batches = new List<(long, List<MediaOutputTask>)>();
+            if (outputTasks.Length == 0)
+                return batches;
+
+            var orderedTasks    = outputTasks.OrderBy((x) => x.VideoStreamStartTimePTS).ToList();
+            var firstTask       = orderedTasks.First();
+
+            var currentBatch = (firstTask.VideoStreamStartTimePTS, new List<MediaOutputTask>()
+            {
+                firstTask
+            });
+            long currentBatchEnd = firstTask.VideoStreamEndPTS;
+
+            for (int i = 1; i < orderedTasks.Count; i++)
+            {
+                var task = orderedTasks[i];
+                if (task.VideoStreamStartTimePTS <= currentBatchEnd)
+                {
+                    // Include this clip as part of the current batch
+                    currentBatch.Item2.Add(task);
+
+                    // Allow this clip to extend the current intersection area
+                    currentBatchEnd = Math.Max(currentBatchEnd, task.VideoStreamEndPTS);
+                }
+                else
+                {
+                    // Create new batch
+                    batches.Add(currentBatch);
+                    currentBatch = (task.VideoStreamStartTimePTS, new List<MediaOutputTask>()
+                    {
+                        task
+                    });
+
+                    currentBatchEnd = task.VideoStreamEndPTS;
+                }
+            }
+
+            // Add last/first batch to the list
+            batches.Add(currentBatch);
+
+            return batches;
         }
 
         private void SetStatus(string status)

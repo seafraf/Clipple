@@ -356,11 +356,12 @@ namespace Clipple.ViewModel
                 Parent = Video
             };
 
+            // Create default audio settings from current preview audio settings
             foreach (var player in AudioPlayers)
             {
                 newClip.AudioSettings.Add(new AudioSettingsModel(player.StreamIndex, player.Name)
                 {
-                    IsEnabled   = player.IsMuted,
+                    IsEnabled   = !player.IsMuted,
                     Volume      = (int)(player.Volume / 1.5),
                 });
             }

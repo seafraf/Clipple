@@ -1,6 +1,8 @@
 ﻿using Clipple.View;
 using Clipple.ViewModel;
 using FFmpeg.AutoGen;
+using FlyleafLib.MediaPlayer;
+using MahApps.Metro.Controls.Dialogs;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -8,8 +10,8 @@ using System.Data;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.Timers;
 using System.Windows;
-using Unosquare.FFME;
 
 namespace Clipple
 {
@@ -18,44 +20,31 @@ namespace Clipple
     /// </summary>
     public partial class App : Application
     {
-        public static RootViewModel ViewModel => (RootViewModel)Current.MainWindow.DataContext;
-        public static MainWindow Window => (MainWindow)Current.MainWindow;
-        public static MediaElement MediaElement => ((MainWindow)Current.MainWindow).VideoPlayer.MediaElement;
+        public static RootViewModel ViewModel => (RootViewModel)Current.Resources[nameof(RootViewModel)];
 
-       public App()
+        public static MainWindow Window => (MainWindow)Current.MainWindow;
+
+        public static Player MediaPlayer => ViewModel.VideoPlayerViewModel.MediaPlayer;
+
+        public static bool VideoPlayerVisible
         {
-            Library.FFmpegDirectory = $"{AppDomain.CurrentDomain.BaseDirectory}/lib";
-            Library.FFmpegLoadModeFlags = FFmpegLoadMode.FullFeatures;
+            get => ViewModel.VideoPlayerViewModel.VideoVisibility == Visibility.Visible;
+            set => ViewModel.VideoPlayerViewModel.VideoVisibility = value ? Visibility.Visible : Visibility.Hidden;
         }
 
-        protected override void OnStartup(StartupEventArgs e)
+        public static Timer AutoSaveTimer { get; } = new Timer();
+
+        public App()
         {
-            base.OnStartup(e);
-
-            Task.Run(async () =>
+            // This timer is started when the settings load in the RootViewModel
+            AutoSaveTimer.Elapsed += (s, e) =>
             {
-                try
+                Dispatcher.Invoke(async () =>
                 {
-                    await Library.LoadFFmpegAsync();
-                }
-                catch (Exception)
-                {
-                    var dispatcher = Current?.Dispatcher;
-                    if (dispatcher != null)
-                    {
-                        await dispatcher.BeginInvoke(new Action(() =>
-                        {
-                            MessageBox.Show(MainWindow,
-                                $"Couldn't load FFmpeg binaries from {Library.FFmpegDirectory}",
-                                "FFmpeg Error",
-                                MessageBoxButton.OK,
-                                MessageBoxImage.Error);
-
-                            Current?.Shutdown();
-                        }));
-                    }
-                }
-            });
+                    if (ViewModel.SettingsViewModel.AutoSave)
+                        await ViewModel.Save();
+                });
+            };
         }
     }
 }

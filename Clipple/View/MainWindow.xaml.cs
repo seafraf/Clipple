@@ -1,5 +1,4 @@
-﻿using Clipple.Command;
-using Clipple.ViewModel;
+﻿using Clipple.ViewModel;
 using MahApps.Metro.Controls;
 using Microsoft.Toolkit.Mvvm.Input;
 using System;

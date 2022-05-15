@@ -61,14 +61,25 @@ namespace Clipple.MediaProcessing
         /// </summary>
         /// <param name="streamIndex">The stream index</param>
         /// <param name="pts">The presentation time stamp</param>
-        /// <returns>False if the stream index is not handled by this stream or if the specified PTS is outside the corresponding StartPTS/EndPTS</returns>
-        public bool CheckPTS(int streamIndex, long pts)
+        /// <returns>
+        /// 1. MediaPacketAction.BadStream if the PTS came from an unknown stream
+        /// 2. MediaPacketAction.Early if the PTS came before the start PTS for this stream
+        /// 3. MediaPacketAction.Late if the PTS came after the end PTS for this stream
+        /// 4. MediaPacketAction.Decode if this stream is interested in frames from the specified PTS
+        /// </returns>
+        public MediaPacketAction CheckPTS(int streamIndex, long pts)
         {
             var index = inputStreamIndexMap.GetValueOrDefault(streamIndex, -1);
             if (index == -1)
-                return false;
+                return MediaPacketAction.BadStream;
 
-            return pts >= StartPTS[index] && pts <= EndPTS[index];
+            if (pts < StartPTS[index])
+                return MediaPacketAction.Early;
+
+            if (pts > EndPTS[index])
+                return MediaPacketAction.Late;
+
+            return MediaPacketAction.Decode;
         }
 
         #region Members

@@ -63,6 +63,38 @@ namespace Clipple.MediaProcessing
                 return estimate / streams;
             }
         }
+
+        /// <summary>
+        /// The video stream's start presentation timestamp. 
+        /// </summary>
+        public long VideoStreamStartTimePTS
+        {
+            get
+            {
+                // Assume one video stream
+                var videoStream = OutputStreams.Where(x => x.IsVideo).First();
+                if (videoStream == null)
+                    return 0;
+
+                return videoStream.StartPTS.First();
+            }
+        }
+
+        /// <summary>
+        /// The video stream's end presentation timestamp
+        /// </summary>
+        public long VideoStreamEndPTS
+        {
+            get
+            {
+                // Assume one video stream
+                var videoStream = OutputStreams.Where(x => x.IsVideo).First();
+                if (videoStream == null)
+                    return 0;
+
+                return videoStream.EndPTS.First();
+            }
+        }
         #endregion
 
         /// <summary>
@@ -239,23 +271,24 @@ namespace Clipple.MediaProcessing
         }
 
         /// <summary>
-        /// Handles a packet.  Returns true if this task is interested in the frames from this packet.
+        /// Handles a packet.  Returns an enum describing how to continue with the packet, whether or not this output task is interested in 
+        /// receiving decoded frames, etc..
         /// </summary>
         /// <param name="packet">The packet to handle</param>
-        /// <returns>True if the decoder should decode this packet and call HandleFrame with the decoded frames from this packet</returns>
-        public unsafe bool HandlePacket(AVPacket* packet)
+        /// <returns>A MediaPacketAction</returns>
+        public unsafe MediaPacketAction HandlePacket(AVPacket* packet)
         {
             var inputStreamIndex = packet->stream_index;
             var outputStream     = OutputStreams.Where(x => x.HasStreamIndex(inputStreamIndex)).FirstOrDefault();
             if (outputStream == null)
-                return false;
+                return MediaPacketAction.BadStream;
 
             if (ClipSettings.CopyPackets)
             {
-                if (outputStream.CheckPTS(inputStreamIndex, packet->pts))
+                if (outputStream.CheckPTS(inputStreamIndex, packet->pts) == MediaPacketAction.Decode)
                     outputStream.WritePacket(inputStreamIndex, packet, outputContext);
 
-                return false;
+                return MediaPacketAction.NOP;
             }
 
             return outputStream.CheckPTS(inputStreamIndex, packet->pts);
