@@ -288,6 +288,13 @@ namespace Clipple.ViewModel
             }
         }
 
+        private bool twoPassEncoding = false;
+        public bool TwoPassEncoding
+        {
+            get => twoPassEncoding;
+            set => SetProperty(ref twoPassEncoding, value);
+        }
+
         private bool showInPlayer = true;
         public bool ShowInPlayer
         {

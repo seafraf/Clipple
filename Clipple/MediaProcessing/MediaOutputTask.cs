@@ -5,27 +5,27 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Clipple.MediaProcessing
 {
-    internal class MediaOutputTask : IDisposable
+    internal class MediaOutputTask
     {
         public unsafe MediaOutputTask(ClipViewModel clipSettings)
         {
             ClipSettings = clipSettings;
 
             AVFormatContext* formatContext;
-            ffmpeg.avformat_alloc_output_context2(&formatContext, null, null, clipSettings.FullFileName);
-            if (formatContext == null)
-                throw new MediaProcessingException("couldn't allocate memory for output AVFormatContext");
+            FE.Code(ffmpeg.avformat_alloc_output_context2(&formatContext, null, null, clipSettings.FullFileName));
+            FE.Null(formatContext);
 
             outputContext = formatContext;
         }
 
         #region Members
-        private readonly unsafe AVFormatContext* outputContext;
+        private unsafe AVFormatContext* outputContext;
         #endregion
 
         #region Properties
@@ -95,6 +95,21 @@ namespace Clipple.MediaProcessing
                 return videoStream.EndPTS.First();
             }
         }
+
+        /// <summary>
+        /// Proxy for the two pass encoding setting for this clip
+        /// </summary>
+        public bool TwoPassEnabled => ClipSettings.TwoPassEncoding;
+
+        /// <summary>
+        /// True when this is the first pass in a TwoPassEnabled clip
+        /// </summary>
+        public bool IsFirstPass { get; private set; } = true;
+
+        public bool IsFinished
+        {
+            get => OutputStreams.All(x => x.IsFinished);
+        }
         #endregion
 
         /// <summary>
@@ -135,25 +150,36 @@ namespace Clipple.MediaProcessing
         /// <returns>Output codec</returns>
         private unsafe AVCodecContext* CreateVideoContext(AVCodecContext* inputContext)
         {
-            var codec = FE.Null(ffmpeg.avcodec_find_encoder(inputContext->codec_id),
-                $"couldn't find codec {ffmpeg.avcodec_get_name(inputContext->codec_id)}");
+            var codec = FE.Null(ffmpeg.avcodec_find_encoder_by_name("libvpx-vp9"),
+                $"couldn't find libx264, make sure libav* libraries were compiled with it");
 
             var codecContext = FE.Null(ffmpeg.avcodec_alloc_context3(codec));
 
             int fps = ClipSettings.TargetFPS;
 
             // TODO: add settings for these
-            ffmpeg.av_opt_set(codecContext->priv_data, "preset", "fast", 0);
-            ffmpeg.av_opt_set(codecContext->priv_data, "x264-params", $"keyint={fps}:min-keyint={fps}:scenecut=0:force-cfr=1", 0);
+            //FE.Code(ffmpeg.av_opt_set(codecContext->priv_data, "preset", "slow", 0));
+            //FE.Code(ffmpeg.av_opt_set(codecContext->priv_data, "tune", "zerolatency", 0));
+            //FE.Code(ffmpeg.av_opt_set(codecContext->priv_data, "passlogfile", ClipSettings.FullFileName + ".stats", 0));
+            //FE.Code(ffmpeg.av_opt_set(codecContext->priv_data, "fps", fps.ToString(), 0));
 
             long bitrate = (long)(ClipSettings.VideoBitrate * 1000000);
-
+            
             codecContext->width         = ClipSettings.TargetWidth;
             codecContext->height        = ClipSettings.TargetHeight;
             codecContext->pix_fmt       = inputContext->pix_fmt;
-            codecContext->bit_rate      = bitrate;
-            codecContext->rc_max_rate   = bitrate;
+            //codecContext->sample_aspect_ratio   = inputContext->sample_aspect_ratio;
+            //codecContext->bit_rate      = bitrate;
             codecContext->time_base     = ffmpeg.av_make_q(1, fps);
+            codecContext->thread_count = 10;
+          //  codecContext->stats_out = (byte*)ffmpeg.av_fopen_utf8("test", "wb");
+            //codecContext->framerate     = ffmpeg.av_make_q(fps, 1);
+            //codecContext->max_b_frames  = 1;
+            //codecContext->gop_size      = 10;
+            ////codecContext->keyint_min    = 1;
+
+            if (TwoPassEnabled)
+                codecContext->flags |= IsFirstPass ? ffmpeg.AV_CODEC_FLAG_PASS1 : ffmpeg.AV_CODEC_FLAG_PASS2;
 
             // Initialise codec
             FE.Code(ffmpeg.avcodec_open2(codecContext, codec, null));
@@ -168,6 +194,10 @@ namespace Clipple.MediaProcessing
         /// <param name="streams">The input source audio streams</param>
         private unsafe void CreateAudioStreams(MediaInputStream[] streams)
         {
+            // No audio in first pass
+            if (TwoPassEnabled && IsFirstPass)
+                return;
+
             var enabledStreams = streams.Where((stream) =>
             {
                 var settings = ClipSettings.AudioSettings.Where((settings) => settings.TrackID == stream.StreamIndex).FirstOrDefault();
@@ -231,7 +261,7 @@ namespace Clipple.MediaProcessing
 
                 // Stream's time_base needs to be set, codecContext has it calculated already
                 newStream->time_base = codecContext->time_base;
-                newStream->r_frame_rate = ffmpeg.av_make_q(1, ClipSettings.TargetFPS);
+                newStream->avg_frame_rate = codecContext->framerate;
 
                 // Copy codec params from the context into the new stream too
                 FE.Code(ffmpeg.avcodec_parameters_from_context(newStream->codecpar, codecContext));
@@ -261,8 +291,8 @@ namespace Clipple.MediaProcessing
                 return;
             }
 
-            if (ClipSettings.ExportMode == ClipExportMode.Both || ClipSettings.ExportMode == ClipExportMode.AudioOnly)
-                CreateAudioStreams(streams.Where((stream) => stream.IsAudio).ToList().ToArray());
+            //if (ClipSettings.ExportMode == ClipExportMode.Both || ClipSettings.ExportMode == ClipExportMode.AudioOnly)
+            //    CreateAudioStreams(streams.Where((stream) => stream.IsAudio).ToList().ToArray());
 
             if (ClipSettings.ExportMode == ClipExportMode.Both || ClipSettings.ExportMode == ClipExportMode.VideoOnly)
                 CreateVideoStreams(streams.Where((stream) => stream.IsVideo).ToList().ToArray());
@@ -270,28 +300,28 @@ namespace Clipple.MediaProcessing
             // TODO: handle other stream types, subtitles etc
         }
 
-        /// <summary>
-        /// Handles a packet.  Returns an enum describing how to continue with the packet, whether or not this output task is interested in 
-        /// receiving decoded frames, etc..
-        /// </summary>
-        /// <param name="packet">The packet to handle</param>
-        /// <returns>A MediaPacketAction</returns>
-        public unsafe MediaPacketAction HandlePacket(AVPacket* packet)
+        public unsafe void HandleRawPacket(AVPacket* packet)
         {
             var inputStreamIndex = packet->stream_index;
-            var outputStream     = OutputStreams.Where(x => x.HasStreamIndex(inputStreamIndex)).FirstOrDefault();
-            if (outputStream == null)
-                return MediaPacketAction.BadStream;
+            var outputStream = OutputStreams.Where(x => x.HasStreamIndex(inputStreamIndex)).FirstOrDefault();
+            var filter = outputStream?.GraphFilter;
 
-            if (ClipSettings.CopyPackets)
+            if (outputStream == null || filter == null || !outputStream.CheckPTS(inputStreamIndex, packet->pts))
+                return;
+
+            var filteredFrame = FE.Null(ffmpeg.av_frame_alloc());
+            var encodedPacket = FE.Null(ffmpeg.av_packet_alloc());
+
+            FE.Code(ffmpeg.avcodec_send_packet(outputStream.EncoderContext, packet));
+
+            while (true)
             {
-                if (outputStream.CheckPTS(inputStreamIndex, packet->pts) == MediaPacketAction.Decode)
-                    outputStream.WritePacket(inputStreamIndex, packet, outputContext);
+                int res = ffmpeg.avcodec_receive_packet(outputStream.EncoderContext, encodedPacket);
+                if (res == ffmpeg.AVERROR(ffmpeg.EAGAIN) || res == ffmpeg.AVERROR_EOF || !FE.Code(res))
+                    break;
 
-                return MediaPacketAction.NOP;
+                outputStream.WritePacket(inputStreamIndex, encodedPacket, outputContext, TwoPassEnabled && IsFirstPass);
             }
-
-            return outputStream.CheckPTS(inputStreamIndex, packet->pts);
         }
 
         /// <summary>
@@ -306,11 +336,13 @@ namespace Clipple.MediaProcessing
             var outputStream     = OutputStreams.Where(x => x.HasStreamIndex(inputStreamIndex)).FirstOrDefault();
             var filter           = outputStream?.GraphFilter;
 
-            if (outputStream == null || filter == null)
+            if (outputStream == null || filter == null || !outputStream.CheckPTS(inputStreamIndex, packet->pts))
                 return;
 
             var filteredFrame = FE.Null(ffmpeg.av_frame_alloc());
             var encodedPacket = FE.Null(ffmpeg.av_packet_alloc());
+
+            Trace.WriteLine($"writing packet {outputStream.PacketCount} in {inputStreamIndex}/{outputStream.StreamIndex} (IsVideo={outputStream.IsVideo}, type={frame->pict_type})");
 
             // Write decoded frame into the filter
             FE.Code(ffmpeg.av_buffersrc_write_frame(filter.GetBufferContext(inputStreamIndex), frame));
@@ -322,7 +354,7 @@ namespace Clipple.MediaProcessing
                 if (res == ffmpeg.AVERROR(ffmpeg.EAGAIN) || res == ffmpeg.AVERROR_EOF || !FE.Code(res))
                     break;
 
-                FE.Code(ffmpeg.avcodec_send_frame(outputStream.EncoderContext, filteredFrame));
+                int a = ffmpeg.avcodec_send_frame(outputStream.EncoderContext, filteredFrame);
             }
 
             // Read all packets produced by the encoder and write them into the file
@@ -332,7 +364,7 @@ namespace Clipple.MediaProcessing
                 if (res == ffmpeg.AVERROR(ffmpeg.EAGAIN) || res == ffmpeg.AVERROR_EOF || !FE.Code(res))
                     break;
 
-                outputStream.WritePacket(inputStreamIndex, encodedPacket, outputContext);
+                outputStream.WritePacket(inputStreamIndex, encodedPacket, outputContext, TwoPassEnabled && IsFirstPass);
             }
 
             ffmpeg.av_packet_free(&encodedPacket);
@@ -353,25 +385,41 @@ namespace Clipple.MediaProcessing
         }
 
         /// <summary>
-        /// Writes the trailer and finishes the video
+        /// Performs all cleanup.  The task cannot be used after this function is called
         /// </summary>
-        /// <exception cref="MediaProcessingException"></exception>
         public unsafe void Finalise()
         {
-            if (ffmpeg.av_write_trailer(outputContext) < 0)
-                throw new MediaProcessingException($"couldn't write trailer to {ClipSettings.FullFileName}");
+            FE.Code(ffmpeg.av_write_trailer(outputContext));
+            FE.Code(ffmpeg.avio_close(outputContext->pb));
 
-            if (ffmpeg.avio_close(outputContext->pb) < 0)
-                throw new MediaProcessingException($"couldn't close file {ClipSettings.FullFileName}");
+            foreach (var stream in OutputStreams)
+                stream.Dispose();
+
+            ffmpeg.avformat_free_context(outputContext);
         }
 
         /// <summary>
-        /// Dispose implementation
+        /// Finishes the first pass for this output task.
         /// </summary>
-        public unsafe void Dispose()
+        public unsafe void FinishFirstPass(List<MediaInputStream> inputStreams)
         {
-            if (outputContext != null)
-                ffmpeg.avformat_free_context(outputContext);
+            IsFirstPass = false;
+
+            // Finish first pass & clear old streams
+            Finalise();
+            OutputStreams.Clear();
+
+            // Create new format context for pass 2
+            AVFormatContext* formatContext;
+            FE.Code(ffmpeg.avformat_alloc_output_context2(&formatContext, null, null, ClipSettings.FullFileName));
+            FE.Null(formatContext);
+
+            // Replace old format context
+            outputContext = formatContext;
+
+            // Initialise new format context & streams for pass 2
+            CreateStreams(inputStreams);
+            Initialise();
         }
     }
 }

@@ -17,7 +17,7 @@ namespace Clipple.MediaProcessing
         // Timestamp good, decode packet and send frames
         Decode,
 
-        // Timestamp good, do nothing
+        // Timestamp maybe good, but do nothing
         NOP,
 
         // Packet from unknown/ignored stream

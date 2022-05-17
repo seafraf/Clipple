@@ -9,7 +9,7 @@ using FFmpeg.AutoGen;
 
 namespace Clipple.MediaProcessing
 {
-    internal class MediaOutputStream
+    internal class MediaOutputStream : IDisposable
     {
         public unsafe MediaOutputStream(AVStream* stream, int streamIndex, AVCodecContext* encoderContext, GraphFilter? graphFilter, 
             TimeSpan clipStartTime, TimeSpan clipEndTime, params MediaInputStream[] inputStreams)
@@ -42,8 +42,6 @@ namespace Clipple.MediaProcessing
                 EndPTS[i] = (long)(timeBase.den == 0 ?
                     clipEndTime.TotalSeconds * ffmpeg.AV_TIME_BASE :
                     clipEndTime.TotalSeconds / ((double)timeBase.num / timeBase.den));
-
-                currentDurations[i] = 0;
             }
         }
 
@@ -67,19 +65,13 @@ namespace Clipple.MediaProcessing
         /// 3. MediaPacketAction.Late if the PTS came after the end PTS for this stream
         /// 4. MediaPacketAction.Decode if this stream is interested in frames from the specified PTS
         /// </returns>
-        public MediaPacketAction CheckPTS(int streamIndex, long pts)
+        public bool CheckPTS(int streamIndex, long pts)
         {
             var index = inputStreamIndexMap.GetValueOrDefault(streamIndex, -1);
             if (index == -1)
-                return MediaPacketAction.BadStream;
+                return false;
 
-            if (pts < StartPTS[index])
-                return MediaPacketAction.Early;
-
-            if (pts > EndPTS[index])
-                return MediaPacketAction.Late;
-
-            return MediaPacketAction.Decode;
+            return pts >= StartPTS[index]; 
         }
 
         #region Members
@@ -94,9 +86,9 @@ namespace Clipple.MediaProcessing
         private readonly Dictionary<int, long> lastWrittenPTS = new();
 
         /// <summary>
-        /// Durations of individual 
+        /// List of input streams that have written enough content to satisfy the clip's end time
         /// </summary>
-        private Dictionary<int, long> currentDurations = new();
+        private readonly HashSet<int> streamFinished = new();
         #endregion
 
         #region Properties
@@ -147,24 +139,6 @@ namespace Clipple.MediaProcessing
         /// </summary>
         public bool IsAudio { get; }
 
-        public unsafe TimeSpan[] Durations
-        {
-            get
-            {
-                var durations = new TimeSpan[InputStreams.Length];
-                for (int i = 0; i < durations.Length; i++)
-                {
-                    var timeBase = InputStreams[i].Stream->time_base;
-                    var pts = currentDurations[i];
-                    durations[i] = TimeSpan.FromTicks(timeBase.den == 0 ?
-                        Convert.ToInt64(TimeSpan.TicksPerMillisecond * 1000 * pts / ffmpeg.AV_TIME_BASE) :
-                        Convert.ToInt64(TimeSpan.TicksPerMillisecond * 1000 * pts * timeBase.num / timeBase.den));
-                }
-
-                return durations;
-            }
-        }
-
         /// <summary>
         /// Estimates completion of this stream by 
         /// </summary>
@@ -190,25 +164,58 @@ namespace Clipple.MediaProcessing
             }
         }
 
-        internal unsafe void WritePacket(int inputStreamIndex, AVPacket* packet, AVFormatContext* context)
+        /// <summary>
+        /// True if every input stream has given enough content to this stream
+        /// </summary>
+        public bool IsFinished
+        {
+            get
+            {
+                for (var i = 0; i < InputStreams.Length; i++)
+                {
+                    if (!streamFinished.Contains(i))
+                        return false;
+                }
+                return true;
+            }
+        }
+
+        public int PacketCount { get; set; } = 0;
+
+        internal unsafe void WritePacket(int inputStreamIndex, AVPacket* packet, AVFormatContext* context, bool fakeWrite = false)
         {
             var internalIndex = inputStreamIndexMap.GetValueOrDefault(inputStreamIndex, -1);
             if (internalIndex == -1)
                 return;
 
-            currentDurations[internalIndex] += packet->duration;
+            PacketCount++;
+
+            if (packet->pts >= EndPTS[internalIndex])
+            {
+                streamFinished.Add(internalIndex);
+                return;
+            }
 
             // Fix packet
             packet->stream_index = StreamIndex;
-            packet->pts -= Math.Min(packet->pts, StartPTS[internalIndex]);
-            packet->dts -= Math.Min(packet->dts, StartPTS[internalIndex]);
+            //packet->pts -= Math.Min(packet->pts, StartPTS[internalIndex]);
+            //packet->dts -= Math.Min(packet->dts, StartPTS[internalIndex]);
 
             // Record pts before scaling
             lastWrittenPTS[internalIndex] = packet->pts;
 
+            if (fakeWrite)
+                return;
+
             ffmpeg.av_packet_rescale_ts(packet, InputStreams[internalIndex].Stream->time_base, Stream->time_base);
+            packet->pos = -1;
 
             FE.Code(ffmpeg.av_interleaved_write_frame(context, packet));
+        }
+
+        public unsafe void Dispose()
+        {
+            FE.Code(ffmpeg.avcodec_close(EncoderContext));
         }
         #endregion
     }

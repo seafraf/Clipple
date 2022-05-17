@@ -17,7 +17,7 @@ namespace Clipple
             await Task.Run(() =>
             {
                 var outputTasks = clips.Select((x) => new MediaOutputTask(x)).ToArray();
-                using var inputTask = new MediaInputTask(file, outputTasks);
+                var inputTask = new MediaInputTask(file, outputTasks);
 
                 // Update progress when the input task gives us back estimations
                 inputTask.OnProgressUpdate += (s, progresses) =>
@@ -38,10 +38,6 @@ namespace Clipple
                 };
                 
                 inputTask.ProcessContexts();
-
-                // Cleanup
-                foreach (var t in outputTasks)
-                    t.Dispose();
             });
         }
 

@@ -47,6 +47,7 @@ namespace Clipple.ViewModel
 
             Engine.Start(new EngineConfig()
             {
+                FFmpegLogLevel      = FFmpegLogLevel.Debug,
                 FFmpegPath          = "lib",
                 UIRefresh           = true,
                 UIRefreshInterval   = 100,

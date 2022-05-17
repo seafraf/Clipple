@@ -17,79 +17,86 @@
     
     <StackPanel>
 
+        <mah:MetroHeader Margin="2" Header="Output"/>
+        <Separator Margin="0 0 0 8" />
         <TextBox mah:TextBoxHelper.Watermark="Clip title" mah:TextBoxHelper.UseFloatingWatermark="True" Margin="0 0 0 4" Text="{Binding Path=Title, UpdateSourceTrigger=PropertyChanged}" />
         <TextBox mah:TextBoxHelper.Watermark="Folder" mah:TextBoxHelper.UseFloatingWatermark="True" Margin="0 0 0 4" Text="{Binding Path=Folder, UpdateSourceTrigger=PropertyChanged}" />
 
-        <Separator Margin="0 8 0 8" />
+        <mah:MetroHeader Margin="2 10 0 2" Header="Clip bounds"/>
+        <Separator Margin="0 0 0 8" />
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="70" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="auto" />
+                <ColumnDefinition Width="auto" />
+            </Grid.ColumnDefinitions>
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="32" />
+                <RowDefinition Height="32" />
+                <RowDefinition Height="32" />
+            </Grid.RowDefinitions>
+
+            <!-- Start time -->
+            <Label Grid.Column="0" Grid.Row="0" Content="Start time" Margin="2"  />
+            <TextBox Grid.Column="1" Grid.Row="0" Text="{Binding Path=StartTime, StringFormat=hh\\:mm\\:ss\\.fff}" Margin="2"  />
+
+            <Button Grid.Column="2" Grid.Row="0" Content="Set" Margin="2" Command="{Binding Path=SetStartTimeCommand}" />
+            <Button Grid.Column="3" Grid.Row="0" Content="Go to" Margin="2" Command="{Binding Path=GoToStartTimeCommand}" />
+
+            <!-- End time -->
+            <Label Grid.Column="0" Grid.Row="1" Content="End time" Margin="2"  />
+            <TextBox Grid.Column="1" Grid.Row="1" Text="{Binding Path=EndTime, StringFormat=hh\\:mm\\:ss\\.fff}" Margin="2"  />
+
+            <Button Grid.Column="2" Grid.Row="1" Content="Set" Margin="2" Command="{Binding Path=SetEndTimeCommand}" />
+            <Button Grid.Column="3" Grid.Row="1" Content="Go to" Margin="2" Command="{Binding Path=GoToEndTimeCommand}" />
+
+            <!-- Duration -->
+            <Label Grid.Column="0" Grid.Row="2" Margin="2" Content="Duration" />
+            <TextBox Grid.Column="1" Grid.ColumnSpan="3" Grid.Row="2" Margin="2" IsReadOnly="True" Text="{Binding Path=Duration, Mode=OneWay, StringFormat=hh\\:mm\\:ss\\.fff}" />
+        </Grid>
+
+        <mah:MetroHeader Margin="2 10 0 2" Header="Output format"/>
+        <Separator Margin="0 0 0 8" />
+
+        <ComboBox Margin="2" />
+
+        <!--<RadioButton Content="Export audio only" Margin="4" IsChecked="{Binding Path=ExportMode, Converter={StaticResource ComparisonConverter}, ConverterParameter={x:Static viewmodel:ClipExportMode.AudioOnly}}" />
+        <RadioButton Content="Export video only" Margin="4" IsChecked="{Binding Path=ExportMode, Converter={StaticResource ComparisonConverter}, ConverterParameter={x:Static viewmodel:ClipExportMode.VideoOnly}}" />
+        <RadioButton Content="Export both" Margin="4" IsChecked="{Binding Path=ExportMode, Converter={StaticResource ComparisonConverter}, ConverterParameter={x:Static viewmodel:ClipExportMode.Both}}"/>-->
+
+        <mah:MetroHeader Margin="2 10 0 2" Header="Player settings"/>
+        <Separator Margin="0 0 0 8" />
 
         <CheckBox Content="Show in video player" IsChecked="{Binding Path=ShowInPlayer}" Margin="2" />
         <CheckBox Content="Pause video at clip start"  IsChecked="{Binding Path=PauseAtClipStart}" IsEnabled="{Binding Path=ShowInPlayer}" Margin="2"/>
         <CheckBox Content="Pause video at clip end"  IsChecked="{Binding Path=PauseAtClipEnd}" IsEnabled="{Binding Path=ShowInPlayer}" Margin="2"/>
 
-        <Separator Margin="0 8 0 8" />
-
-        <RadioButton Content="Export audio only" Margin="4" IsChecked="{Binding Path=ExportMode, Converter={StaticResource ComparisonConverter}, ConverterParameter={x:Static viewmodel:ClipExportMode.AudioOnly}}" />
-        <RadioButton Content="Export video only" Margin="4" IsChecked="{Binding Path=ExportMode, Converter={StaticResource ComparisonConverter}, ConverterParameter={x:Static viewmodel:ClipExportMode.VideoOnly}}" />
-        <RadioButton Content="Export both" Margin="4" IsChecked="{Binding Path=ExportMode, Converter={StaticResource ComparisonConverter}, ConverterParameter={x:Static viewmodel:ClipExportMode.Both}}"/>
-
-        <Separator Margin="0 8 0 8" />
-
-        <Expander  Header="Clip start" Margin="0 0 0 4">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="60" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="auto" />
-                    <RowDefinition Height="auto" />
-                    <RowDefinition Height="auto" />
-                    <RowDefinition Height="auto" />
-                </Grid.RowDefinitions>
-
-                <Label Grid.Column="0" Grid.Row="1" Content="Time" Margin="2"  />
-                <TextBox Grid.Column="1" Grid.Row="1" Text="{Binding Path=StartTime, StringFormat=hh\\:mm\\:ss\\.fff}" Margin="2"  />
-
-                <Button Grid.ColumnSpan="2" Grid.Row="2" Content="Set" Margin="2" Command="{Binding Path=SetStartTimeCommand}" />
-                <Button Grid.ColumnSpan="2" Grid.Row="3" Content="Go to" Margin="2 0 2 0" Command="{Binding Path=GoToStartTimeCommand}" />
-            </Grid>
-        </Expander>
-
-        <Expander Header="Clip end" Margin="0 0 0 4">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="60" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="auto" />
-                    <RowDefinition Height="auto" />
-                    <RowDefinition Height="auto" />
-                    <RowDefinition Height="auto" />
-                </Grid.RowDefinitions>
-                
-                <Label Grid.Column="0" Grid.Row="1" Content="Time" Margin="2"  />
-                <TextBox Grid.Column="1" Grid.Row="1" Text="{Binding Path=EndTime, StringFormat=hh\\:mm\\:ss\\.fff}" Margin="2"  />
-
-                <Button Grid.ColumnSpan="2" Grid.Row="2" Content="Set" Margin="2" Command="{Binding Path=SetEndTimeCommand}" />
-                <Button Grid.ColumnSpan="2" Grid.Row="3" Content="Go to" Margin="2 0 2 0" Command="{Binding Path=GoToEndTimeCommand}" />
-            </Grid>
-        </Expander>
 
 
-        <Expander Header="Encoder settings" Margin="0 0 0 4">
-            <StackPanel>
-                <CheckBox Content="Copy packets" ToolTip="If this setting is enabled packets will be directly copied from the source video instead of decoded and encoded.  Using will result in a very quick clip but also disabled video &amp; audio settings" IsChecked="{Binding Path=CopyPackets}" IsEnabled="{Binding Path=CanCopyPackets}" Margin="2"/>
-            </StackPanel>
-        </Expander>
+        <mah:MetroHeader Margin="2 10 0 2" Header="Transcoding presets"/>
+        <Separator Margin="0 0 0 8" />
 
-        <Expander Header="Video settings" Margin="0 0 0 4" IsEnabled="{Binding Path=VideoSettingsEnabled}">
+        <ComboBox Margin="2" SelectedIndex="0">
+            <ComboBoxItem Content="Discord: 10mb" />
+            <ComboBoxItem Content="Discord: 50mb" />
+            <ComboBoxItem Content="Discord: 100mb" />
+            <ComboBoxItem Content="Recommended: low quality" />
+            <ComboBoxItem Content="Recommended: medium quality" />
+            <ComboBoxItem Content="Recommended: high quality" />
+        </ComboBox>
+
+        <mah:MetroHeader Margin="2 10 0 2" Header="Advanced transcoding settings"/>
+        <Separator Margin="0 0 0 8" />
+        <Expander Header="Video" IsEnabled="{Binding Path=VideoSettingsEnabled}">
             <StackPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                     <iconPacks:PackIconMaterialDesign Margin="4 0 0 0"  Kind="Warning" VerticalAlignment="Center" />
                     <TextBlock Text="Clips cannot exceed the input video's resolution or FPS" TextWrapping="WrapWithOverflow" />
                 </StackPanel>
-                
+
                 <Grid Margin="0 4 0 0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="120" />
@@ -124,7 +131,7 @@
                     <Label Grid.Column="0" Content="FPS"  />
                     <mah:NumericUpDown Grid.Column="1" MinWidth="150" Minimum="1" Maximum="{Binding Path=SourceFPS, Mode=OneWay}" Interval="1" NumericInputMode="Numbers" HorizontalAlignment="Stretch" Value="{Binding Path=TargetFPS}" />
                 </Grid>
-                
+
                 <Grid Margin="0 0 0 4" >
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="120" />
@@ -154,7 +161,7 @@
                 </Grid>
             </StackPanel>
         </Expander>
-        <Expander Header="Audio settings" IsEnabled="{Binding Path=AudioSettingsEnabled}">
+        <Expander Header="Audio" IsEnabled="{Binding Path=AudioSettingsEnabled}">
             <StackPanel>
                 <DataGrid ItemsSource="{Binding Path=AudioSettings}" AutoGenerateColumns="False" >
                     <DataGrid.Columns>
@@ -170,24 +177,11 @@
                 <CheckBox Margin="2 0 2 2" Content="Merge audio tracks?" IsChecked="{Binding Path=MergeAudio}" IsEnabled="{Binding Path=ExportMode, Converter={StaticResource ComparisonConverter}, ConverterParameter={x:Static viewmodel:ClipExportMode.Both}}" />
             </StackPanel>
         </Expander>
-
-        <Separator Margin="0 8 0 8" />
-        <!--<Grid Margin="0 0 0 4">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="150" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-            <Label Grid.Column="0" Content="Estimated maximum size"  />
-            <TextBox Grid.Column="1" IsReadOnly="True" Text="{Binding Path=EstimatedMaxSize, Mode=OneWay}" />
-        </Grid>-->
-        <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="150" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-            <Label Grid.Column="0" Content="Clip duration"  />
-            <TextBox Grid.Column="1" IsReadOnly="True" Text="{Binding Path=Duration, Mode=OneWay, StringFormat=hh\\:mm\\:ss\\.fff}" />
-        </Grid>
+        <Expander Header="Other" Margin="0 0 0 4">
+            <StackPanel>
+                <CheckBox Content="Two pass encoding" ToolTip="x264 two pass encoding" IsChecked="{Binding Path=TwoPassEncoding}" Margin="2"/>
+            </StackPanel>
+        </Expander>
 
         <Separator Margin="0 8 0 8" />
         <Grid>

@@ -29,9 +29,6 @@ namespace Clipple.MediaProcessing
                     $"h={clipSettings.TargetHeight}");
             }
 
-            if (clipSettings.SourceFPS != clipSettings.TargetFPS)
-                AddFilter("fps", $"fps={clipSettings.TargetFPS}:");
-
             // Output buffer
             BufferSinkContext = AddFilter("buffersink");
 

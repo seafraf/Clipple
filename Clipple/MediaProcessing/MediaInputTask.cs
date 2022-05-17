@@ -10,7 +10,7 @@ namespace Clipple.MediaProcessing
     /// <summary>
     /// Reads a single input video and creates 1 or more output videos using the passed in VideoOutputTask class instances
     /// </summary>
-    internal class MediaInputTask : IDisposable
+    internal class MediaInputTask
     {
         public unsafe MediaInputTask(string inputFile, MediaOutputTask[] outputTasks)
         {
@@ -81,59 +81,28 @@ namespace Clipple.MediaProcessing
                 outputTask.Initialise();
             }   
 
-            var frame  = FE.Null(ffmpeg.av_frame_alloc());
-            var packet = FE.Null(ffmpeg.av_packet_alloc());
-
             // Batch together tasks that overlap and 
             var taskBatches = BatchOutputTasks();
 
-            foreach (var (pts, batchTasks) in taskBatches)
+            foreach (var (pts, batch) in taskBatches)
             {
                 // Seek to the beginning of this batch of clips
                 FE.Code(ffmpeg.av_seek_frame(formatContext, 0, pts, ffmpeg.AVSEEK_FLAG_BACKWARD));
 
-                while (ffmpeg.av_read_frame(formatContext, packet) >= 0)
+                ProcessBatch(formatContext, codecContextArray, batch);
+
+                var twoPassTasks = batch.Where(x => x.TwoPassEnabled).ToList();
+                if (twoPassTasks.Count > 0)
                 {
-                    var filteredTasks = new List<MediaOutputTask>();
-                    var lateCount     = 0;
-                    foreach (var task in batchTasks)
-                    {
-                        var interest = task.HandlePacket(packet);
-                        if (interest == MediaPacketAction.Decode)
-                            filteredTasks.Add(task);
+                    // Go back to the start for this batch of clips
+                    FE.Code(ffmpeg.av_seek_frame(formatContext, 0, pts, ffmpeg.AVSEEK_FLAG_BACKWARD));
 
-                        if (interest == MediaPacketAction.Late)
-                            lateCount++;
-                    }
+                    // Finish pass 1 and prepare for pass 2
+                    foreach (var task in twoPassTasks)
+                        task.FinishFirstPass(streams);
 
-                    // Stop processing this batch of tasks if all tasks in this batch think the current packet is too late
-                    if (lateCount == batchTasks.Count)
-                        break;
-
-                    var codecContext = codecContextArray[packet->stream_index];
-
-                    // Send packet to codec
-                    int res = ffmpeg.avcodec_send_packet(codecContext, packet);
-
-                    // Read frames
-                    while (res >= 0)
-                    {
-                        res = ffmpeg.avcodec_receive_frame(codecContext, frame);
-                        if (res == ffmpeg.AVERROR(ffmpeg.EAGAIN) || res == ffmpeg.AVERROR_EOF)
-                            break;
-
-                        if (res < 0)
-                            throw new MediaProcessingException("couldn't receive frame?");
-
-                        // Run each frame through each task that was interested in the packet
-                        foreach (var task in filteredTasks)
-                            task.HandleFrame(packet, frame);
-                    }
-
-                    // Send an array of progress updates to any event listener
-                    SetProgress(outputTasks.Select((t) => t.CompletionEstimate).ToArray());
-
-                    ffmpeg.av_packet_unref(packet);
+                    // Perform second pass for each two-pass enabled task
+                    ProcessBatch(formatContext, codecContextArray, twoPassTasks);
                 }
             }
 
@@ -141,10 +110,47 @@ namespace Clipple.MediaProcessing
             foreach (var clipContext in outputTasks)
                 clipContext.Finalise();
 
+            ffmpeg.avformat_close_input(&formatContext);
+        }
+
+        private unsafe void ProcessBatch(AVFormatContext* formatContext, AVCodecContext*[] codecContextArray, List<MediaOutputTask> batch)
+        {
+            var frame  = FE.Null(ffmpeg.av_frame_alloc());
+            var packet = FE.Null(ffmpeg.av_packet_alloc());
+
+            while (ffmpeg.av_read_frame(formatContext, packet) >= 0)
+            {
+                var codecContext = codecContextArray[packet->stream_index];
+
+                // Send packet to codec
+                int res = ffmpeg.avcodec_send_packet(codecContext, packet);
+
+                // Read frames
+                while (res >= 0)
+                {
+                    res = ffmpeg.avcodec_receive_frame(codecContext, frame);
+                    if (res == ffmpeg.AVERROR(ffmpeg.EAGAIN) || res == ffmpeg.AVERROR_EOF)
+                        break;
+
+                    if (res < 0)
+                        throw new MediaProcessingException("couldn't receive frame?");
+
+                    // Run each frame through each task that was interested in the packet
+                    foreach (var task in batch)
+                        task.HandleFrame(packet, frame);
+                }
+
+                if (batch.All(x => x.IsFinished))
+                    break;
+
+                // Send an array of progress updates to any event listener
+                SetProgress(outputTasks.Select((t) => t.CompletionEstimate).ToArray());
+
+                ffmpeg.av_packet_unref(packet);
+            }
+
             ffmpeg.av_packet_free(&packet);
             ffmpeg.av_frame_free(&frame);
-
-            ffmpeg.avformat_close_input(&formatContext);
         }
 
         /// <summary>
@@ -204,17 +210,6 @@ namespace Clipple.MediaProcessing
         private void SetProgress(double[] progress)
         {
             OnProgressUpdate?.Invoke(this, progress);
-        }
-
-        public unsafe void Dispose()
-        {
-            //foreach (var outputContext in outputContexts)
-            //{
-            //    if (outputContext != null)
-            //    {
-            //        ffmpeg.avformat_close_
-            //    }
-            //}
         }
     }
 }
