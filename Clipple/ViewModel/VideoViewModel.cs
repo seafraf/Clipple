@@ -40,11 +40,19 @@ namespace Clipple.ViewModel
         {
             fileInfo = new FileInfo(FilePath);
 
-            // Try and parse the container format to extract track names
-            var parser = new SimpleParser(FilePath);
-            parser.Parse();
+            try
+            {
+                // mp4 only
+                var parser = new SimpleParser(FilePath);
+                parser.Parse();
 
-            trackNames = parser.Tracks.Select(x => x.Name).ToArray();
+                trackNames = parser.Tracks.Select(x => x.Name).ToArray();
+            }
+            catch (Exception)
+            {
+                // Temp fix for other container formats..
+                trackNames = Array.Empty<string>();
+            }
 
             // Use ffmpeg to try and determine FPS and video resolution
             unsafe
