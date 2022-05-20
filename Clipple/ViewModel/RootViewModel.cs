@@ -104,7 +104,7 @@ namespace Clipple.ViewModel
                     Videos.Add(video);
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 // Use default settings if disk settings failed to load
                 SettingsViewModel ??= new SettingsViewModel();

@@ -1,4 +1,5 @@
-﻿using Clipple.Util;
+﻿using Clipple.Types;
+using Clipple.Util;
 using MahApps.Metro.Controls.Dialogs;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
 using Microsoft.Toolkit.Mvvm.Input;
@@ -12,49 +13,12 @@ using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using System.Windows.Data;
 using System.Windows.Input;
 
 namespace Clipple.ViewModel
 {
-    public enum ClipExportMode
-    {
-        AudioOnly,
-        VideoOnly,
-        Both
-    }
-
-    public enum VideoClipPreset
-    {
-        YT_2160_60, // 68
-        YT_2160_30, // 45
-
-        YT_1440_60, // 24
-        YT_1440_30, // 16
-
-        YT_1080_60, // 12
-        YT_1080_30, // 8
-
-        YT_720_60,  // 7.5
-        YT_720_30,  // 5
-
-        YT_480_60,  // 4 
-        YT_480_30, // 2.5
-
-        YT_360_60,  // 1.5
-        YT_360_30, // 1
-
-        NoPreset
-    }
-
-    public enum AudioClipPreset
-    {
-        YT_Mono,        // 128
-        YT_Stereo,      // 384
-        YT_5_1,         // 512
-        NoPreset,
-    }
-
-    public class ClipViewModel : ObservableObject, INotifyDataErrorInfo, IJsonOnDeserialized, IJsonOnDeserializing
+    public partial class ClipViewModel : ObservableObject, INotifyDataErrorInfo, IJsonOnDeserialized, IJsonOnDeserializing
     {
 #pragma warning disable CS8618
         /// <summary>
@@ -63,6 +27,12 @@ namespace Clipple.ViewModel
         public ClipViewModel()
 #pragma warning restore CS8618
         {
+            InitialiseVideoViews();
+
+            // Events
+            AudioSettings.CollectionChanged += OnAudioSettingsChanged;
+            PropertyChanged += OnPropertyChanged;
+
             SetStartTimeCommand     = new RelayCommand(() => StartTicks = App.MediaPlayer.CurTime);
             SetEndTimeCommand       = new RelayCommand(() => EndTicks = App.MediaPlayer.CurTime);
             GoToStartTimeCommand    = new RelayCommand(() => App.ViewModel.VideoPlayerViewModel.SeekTicks(StartTicks));
@@ -88,18 +58,26 @@ namespace Clipple.ViewModel
                 if (video != null)
                     await ClipProcessor.Process(video, this);
             });
+
+            SupportedOutputFormats.GroupDescriptions.Clear();
+            SupportedOutputFormats.GroupDescriptions.Add(new PropertyGroupDescription("Category"));
+
+            TranscodingPresets.GroupDescriptions.Clear();
+            TranscodingPresets.GroupDescriptions.Add(new PropertyGroupDescription("Category"));
         }
 
         public ClipViewModel(long startTicks, long endTicks, string title, string folder) :
             this()
         {
-            VideoPreset     = VideoClipPreset.NoPreset;
             this.title      = title;
             this.folder     = folder;
 
             // End time has to be set first so that it doesn't get clamped
             EndTicks    = endTicks;
             StartTicks  = startTicks;
+
+            // Select default output format
+            OutputFormatIndex = 6; // mp4
         }
 
         #region Members
@@ -107,6 +85,9 @@ namespace Clipple.ViewModel
         #endregion
 
         #region Properties
+        /// <summary>
+        /// Reference to the parent view model
+        /// </summary>
         private VideoViewModel? parent;
         [JsonIgnore]
         public VideoViewModel? Parent
@@ -130,36 +111,45 @@ namespace Clipple.ViewModel
             }
         }
 
+        /// <summary>
+        /// Clip start time in ticks (native format for the video player)
+        /// </summary>
         private long startTicks;
         public long StartTicks
         {
-            get => startTicks;
+            get => Math.Min(endTicks, startTicks);
             set
             {
-                value = isDeserializing ? value : Math.Min(EndTicks, value);
-
                 SetProperty(ref startTicks, value);
-                OnPropertyChanged(nameof(EstimatedMaxSize));
                 OnPropertyChanged(nameof(Duration));
                 OnPropertyChanged(nameof(StartTime));
+
+                if (UseTargetSize)
+                    OnPropertyChanged(nameof(VideoBitrate));
             }
         }
 
+        /// <summary>
+        /// Clip end time in ticks (native format for the video player)
+        /// </summary>
         private long endTicks;
         public long EndTicks
         {
-            get => endTicks;
+            get => Math.Max(startTicks, endTicks);
             set
             {
-                value = isDeserializing ? value : Math.Max(StartTicks, value);
-
                 SetProperty(ref endTicks, value);
-                OnPropertyChanged(nameof(EstimatedMaxSize));
                 OnPropertyChanged(nameof(Duration));
                 OnPropertyChanged(nameof(EndTime));
+
+                if (UseTargetSize)
+                    OnPropertyChanged(nameof(VideoBitrate));
             }
         }
 
+        /// <summary>
+        /// Clip start time
+        /// </summary>
         [JsonIgnore]
         public TimeSpan StartTime
         {
@@ -167,288 +157,14 @@ namespace Clipple.ViewModel
             set => StartTicks = value.Ticks;
         }
 
+        /// <summary>
+        /// Clip end time
+        /// </summary>
         [JsonIgnore]
         public TimeSpan EndTime
         {
             get => TimeSpan.FromTicks(EndTicks);
             set => EndTicks = value.Ticks;
-        }
-
-        [JsonIgnore]
-        public int SourceFPS
-        {
-            get => Parent?.VideoFPS ?? -1;
-        }
-
-        [JsonIgnore]
-        public int SourceWidth
-        {
-            get => Parent?.VideoWidth ?? -1;
-        }
-
-        [JsonIgnore]
-        public int SourceHeight
-        {
-            get => Parent?.VideoHeight ?? -1;
-        }
-
-        private ClipExportMode exportMode = ClipExportMode.Both;
-        public ClipExportMode ExportMode
-        {
-            get => exportMode;
-            set
-            {
-                SetProperty(ref exportMode, value);
-                OnPropertyChanged(nameof(VideoSettingsEnabled));
-                OnPropertyChanged(nameof(AudioSettingsEnabled));
-                OnPropertyChanged(nameof(MergeAudio));
-                OnPropertyChanged(nameof(CanCopyPackets));
-                OnPropertyChanged(nameof(CopyPackets));
-            }
-        }
-
-        private double videoBitrate = 100;
-        public double VideoBitrate
-        {
-            get => videoBitrate;
-            set
-            {
-                SetProperty(ref videoBitrate, value);
-                OnPropertyChanged(nameof(EstimatedMaxSize));
-            }
-        }
-
-        private int targetFPS;
-        public int TargetFPS
-        {
-            get => targetFPS;
-            set
-            {
-                SetProperty(ref targetFPS, Math.Max(1, Math.Min(value, SourceFPS)));
-                OnPropertyChanged(nameof(EstimatedMaxSize));
-            }
-        }
-
-        private int targetWidth;
-        public int TargetWidth
-        {
-            get => targetWidth;
-            set => SetProperty(ref targetWidth, value);
-        }
-
-        private int targetHeight;
-        public int TargetHeight
-        {
-            get => targetHeight;
-            set => SetProperty(ref targetHeight, value);
-        }
-
-        private string title;
-        public string Title
-        {
-            get => title;
-            set
-            {
-                SetProperty(ref title, value);
-                ValidateTitle();
-            }
-        }
-
-        private string folder;
-        public string Folder
-        {
-            get => folder;
-            set
-            {
-                SetProperty(ref folder, value);
-                ValidateFolder();
-            }
-        }
-
-        private bool mergeAudio;
-        public bool MergeAudio
-        {
-            get => ExportMode == ClipExportMode.AudioOnly || mergeAudio;
-            set => SetProperty(ref mergeAudio, value);
-        }
-
-        private bool copyPackets;
-        public bool CopyPackets
-        {
-            get
-            {
-                return CanCopyPackets && copyPackets;
-            }
-            set
-            {
-                SetProperty(ref copyPackets, value);
-
-                OnPropertyChanged(nameof(VideoSettingsEnabled));
-                OnPropertyChanged(nameof(AudioSettingsEnabled));
-            }
-        }
-
-        private bool twoPassEncoding = false;
-        public bool TwoPassEncoding
-        {
-            get => twoPassEncoding;
-            set => SetProperty(ref twoPassEncoding, value);
-        }
-
-        private bool showInPlayer = true;
-        public bool ShowInPlayer
-        {
-            get => showInPlayer;
-            set => SetProperty(ref showInPlayer, value);
-        }
-
-        private bool pauseAtClipStart = true;
-        public bool PauseAtClipStart
-        {
-            get => pauseAtClipStart;
-            set => SetProperty(ref pauseAtClipStart, value);
-        }
-
-        private bool pauseAtClipEnd = true;
-        public bool PauseAtClipEnd
-        {
-            get => pauseAtClipEnd;
-            set => SetProperty(ref pauseAtClipEnd, value);
-        }
-
-        private ObservableCollection<AudioSettingsModel> audioSettings = new ();
-        public ObservableCollection<AudioSettingsModel> AudioSettings
-        {
-            get => audioSettings;
-            set => SetProperty(ref audioSettings, value);
-        }
-
-        private VideoClipPreset videoPreset;
-        public VideoClipPreset VideoPreset
-        {
-            get => videoPreset;
-            set
-            {
-                SetProperty(ref videoPreset, value);
-
-                switch (value)
-                {
-                    case VideoClipPreset.YT_2160_60:
-                        VideoBitrate = 68.0;
-                        TargetFPS    = Math.Min(60, SourceFPS);
-                        TargetWidth  = Math.Min(3840, SourceWidth);
-                        TargetHeight = Math.Min(2160, SourceHeight);
-                        break;
-                    case VideoClipPreset.YT_2160_30:
-                        VideoBitrate = 45.0;
-                        TargetFPS    = Math.Min(30, SourceFPS);
-                        TargetWidth  = Math.Min(3840, SourceWidth);
-                        TargetHeight = Math.Min(2160, SourceHeight);
-                        break;
-                    case VideoClipPreset.YT_1440_60:
-                        VideoBitrate = 24.0;
-                        TargetFPS    = Math.Min(60, SourceFPS);
-                        TargetWidth  = Math.Min(2560, SourceWidth);
-                        TargetHeight = Math.Min(1440, SourceHeight);
-                        break;
-                    case VideoClipPreset.YT_1440_30:
-                        VideoBitrate = 16.0;
-                        TargetFPS          = Math.Min(30, SourceFPS);
-                        TargetWidth  = Math.Min(2560, SourceWidth);
-                        TargetHeight = Math.Min(1440, SourceHeight);
-                        break;
-                    case VideoClipPreset.YT_1080_60:
-                        VideoBitrate = 12.0;
-                        TargetFPS          = Math.Min(60, SourceFPS);
-                        TargetWidth  = Math.Min(1920, SourceWidth);
-                        TargetHeight = Math.Min(1080, SourceHeight);
-                        break;
-                    case VideoClipPreset.YT_1080_30:
-                        VideoBitrate = 8.0;
-                        TargetFPS          = Math.Min(30, SourceFPS);
-                        TargetWidth  = Math.Min(1920, SourceWidth);
-                        TargetHeight = Math.Min(1080, SourceHeight);
-                        break;
-                    case VideoClipPreset.YT_720_60:
-                        VideoBitrate = 7.5;
-                        TargetFPS          = Math.Min(60, SourceFPS);
-                        TargetWidth  = Math.Min(1280, SourceWidth);
-                        TargetHeight = Math.Min(720, SourceHeight);
-                        break;
-                    case VideoClipPreset.YT_720_30:
-                        VideoBitrate = 5;
-                        TargetFPS          = Math.Min(30, SourceFPS);
-                        TargetWidth  = Math.Min(1280, SourceWidth);
-                        TargetHeight = Math.Min(720, SourceHeight);
-                        break;
-                    case VideoClipPreset.YT_480_60:
-                        VideoBitrate = 4;
-                        TargetFPS          = Math.Min(60, SourceFPS);
-                        TargetWidth  = Math.Min(852, SourceWidth);
-                        TargetHeight = Math.Min(480, SourceHeight);
-                        break;
-                    case VideoClipPreset.YT_480_30:
-                        VideoBitrate = 2.5;
-                        TargetFPS          = Math.Min(30, SourceFPS);
-                        TargetWidth  = Math.Min(852, SourceWidth);
-                        TargetHeight = Math.Min(480, SourceHeight);
-                        break;
-                    case VideoClipPreset.YT_360_60:
-                        VideoBitrate = 1.5;
-                        TargetFPS          = Math.Min(60, SourceFPS);
-                        TargetWidth  = Math.Min(480, SourceWidth);
-                        TargetHeight = Math.Min(360, SourceHeight);
-                        break;
-                    case VideoClipPreset.YT_360_30:
-                        VideoBitrate = 1;
-                        TargetFPS          = Math.Min(30, SourceFPS);
-                        TargetWidth  = Math.Min(480, SourceWidth);
-                        TargetHeight = Math.Min(360, SourceHeight);
-                        break;
-                    case VideoClipPreset.NoPreset:
-                    default:
-                        break;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Enumeration of all video clip presets
-        /// </summary>
-        [JsonIgnore]
-        public IEnumerable<VideoClipPreset> VideoClipPresetValues
-        {
-            get => Enum.GetValues(typeof(VideoClipPreset)).Cast<VideoClipPreset>();
-        }
-
-        /// <summary>
-        /// True when export mode is video only or both
-        /// </summary>
-        [JsonIgnore]
-        public bool VideoSettingsEnabled => 
-            (ExportMode == ClipExportMode.VideoOnly || ExportMode == ClipExportMode.Both) && !CopyPackets;
-
-        /// <summary>
-        /// True when export mode is audio only or both
-        /// </summary>
-        [JsonIgnore]
-        public bool AudioSettingsEnabled => 
-            (ExportMode == ClipExportMode.AudioOnly || ExportMode == ClipExportMode.Both) && !CopyPackets;
-
-        /// <summary>
-        /// Estimated, human-readable maximum size for the output of this clip.  Calculated by using maximum bitrates for
-        /// video and audio
-        /// </summary>
-        [JsonIgnore]
-        public string EstimatedMaxSize
-        {
-            get
-            {
-                var frames = EndTicks - StartTicks;
-                var seconds = frames / SourceFPS;
-                var megabits = VideoBitrate * seconds;
-                return Formatting.ByteCountToString((long)(megabits * 125000));
-            }
         }
 
         /// <summary>
@@ -461,6 +177,138 @@ namespace Clipple.ViewModel
         }
 
         /// <summary>
+        /// Input video FPS (rounded)
+        /// </summary>
+        [JsonIgnore]
+        public int SourceFPS
+        {
+            get => Parent?.VideoFPS ?? -1;
+        }
+
+        /// <summary>
+        /// Input video width in pixels
+        /// </summary>
+        [JsonIgnore]
+        public int SourceWidth
+        {
+            get => Parent?.VideoWidth ?? -1;
+        }
+
+        /// <summary>
+        /// Input video height in pixels
+        /// </summary>
+        [JsonIgnore]
+        public int SourceHeight
+        {
+            get => Parent?.VideoHeight ?? -1;
+        }
+
+        /// <summary>
+        /// Clip title and output name
+        /// </summary>
+        private string title;
+        public string Title
+        {
+            get => title;
+            set
+            {
+                SetProperty(ref title, value);
+                ValidateTitle();
+            }
+        }
+
+        /// <summary>
+        /// Clip output folder
+        /// </summary>
+        private string folder;
+        public string Folder
+        {
+            get => folder;
+            set
+            {
+                SetProperty(ref folder, value);
+                ValidateFolder();
+            }
+        }
+
+        /// <summary>
+        /// Whether or not this clip should show in the player, note if this is not turned on, neither PauseAtClipStart 
+        /// nor PauseAtClipEnd will be activated
+        /// </summary>
+        private bool showInPlayer = true;
+        public bool ShowInPlayer
+        {
+            get => showInPlayer;
+            set => SetProperty(ref showInPlayer, value);
+        }
+
+        /// <summary>
+        /// Whether or not the player should pause when it hits the start of this clip
+        /// </summary>
+        private bool pauseAtClipStart = true;
+        public bool PauseAtClipStart
+        {
+            get => pauseAtClipStart;
+            set => SetProperty(ref pauseAtClipStart, value);
+        }
+
+        /// <summary>
+        /// Whether or not the player should pause when it hits the end of this clip
+        /// </summary>
+        private bool pauseAtClipEnd = true;
+        public bool PauseAtClipEnd
+        {
+            get => pauseAtClipEnd;
+            set => SetProperty(ref pauseAtClipEnd, value);
+        }
+
+        /// <summary>
+        /// Currently selected output format
+        /// </summary>
+        private OutputFormat outputFormat;
+        [JsonIgnore]
+        public OutputFormat OutputFormat
+        {
+            get => outputFormat;
+            set
+            {
+                SetProperty(ref outputFormat, value);
+
+                // Merge audio is forced on for audio only formats
+                OnPropertyChanged(nameof(MergeAudio));
+            }
+        }
+
+        /// <summary>
+        /// Index of , for serialization
+        /// </summary>
+        private int outputFormatIndex = -1;
+        public int OutputFormatIndex
+        {
+            get => outputFormatIndex;
+            set => SetProperty(ref outputFormatIndex, value);
+        }
+
+        /// <summary>
+        /// List of supported output formats, ffmpeg supports many more but these are the most popular + tested to work
+        /// </summary>
+        [JsonIgnore]
+        public ListCollectionView SupportedOutputFormats { get; } = new(new ObservableCollection<OutputFormat>()
+        {
+            // Audio only
+            new OutputFormat("wav", ".wav", "Waveform Audio", true, false),
+            new OutputFormat("adts", ".aac", "Advanced Audio Coding", true, false),
+            new OutputFormat("mp3", ".mp3", "MPEG audio layer 3", true, false),
+
+            // Video and audio
+            new OutputFormat("webm", ".webm", "WebM"),
+            new OutputFormat("avi", ".avi", "Audio Video Interleaved"),
+            new OutputFormat("mov", ".mov", "QuickTime"),
+            new OutputFormat("mp4", ".mp4", "MPEG-4 Part 14"),
+            new OutputFormat("matroska", ".mkv", "Matroska"),
+        });
+
+        /// <summary>
         /// Returns a full file name for this clip, including absolute directory and extension.
         /// </summary>
         [JsonIgnore]
@@ -469,7 +317,7 @@ namespace Clipple.ViewModel
             get
             {
                 string fileName = Title;
-                string ext = ExportMode == ClipExportMode.AudioOnly ? ".mp3" : ".mp4";
+                string ext = outputFormat.Extension;
                 if (!fileName.EndsWith(ext))
                     fileName += ext;
 
@@ -478,10 +326,68 @@ namespace Clipple.ViewModel
         }
 
         /// <summary>
-        /// Whether or not the copy packets can be used
+        /// Current transcoding preset
+        /// </summary>
+        private TranscodingPreset? transcodingPreset;
+        [JsonIgnore]
+        public TranscodingPreset? TranscodingPreset
+        {
+            get => transcodingPreset;
+            set
+            {
+                if (value != null)
+                {
+                    VideoBitrate     = value.VideoBitrate ?? VideoBitrate;
+                    TargetWidth      = value.TargetWidth ?? TargetWidth;
+                    TargetHeight     = value.TargetHeight ?? TargetHeight;
+                    TargetFPS        = value.FPS ?? TargetFPS;
+                    VideoCodec       = value.VideoCodec ?? VideoCodec;
+                    AudioBitrate     = value.AudioBitrate ?? AudioBitrate;
+                    UseTargetSize    = value.UseTargetSize ?? UseTargetSize;
+                    OutputTargetSize = value.TargetSize ?? OutputTargetSize;
+                }
+
+                SetProperty(ref transcodingPreset, value);
+            }
+        }
+
+        /// <summary>
+        /// Index of transcoding preset, for serialization
+        /// </summary>
+        private int transcodingPresetIndex = -1;
+        public int TranscodingPresetIndex
+        {
+            get => transcodingPresetIndex;
+            set => SetProperty(ref transcodingPresetIndex, value);
+        }
+
+        /// <summary>
+        /// List of transcoding presets
         /// </summary>
         [JsonIgnore]
-        public bool CanCopyPackets => ExportMode != ClipExportMode.AudioOnly;
+        public ListCollectionView TranscodingPresets { get; } = new(new ObservableCollection<TranscodingPreset>()
+        {
+            new TranscodingPreset("10MB (no nitro)", "Discord", useTargetSize: true, targetSize: 10, videoCodec: "libx264"),
+            new TranscodingPreset("50MB (nitro classic)", "Discord", useTargetSize: true, targetSize: 50, videoCodec: "libx264"),
+            new TranscodingPreset("100MB (nitro)", "Discord", useTargetSize: true, targetSize: 100, videoCodec: "libx264"),
+
+            new TranscodingPreset("10MB (no nitro)", "Discord, VP9 (Slow)", useTargetSize: true, targetSize: 10, videoCodec: "libvpx-vp9"),
+            new TranscodingPreset("50MB (nitro classic)", "Discord, VP9 (Slow)", useTargetSize: true, targetSize: 50, videoCodec: "libvpx-vp9"),
+            new TranscodingPreset("100MB (nitro)", "Discord, VP9 (Slow)", useTargetSize: true, targetSize: 100, videoCodec: "libvpx-vp9"),
+
+            new TranscodingPreset("2160p@60", "YouTube SDR recommendations", videoBitrate: 680000, targetWidth: 3840, targetHeight: 2160, fps: 60, videoCodec: "libx264"),
+            new TranscodingPreset("2160p@30", "YouTube SDR recommendations", videoBitrate: 450000, targetWidth: 3840, targetHeight: 2160, fps: 30, videoCodec: "libx264"),
+            new TranscodingPreset("1440p@60", "YouTube SDR recommendations", videoBitrate: 240000, targetWidth: 2560, targetHeight: 1440, fps: 60, videoCodec: "libx264"),
+            new TranscodingPreset("1440p@30", "YouTube SDR recommendations", videoBitrate: 160000, targetWidth: 2560, targetHeight: 1440, fps: 30, videoCodec: "libx264"),
+            new TranscodingPreset("1080p@60", "YouTube SDR recommendations", videoBitrate: 120000, targetWidth: 1920, targetHeight: 1080, fps: 60, videoCodec: "libx264"),
+            new TranscodingPreset("1080p@30", "YouTube SDR recommendations", videoBitrate: 80000, targetWidth: 1920, targetHeight: 1080, fps: 30, videoCodec: "libx264"),
+            new TranscodingPreset("720p@60", "YouTube SDR recommendations", videoBitrate: 75000, targetWidth: 1280, targetHeight: 720, fps: 60, videoCodec: "libx264"),
+            new TranscodingPreset("720p@30", "YouTube SDR recommendations", videoBitrate: 50000, targetWidth: 1280, targetHeight: 720, fps: 30, videoCodec: "libx264"),
+            new TranscodingPreset("480p@60", "YouTube SDR recommendations", videoBitrate: 40000, targetWidth: 852, targetHeight: 480, fps: 60, videoCodec: "libx264"),
+            new TranscodingPreset("480p@30", "YouTube SDR recommendations", videoBitrate: 25000, targetWidth: 852, targetHeight: 480, fps: 30, videoCodec: "libx264"),
+            new TranscodingPreset("360p@60", "YouTube SDR recommendations", videoBitrate: 15000, targetWidth: 480, targetHeight: 360, fps: 60, videoCodec: "libx264"),
+            new TranscodingPreset("360p@30", "YouTube SDR recommendations", videoBitrate: 10000, targetWidth: 480, targetHeight: 360, fps: 30, videoCodec: "libx264"),
+        });
         #endregion
 
         #region INotifyDataErrorInfo implementation
@@ -526,6 +432,8 @@ namespace Clipple.ViewModel
             {
                 propertyErrors[propertyName].Add(error);
                 ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(propertyName));
+
+                OnPropertyChanged(nameof(HasErrors));
             }
         }
 
@@ -535,6 +443,8 @@ namespace Clipple.ViewModel
             {
                 propertyErrors[propertyName].Clear();
                 ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(propertyName));
+
+                OnPropertyChanged(nameof(HasErrors));
             }
         }
         #endregion
@@ -630,6 +540,34 @@ namespace Clipple.ViewModel
 
         [JsonIgnore]
         public ICommand ProcessCommand { get; }
+        #endregion
+
+        #region Event handlers
+        private void OnAudioSettingsChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            if (e.NewItems == null)
+                return;
+
+            foreach (var audioSetting in e.NewItems)
+            {
+                ((AudioSettingsModel)audioSetting).PropertyChanged -= OnAudioSettingPropertyChanged;
+                ((AudioSettingsModel)audioSetting).PropertyChanged += OnAudioSettingPropertyChanged;
+            }
+        }
+
+        private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            // If any of the properties set by transcoding presets change, unselect the transcoding preset
+            // to indicate the current settings don't reflect the previously selected preset any more
+            if (e.PropertyName == "VideoBitrate" || e.PropertyName == "TargetWidth"
+                || e.PropertyName == "TargetHeight" || e.PropertyName == "TargetFPS"
+                || e.PropertyName == "VideoCodec" || e.PropertyName == "AudioBitrate"
+                || e.PropertyName == "AudioBitrate" || e.PropertyName == "UseTargetSize" ||
+                e.PropertyName == "OutputTargetSize")
+            {
+                TranscodingPreset = null;
+            }
+        }
         #endregion
     }
 }

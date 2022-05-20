@@ -7,6 +7,7 @@
     <UseWPF>true</UseWPF>
     <Platforms>AnyCPU;x64</Platforms>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <SignAssembly>True</SignAssembly>
   </PropertyGroup>
 
   <ItemGroup>

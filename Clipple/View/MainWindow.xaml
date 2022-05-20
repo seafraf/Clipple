@@ -9,7 +9,7 @@
         xmlns:vm="clr-namespace:Clipple.ViewModel"
         xmlns:local="clr-namespace:Clipple"
         mc:Ignorable="d"
-        Title="Clipple" Height="900" Width="1440" AllowDrop="True" DragOver="OnDragOver" Drop="OnDrop" PreviewKeyDown="OnPreviewKeyDown" Closing="OnClosing"
+        Title="Clipple beta" Height="900" Width="1440" AllowDrop="True" DragOver="OnDragOver" Drop="OnDrop" PreviewKeyDown="OnPreviewKeyDown" Closing="OnClosing"
                  DataContext="{StaticResource RootViewModel}">
     <mah:MetroWindow.RightWindowCommands>
         <mah:WindowCommands >

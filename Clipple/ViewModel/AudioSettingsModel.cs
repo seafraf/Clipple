@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace Clipple.ViewModel
@@ -37,12 +38,22 @@ namespace Clipple.ViewModel
             set => SetProperty(ref isEnabled, value);
         }
 
+        private bool convertMono = false;
+        public bool ConvertMono
+        {
+            get => convertMono;
+            set => SetProperty(ref convertMono, value);
+        }
+
         private int volume = 100;
         public int Volume
         {
             get => volume;
             set => SetProperty(ref volume, Math.Max(0, Math.Min(100, value)));
         }
+
+        [JsonIgnore]
+        public double VolumeDecimal => volume / 100.0;
         #endregion
     }
 }

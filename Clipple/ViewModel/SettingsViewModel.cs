@@ -185,6 +185,13 @@ namespace Clipple.ViewModel
             get => accentColour;
             set => SetProperty(ref accentColour, value);
         }
+
+        private int maxConcurrentJobs = 1;
+        public int MaxConcurrentJobs
+        {
+            get => maxConcurrentJobs;
+            set => SetProperty(ref maxConcurrentJobs, value);
+        }
         #endregion
     }
 }

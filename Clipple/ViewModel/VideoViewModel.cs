@@ -1,5 +1,4 @@
-﻿using Clipple.MediaProcessing;
-using Clipple.Util;
+﻿using Clipple.Util;
 using Clipple.Util.ISOBMFF;
 using FFmpeg.AutoGen;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
@@ -53,15 +52,14 @@ namespace Clipple.ViewModel
                 AVFormatContext* formatContext = null;
                 try
                 {
-                    formatContext = FE.Null(ffmpeg.avformat_alloc_context());
-                    var input = FE.Code(ffmpeg.avformat_open_input(&formatContext, fileInfo.FullName, null, null));
+                    formatContext = ffmpeg.avformat_alloc_context();
+                    var input = ffmpeg.avformat_open_input(&formatContext, fileInfo.FullName, null, null);
 
                     // Load stream information
-                    FE.Code(ffmpeg.avformat_find_stream_info(formatContext, null));
+                    ffmpeg.avformat_find_stream_info(formatContext, null);
 
                     // Try to find the best video stream
                     var streamIndex = ffmpeg.av_find_best_stream(formatContext, AVMediaType.AVMEDIA_TYPE_VIDEO, -1, -1, null, 0);
-                    FE.Code(streamIndex);
 
                     var stream = formatContext->streams[streamIndex];
 
