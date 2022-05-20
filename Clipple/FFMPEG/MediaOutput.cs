@@ -1,6 +1,7 @@
 ﻿using Clipple.ViewModel;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -59,8 +60,8 @@ namespace Clipple.FFMPEG
                 {
                     
                     var volumeFilters = string.Join("; ", enabledTracks.Select(x => x.ConvertMono ? 
-                        $"[0:{x.TrackID}]volume={x.VolumeDecimal}[v{x.TrackID}]; [v{x.TrackID}]pan=mono|c0=.5*c0+.5*c1[o{x.TrackID}]" :
-                        $"[0:{x.TrackID}]volume={x.VolumeDecimal}[o{x.TrackID}]"));
+                        $"[0:{x.TrackID}]volume={x.VolumeDecimal.ToString("0.00", CultureInfo.InvariantCulture)}[v{x.TrackID}]; [v{x.TrackID}]pan=mono|c0=.5*c0+.5*c1[o{x.TrackID}]" :
+                        $"[0:{x.TrackID}]volume={x.VolumeDecimal.ToString("0.00", CultureInfo.InvariantCulture)}[o{x.TrackID}]"));
 
                     var inputList     = string.Join("", enabledTracks.Select(x => $"[o{x.TrackID}]"));
 
@@ -71,8 +72,8 @@ namespace Clipple.FFMPEG
                 else
                 {
                     var volumeFilters = string.Join("; ", enabledTracks.Select(x => x.ConvertMono ?
-                        $"[0:{x.TrackID}]volume={x.VolumeDecimal}[v{x.TrackID}]; [v{x.TrackID}]pan=mono|c0=.5*c0+.5*c1[o{x.TrackID}]" :
-                        $"[0:{x.TrackID}]volume={x.VolumeDecimal}[o{x.TrackID}]"));
+                        $"[0:{x.TrackID}]volume={x.VolumeDecimal.ToString("0.00", CultureInfo.InvariantCulture)}[v{x.TrackID}]; [v{x.TrackID}]pan=mono|c0=.5*c0+.5*c1[o{x.TrackID}]" :
+                        $"[0:{x.TrackID}]volume={x.VolumeDecimal.ToString("0.00", CultureInfo.InvariantCulture)}[o{x.TrackID}]"));
 
                     var mappings      = string.Join(" ", enabledTracks.Select(x => $"-map [o{x.TrackID}]"));
 
