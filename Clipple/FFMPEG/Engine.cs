@@ -65,7 +65,7 @@ namespace Clipple.FFMPEG
         /// <returns>The exit code of the process.</returns>
         public async Task<int> Run(CancellationToken token)
         {
-            var argumentStr = $"-y {Input} {Output}";
+            var argumentStr = $"-y -vsync cfr {Input} {Output}";
             OnOutput?.Invoke(this, $"ffmpeg.exe {argumentStr}");
 
             var process = new Process()
