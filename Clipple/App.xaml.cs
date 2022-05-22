@@ -1,6 +1,7 @@
 ﻿using Clipple.View;
 using Clipple.ViewModel;
 using FFmpeg.AutoGen;
+using FlyleafLib;
 using FlyleafLib.MediaPlayer;
 using MahApps.Metro.Controls.Dialogs;
 using System;
@@ -45,6 +46,23 @@ namespace Clipple
                         await ViewModel.Save();
                 });
             };
+
+            try
+            {
+                Engine.Start(new EngineConfig()
+                {
+                    FFmpegLogLevel = FFmpegLogLevel.Debug,
+                    FFmpegPath = $"Binaries/{(Environment.Is64BitProcess ? "x64" : "x86")}",
+                    UIRefresh = true,
+                    UIRefreshInterval = 100,
+                    UICurTimePerSecond = false,
+                });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Failed to load dependencies", ex.Message);
+                Shutdown(1);
+            }
         }
     }
 }

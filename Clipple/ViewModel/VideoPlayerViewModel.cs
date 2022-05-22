@@ -45,20 +45,11 @@ namespace Clipple.ViewModel
                 IsAudioSettingsOpen = !IsAudioSettingsOpen;
             });
 
-            Engine.Start(new EngineConfig()
-            {
-                FFmpegLogLevel      = FFmpegLogLevel.Debug,
-                FFmpegPath          = "lib",
-                UIRefresh           = true,
-                UIRefreshInterval   = 100,
-                UICurTimePerSecond  = false
-            });
-
             var Config = new Config();
             Config.Player.SeekAccurate = true;
-            Config.Player.AutoPlay     = false;
+            Config.Player.AutoPlay = false;
             Config.Player.MouseBindings.Enabled = false;
-            Config.Player.KeyBindings.Enabled   = false;
+            Config.Player.KeyBindings.Enabled = false;
             Config.Audio.Enabled = false;
 
             MediaPlayer = new Player(Config);
@@ -247,7 +238,7 @@ namespace Clipple.ViewModel
                 OnPropertyChanged(nameof(IsWaitingVideo));
 
                 if (value != null && MediaPlayer.Control != null)
-                    MediaPlayer.OpenAsync(value.FileInfo.FullName);
+                    MediaPlayer.Open(value.FileInfo.FullName);
             }
         }
 
