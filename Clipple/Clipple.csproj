@@ -11,47 +11,47 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Binaries\x64\avcodec-58.dll" />
-    <None Remove="Binaries\x64\avdevice-58.dll" />
-    <None Remove="Binaries\x64\avfilter-7.dll" />
-    <None Remove="Binaries\x64\avformat-58.dll" />
-    <None Remove="Binaries\x64\avutil-56.dll" />
-    <None Remove="Binaries\x64\ffmpeg.exe" />
-    <None Remove="Binaries\x64\ffplay.exe" />
-    <None Remove="Binaries\x64\ffprobe.exe" />
-    <None Remove="Binaries\x64\swresample-3.dll" />
-    <None Remove="Binaries\x64\swscale-5.dll" />
+    <None Remove="Binaries\64\avcodec-58.dll" />
+    <None Remove="Binaries\64\avdevice-58.dll" />
+    <None Remove="Binaries\64\avfilter-7.dll" />
+    <None Remove="Binaries\64\avformat-58.dll" />
+    <None Remove="Binaries\64\avutil-56.dll" />
+    <None Remove="Binaries\64\ffmpeg.exe" />
+    <None Remove="Binaries\64\ffplay.exe" />
+    <None Remove="Binaries\64\ffprobe.exe" />
+    <None Remove="Binaries\64\swresample-3.dll" />
+    <None Remove="Binaries\64\swscale-5.dll" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Binaries\x64\avcodec-58.dll">
+    <Content Include="Binaries\64\avcodec-58.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Binaries\x64\avdevice-58.dll">
+    <Content Include="Binaries\64\avdevice-58.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Binaries\x64\avfilter-7.dll">
+    <Content Include="Binaries\64\avfilter-7.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Binaries\x64\avformat-58.dll">
+    <Content Include="Binaries\64\avformat-58.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Binaries\x64\avutil-56.dll">
+    <Content Include="Binaries\64\avutil-56.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Binaries\x64\ffmpeg.exe">
+    <Content Include="Binaries\64\ffmpeg.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Binaries\x64\ffplay.exe">
+    <Content Include="Binaries\64\ffplay.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Binaries\x64\ffprobe.exe">
+    <Content Include="Binaries\64\ffprobe.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Binaries\x64\swresample-3.dll">
+    <Content Include="Binaries\64\swresample-3.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Binaries\x64\swscale-5.dll">
+    <Content Include="Binaries\64\swscale-5.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
