@@ -6,6 +6,10 @@
 trigger:
 - main
 
+variables:
+  buildPlatform: 'x86'
+  buildConfiguration: 'release'
+
 pool:
   vmImage: 'windows-latest'
 
