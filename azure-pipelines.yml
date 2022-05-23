@@ -7,8 +7,8 @@ trigger:
 - main
 
 variables:
-  buildPlatform: 'x86'
-  buildConfiguration: 'release'
+  buildPlatform: 'x64'
+  buildConfiguration: 'Release'
 
 pool:
   vmImage: 'windows-latest'
