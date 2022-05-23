@@ -35,17 +35,18 @@ steps:
     secureFile: 'codesign.pfx'
   displayName: 'Cert DL'
 
-- task: VSBuild@1
+- task: MSBuild@1
   inputs:
-    platform: '$(buildPlatform)'
     solution: '$(solution)'
+    msbuildArchitecture: 'x64'
+    platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
-    msbuildArgs: '/p:AppxBundlePlatforms="$(buildPlatform)" 
-                  /p:AppxPackageDir="$(appxPackageDir)" 
-                  /p:AppxBundle=Never 
-                  /p:UapAppxPackageBuildMode=SideLoadOnly 
-                  /p:AppxPackageSigningEnabled=true
-                  /p:PackageCertificateThumbprint="" 
-                  /p:PackageCertificateKeyFile="$(signingCert.secureFilePath)"
-                  /p:PackageCertificatePassword="$(codesignpw)"'
+    msbuildArguments: '/p:AppxBundlePlatforms="$(buildPlatform)"  
+                       /p:AppxPackageDir="$(appxPackageDir)"  
+                       /p:AppxBundle=Never  
+                       /p:UapAppxPackageBuildMode=SideLoadOnly  
+                       /p:AppxPackageSigningEnabled=true 
+                       /p:PackageCertificateThumbprint=""  
+                       /p:PackageCertificateKeyFile="$(signingCert.secureFilePath)" 
+                       /p:PackageCertificatePassword="$(codesignpw)"'
   displayName: 'Build'
