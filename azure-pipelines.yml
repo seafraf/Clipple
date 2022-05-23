@@ -42,7 +42,7 @@ steps:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
     msbuildArguments: '/p:AppxBundlePlatforms="$(buildPlatform)"  
-                       /p:RuntimeIdentifier="$win-(buildPlatform)"
+                       /p:RuntimeIdentifier="win-$(buildPlatform)"
                        /p:AppxPackageDir="$(appxPackageDir)"  
                        /p:AppxBundle=Never  
                        /p:UapAppxPackageBuildMode=SideLoadOnly  
