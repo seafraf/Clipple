@@ -12,7 +12,7 @@ pool:
 steps:
 - task: MSBuild@1
   inputs:
-    solution: Msix/Msix.wapproj
+    solution: Clipple.MSIX/Clipple.MSIX.wapproj
     platform: $(buildPlatform)
     configuration: $(buildConfiguration)
     msbuildArguments: '/p:OutputPath=NonPackagedApp /p:UapAppxPackageBuildMode=SideLoadOnly /p:AppxBundle=Never /p:AppxPackageOutput=$(Build.ArtifactStagingDirectory)\Clipple.msix /p:AppxPackageSigningEnabled=false'
