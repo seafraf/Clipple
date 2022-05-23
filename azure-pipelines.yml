@@ -9,6 +9,7 @@ trigger:
 variables:
   buildPlatform: 'x64'
   buildConfiguration: 'Release'
+  solution: "Clipple.MSIX/Clipple.MSIX.wapproj"
 
 pool:
   vmImage: 'windows-latest'
@@ -20,20 +21,24 @@ steps:
     command: 'restore'
     restoreSolution: 'Clipple.sln'
     feedsToUse: 'select'
+  displayName: "Nuget"
+
+- task: DownloadSecureFile@1
+  name: signingCert
+  inputs:
+    secureFile: 'codesign.pfx'
+  displayName: 'Cert DL'
 
 - task: MSBuild@1
   inputs:
-    solution: 'Clipple.MSIX/Clipple.MSIX.wapproj'
-    msbuildArchitecture: 'x64'
     platform: '$(buildPlatform)'
+    solution: '$(solution)'
     configuration: '$(buildConfiguration)'
-    msbuildArguments: '/p:OutputPath=NonPackagedApp /p:UapAppxPackageBuildMode=SideLoadOnly /p:AppxBundle=Never /p:AppxPackageOutput=$(Build.ArtifactStagingDirectory)\Clipple.msix /p:AppxPackageSigningEnabled=false'
-  displayName: 'Package'
-  
-- task: DownloadSecureFile@1
-  inputs:
-    secureFile: 'codesign.pfx'
-  displayName: 'Download cert'
-
-- script: '"C:\Program Files (x86)\Windows Kits\10\bin\10.0.17763.0\x86\signtool" sign /fd SHA256 /f $(Agent.TempDirectory)/codesign.pfx /p secret $(Build.ArtifactStagingDirectory)/Clipple.msix'
-  displayName: 'Sign'
+    msbuildArguments: '/p:AppxBundlePlatforms="$(buildPlatform)" 
+                       /p:AppxPackageDir="$(appxPackageDir)" 
+                       /p:AppxBundle=Never 
+                       /p:UapAppxPackageBuildMode=SideLoadOnly 
+                       /p:AppxPackageSigningEnabled=true
+                       /p:PackageCertificateThumbprint="" 
+                       /p:PackageCertificateKeyFile="$(signingCert.secureFilePath)"'
+  displayName: 'Build'
