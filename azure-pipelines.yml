@@ -10,6 +10,13 @@ pool:
   vmImage: 'windows-latest'
 
 steps:
+
+- task: NuGetCommand@2
+  inputs:
+    command: 'restore'
+    restoreSolution: 'Clipple.sln'
+    feedsToUse: 'select'
+
 - task: MSBuild@1
   inputs:
     solution: Clipple.MSIX/Clipple.MSIX.wapproj
