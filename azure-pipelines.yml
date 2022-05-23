@@ -9,20 +9,19 @@ trigger:
 pool:
   vmImage: 'windows-latest'
 
-variables:
-  solution: '**/*.sln'
-  buildPlatform: 'Any CPU'
-  buildConfiguration: 'Release'
-
 steps:
-- task: NuGetToolInstaller@1
-
-- task: NuGetCommand@2
+- task: MSBuild@1
   inputs:
-    restoreSolution: '$(solution)'
-
-- task: VSBuild@1
+    solution: Msix/Msix.wapproj
+    platform: $(buildPlatform)
+    configuration: $(buildConfiguration)
+    msbuildArguments: '/p:OutputPath=NonPackagedApp /p:UapAppxPackageBuildMode=SideLoadOnly /p:AppxBundle=Never /p:AppxPackageOutput=$(Build.ArtifactStagingDirectory)\Clipple.msix /p:AppxPackageSigningEnabled=false'
+  displayName: 'Package'
+  
+- task: DownloadSecureFile@1
   inputs:
-    solution: '$(solution)'
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
+    secureFile: 'codesign.pfx'
+  displayName: 'Download cert'
+
+- script: '"C:\Program Files (x86)\Windows Kits\10\bin\10.0.17763.0\x86\signtool" sign /fd SHA256 /f $(Agent.TempDirectory)/codesign.pfx /p secret $(Build.ArtifactStagingDirectory)/Clipple.msix'
+  displayName: 'Sign'
