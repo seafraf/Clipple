@@ -9,7 +9,7 @@ trigger:
 variables:
 - group: Code signing
 - name: "solution"
-  value: "Clipple.MSIX/Clipple.MSIX.wapproj"
+  value: "Clipple.sln"
 - name: "buildPlatform"
   value: "x64"
 - name: "buildConfiguration"
@@ -42,6 +42,7 @@ steps:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
     msbuildArguments: '/p:AppxBundlePlatforms="$(buildPlatform)"  
+                       /p:RuntimeIdentifier="win-$(buildPlatform)"
                        /p:AppxPackageDir="$(appxPackageDir)"  
                        /p:AppxBundle=Never  
                        /p:UapAppxPackageBuildMode=SideLoadOnly  
