@@ -9,7 +9,7 @@
   <Identity
     Name="Clipple"
     Publisher="CN=Séafra Forder"
-    Version="1.0.1.0" />
+    Version="1.0.0.0" />
 
   <Properties>
     <DisplayName>Clipple</DisplayName>
@@ -31,8 +31,8 @@
       Executable="$targetnametoken$.exe"
       EntryPoint="$targetentrypoint$">
       <uap:VisualElements
-        DisplayName="Clipple"
-        Description="Clipple video clipping utility"
+        DisplayName="ClipplE"
+        Description="ClipplE"
         BackgroundColor="transparent"
         Square150x150Logo="Images\Square150x150Logo.png"
         Square44x44Logo="Images\Square44x44Logo.png">
