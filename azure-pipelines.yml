@@ -7,21 +7,18 @@ trigger:
 - main
 
 variables:
-  solution: "Clipple.MSIX/Clipple.MSIX.wapproj"
-  buildPlatform: 'x64'
-  buildConfiguration: 'Release'
+- group: Code signing
+- name: "solution"
+  value: "Clipple.MSIX/Clipple.MSIX.wapproj"
+- name: "buildPlatform"
+  value: "x64"
+- name: "buildConfiguration"
+  value: "Release"
   
 pool:
   vmImage: 'windows-2022'
 
 steps:
-
-- task: UseDotNet@2
-  displayName: Install Net 6
-  inputs:
-    packageType: 'sdk'
-    version: '6.0.x'
-    performMultiLevelLookup: true
 
 - task: NuGetToolInstaller@1
 
@@ -49,5 +46,6 @@ steps:
                   /p:UapAppxPackageBuildMode=SideLoadOnly 
                   /p:AppxPackageSigningEnabled=true
                   /p:PackageCertificateThumbprint="" 
-                  /p:PackageCertificateKeyFile="$(signingCert.secureFilePath)"'
+                  /p:PackageCertificateKeyFile="$(signingCert.secureFilePath)"
+                  /p:PackageCertificatePassword="$(codesignpw)"'
   displayName: 'Build'
