@@ -7,14 +7,16 @@ trigger:
 - main
 
 variables:
+  solution: "Clipple.MSIX/Clipple.MSIX.wapproj"
   buildPlatform: 'x64'
   buildConfiguration: 'Release'
-  solution: "Clipple.MSIX/Clipple.MSIX.wapproj"
-
+  
 pool:
   vmImage: 'windows-latest'
 
 steps:
+
+- task: NuGetToolInstaller@1
 
 - task: NuGetCommand@2
   inputs:
@@ -29,16 +31,16 @@ steps:
     secureFile: 'codesign.pfx'
   displayName: 'Cert DL'
 
-- task: MSBuild@1
+- task: VSBuild@1
   inputs:
     platform: '$(buildPlatform)'
     solution: '$(solution)'
     configuration: '$(buildConfiguration)'
-    msbuildArguments: '/p:AppxBundlePlatforms="$(buildPlatform)" 
-                       /p:AppxPackageDir="$(appxPackageDir)" 
-                       /p:AppxBundle=Never 
-                       /p:UapAppxPackageBuildMode=SideLoadOnly 
-                       /p:AppxPackageSigningEnabled=true
-                       /p:PackageCertificateThumbprint="" 
-                       /p:PackageCertificateKeyFile="$(signingCert.secureFilePath)"'
+    msbuildArgs: '/p:AppxBundlePlatforms="$(buildPlatform)" 
+                  /p:AppxPackageDir="$(appxPackageDir)" 
+                  /p:AppxBundle=Never 
+                  /p:UapAppxPackageBuildMode=SideLoadOnly 
+                  /p:AppxPackageSigningEnabled=true
+                  /p:PackageCertificateThumbprint="" 
+                  /p:PackageCertificateKeyFile="$(signingCert.secureFilePath)"'
   displayName: 'Build'
