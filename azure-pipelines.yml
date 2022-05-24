@@ -37,13 +37,7 @@ steps:
     restoreSolution: 'Clipple.sln'
     feedsToUse: 'select'
   displayName: "Nuget"
-
-- task: DownloadSecureFile@1
-  name: signingCert
-  inputs:
-    secureFile: 'codesign.pfx'
-  displayName: 'Cert DL'
-
+  
 - task: MSBuild@1
   inputs:
     solution: '$(solution)'
@@ -55,10 +49,7 @@ steps:
                        /p:AppxPackageDir="$(packageDir)"  
                        /p:AppxBundle=Never  
                        /p:UapAppxPackageBuildMode=SideLoadOnly  
-                       /p:AppxPackageSigningEnabled=true 
-                       /p:PackageCertificateThumbprint=""  
-                       /p:PackageCertificateKeyFile="$(signingCert.secureFilePath)" 
-                       /p:PackageCertificatePassword="$(codesignpw)"'
+                       /p:AppxPackageSigningEnabled=false"'
   displayName: 'Build'
   
 - task: MsixSigning@1
