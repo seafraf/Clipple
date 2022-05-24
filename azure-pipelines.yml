@@ -22,8 +22,10 @@ pool:
   vmImage: 'windows-2022'
 
 steps:
-- script: versionTag=`git describe --tags` && echo "##vso[task.setvariable variable=versionTag]$versionTag"
-  displayName: Get tag
+- powershell: |
+   $versionTag = git describe --tags
+   Write-Host "##vso[task.setvariable variable=versionTag]$versionTag"
+  displayName: Get git version tag
 
 - powershell: |
      [xml]$manifest= get-content ".\Clipple.MSIX\Package.appxmanifest"
