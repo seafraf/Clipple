@@ -43,7 +43,8 @@ steps:
     msbuildArchitecture: 'x64'
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
-    msbuildArguments: '/p:AppxBundlePlatforms="$(buildPlatform)"  
+    msbuildArguments: '/p:OutputPath=$(Build.ArtifactStagingDirectory)
+                       /p:AppxBundlePlatforms="$(buildPlatform)"  
                        /p:RuntimeIdentifier="win-$(buildPlatform)"
                        /p:AppxPackageDir="$(packageDir)"  
                        /p:AppxBundle=Never  
