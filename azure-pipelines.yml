@@ -14,6 +14,8 @@ variables:
   value: "x64"
 - name: "buildConfiguration"
   value: "Release"
+- name: "packageDir"
+  value: '$(build.artifactStagingDirectory)/Packages'
   
 pool:
   vmImage: 'windows-2022'
@@ -43,7 +45,7 @@ steps:
     configuration: '$(buildConfiguration)'
     msbuildArguments: '/p:AppxBundlePlatforms="$(buildPlatform)"  
                        /p:RuntimeIdentifier="win-$(buildPlatform)"
-                       /p:AppxPackageDir="$(appxPackageDir)"  
+                       /p:AppxPackageDir="$(packageDir)"  
                        /p:AppxBundle=Never  
                        /p:UapAppxPackageBuildMode=SideLoadOnly  
                        /p:AppxPackageSigningEnabled=true 
@@ -58,7 +60,8 @@ steps:
     repositoryName: '$(Build.Repository.Name)'
     action: 'create'
     target: '$(Build.SourceVersion)'
-    tagSource: userSpecifiedTag
-    tag: $(Build.BuildNumber)  
+    tagSource: 'userSpecifiedTag'
+    tag: '$(Build.BuildNumber)'
+    assets: '$(packageDir)/*'
     changeLogCompareToRelease: 'lastFullRelease'
     changeLogType: 'commitBased'
