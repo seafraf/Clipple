@@ -15,7 +15,7 @@ variables:
 - name: "buildConfiguration"
   value: "Release"
 - name: "packageDir"
-  value: '$(Build.ArtifactStagingDirectory)\Packages\'
+  value: '$(Build.ArtifactStagingDirectory)\Packages'
   
 pool:
   vmImage: 'windows-2022'
