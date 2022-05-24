@@ -53,6 +53,12 @@ steps:
                        /p:PackageCertificateKeyFile="$(signingCert.secureFilePath)" 
                        /p:PackageCertificatePassword="$(codesignpw)"'
   displayName: 'Build'
+  
+- task: Bash@3
+  inputs:
+    targetType: inline
+    workingDirectory: $(PIPELINE.WORKSPACE)
+    script: ls -R
 
 - task: CopyFiles@2
   displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
