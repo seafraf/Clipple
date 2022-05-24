@@ -15,7 +15,7 @@ variables:
 - name: "buildConfiguration"
   value: "Release"
 - name: "packageDir"
-  value: '$(build.artifactStagingDirectory)/Packages'
+  value: '$(Build.ArtifactStagingDirectory)\Packages\'
   
 pool:
   vmImage: 'windows-2022'
@@ -54,6 +54,13 @@ steps:
                        /p:PackageCertificatePassword="$(codesignpw)"'
   displayName: 'Build'
 
+- task: CopyFiles@2
+  displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
+  inputs:
+    SourceFolder: '$(system.defaultworkingdirectory)'
+    Contents: '**\bin\$(buildConfiguration)\**'
+    TargetFolder: '$(build.ArtifactStagingDirectory)'
+
 - task: GitHubRelease@1
   inputs:
     gitHubConnection: 'github'
@@ -64,3 +71,4 @@ steps:
     tag: '$(Build.BuildNumber)'
     changeLogCompareToRelease: 'lastFullRelease'
     changeLogType: 'commitBased'
+  displayName: "Release"
