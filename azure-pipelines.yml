@@ -61,6 +61,12 @@ steps:
                        /p:PackageCertificatePassword="$(codesignpw)"'
   displayName: 'Build'
   
+- task: MsixSigning@1
+  inputs:
+    package: '$(Build.ArtifactStagingDirectory)\**\*.msix*'
+    certificate: 'codesign.pfx'
+    passwordVariable: 'codesignpw'
+
 - task: Bash@3
   inputs:
     targetType: inline
