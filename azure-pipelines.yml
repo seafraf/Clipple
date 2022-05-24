@@ -2,10 +2,6 @@ trigger:
   tags:
     include:
     - '*'
-  branches: 
-    include:
-      - beta
-      - release
 
 variables:
 - group: Code signing
