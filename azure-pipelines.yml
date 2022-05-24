@@ -43,8 +43,7 @@ steps:
     msbuildArchitecture: 'x64'
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
-    msbuildArguments: '/p:OutputPath=$(Build.ArtifactStagingDirectory)
-                       /p:AppxBundlePlatforms="$(buildPlatform)"  
+    msbuildArguments: '/p:AppxBundlePlatforms="$(buildPlatform)"  
                        /p:RuntimeIdentifier="win-$(buildPlatform)"
                        /p:AppxPackageDir="$(packageDir)"  
                        /p:AppxBundle=Never  
@@ -61,13 +60,6 @@ steps:
     workingDirectory: $(PIPELINE.WORKSPACE)
     script: ls -R
 
-- task: CopyFiles@2
-  displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
-  inputs:
-    SourceFolder: '$(system.defaultworkingdirectory)'
-    Contents: '**\bin\$(buildConfiguration)\**'
-    TargetFolder: '$(build.ArtifactStagingDirectory)'
-
 - task: GitHubRelease@1
   inputs:
     gitHubConnection: 'github'
@@ -76,6 +68,7 @@ steps:
     target: '$(Build.SourceVersion)'
     tagSource: 'userSpecifiedTag'
     tag: '$(Build.BuildNumber)'
+    assets: '$(Build.ArtifactStagingDirectory)\Packages\*\*.appx'
     changeLogCompareToRelease: 'lastFullRelease'
     changeLogType: 'commitBased'
   displayName: "Release"
