@@ -49,7 +49,7 @@ steps:
                        /p:AppxPackageDir="$(packageDir)"  
                        /p:AppxBundle=Never  
                        /p:UapAppxPackageBuildMode=SideLoadOnly  
-                       /p:AppxPackageSigningEnabled=false"'
+                       /p:AppxPackageSigningEnabled=false'
   displayName: 'Build'
   
 - task: MsixSigning@1
