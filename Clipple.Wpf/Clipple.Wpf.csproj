@@ -8,7 +8,8 @@
     <Platforms>x64</Platforms>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <SignAssembly>True</SignAssembly>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Resources\icon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -49,12 +50,13 @@
     <Content Include="Binaries\64\swscale-5.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Resources\icon.ico" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="FlyleafLib.Controls.WPF" Version="1.1.21" />
     <PackageReference Include="MahApps.Metro" Version="2.4.9" />
-    <PackageReference Include="MahApps.Metro.IconPacks" Version="4.11.0" />
+    <PackageReference Include="MahApps.Metro.IconPacks.MaterialDesign" Version="4.11.0" />
     <PackageReference Include="Microsoft.Toolkit.Mvvm" Version="7.1.2" />
   </ItemGroup>
 
