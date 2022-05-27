@@ -11,9 +11,7 @@ variables:
   value: "x64"
 - name: "buildConfiguration"
   value: "Release"
-- name: "packageDir"
-  value: '$(Build.ArtifactStagingDirectory)\Packages'
-  
+
 pool:
   vmImage: 'windows-2022'
 
@@ -22,14 +20,6 @@ steps:
    $versionTag = git describe --tags
    Write-Host "##vso[task.setvariable variable=versionTag]$versionTag"
   displayName: Get git version tag
-
-- powershell: |
-     [xml]$manifest= get-content ".\Clipple.MSIX\Package.appxmanifest"
-     $manifest.Package.Identity.Version = "$(versionTag)"    
-     $manifest.save("Clipple.MSIX\Package.appxmanifest")
-  displayName: Update manifest version
-
-- task: NuGetToolInstaller@1
 
 - task: NuGetCommand@2
   inputs:
@@ -44,34 +34,23 @@ steps:
     msbuildArchitecture: 'x64'
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
-    msbuildArguments: '/p:AppxBundlePlatforms="$(buildPlatform)"  
-                       /p:RuntimeIdentifier="win-$(buildPlatform)"
-                       /p:AppxPackageDir="$(packageDir)"  
-                       /p:AppxBundle=Never  
-                       /p:UapAppxPackageBuildMode=SideLoadOnly  
-                       /p:AppxPackageSigningEnabled=false'
+    msbuildArguments: '/p:RuntimeIdentifier="win-$(buildPlatform)"'
   displayName: 'Build'
   
-- task: MsixSigning@1
-  inputs:
-    package: '$(Build.ArtifactStagingDirectory)\**\*.msix*'
-    certificate: 'codesign.pfx'
-    passwordVariable: 'codesignpw'
-
 - task: Bash@3
   inputs:
     targetType: inline
     workingDirectory: $(PIPELINE.WORKSPACE)
     script: ls -R
 
-- task: GitHubRelease@1
-  inputs:
-    gitHubConnection: 'github'
-    repositoryName: '$(Build.Repository.Name)'
-    action: 'create'
-    target: '$(Build.SourceVersion)'
-    tagSource: 'gitTag'
-    assets: '$(Build.ArtifactStagingDirectory)\Packages\*\*.msix'
-    changeLogCompareToRelease: 'lastFullRelease'
-    changeLogType: 'commitBased'
-  displayName: "Release"
+# - task: GitHubRelease@1
+#   inputs:
+#     gitHubConnection: 'github'
+#     repositoryName: '$(Build.Repository.Name)'
+#     action: 'create'
+#     target: '$(Build.SourceVersion)'
+#     tagSource: 'gitTag'
+#     assets: '$(Build.ArtifactStagingDirectory)\Packages\*\*.msix'
+#     changeLogCompareToRelease: 'lastFullRelease'
+#     changeLogType: 'commitBased'
+#   displayName: "Release"
