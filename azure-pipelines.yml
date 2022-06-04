@@ -28,7 +28,7 @@ steps:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
     msbuildArguments: '/p:RuntimeIdentifier="win-$(buildPlatform)"
-                       /t:Restore'
+                       /t:Restore;Build'
   displayName: 'Build'
 
 # - task: NuGetCommand@2
