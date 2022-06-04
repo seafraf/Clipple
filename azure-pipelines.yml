@@ -11,25 +11,30 @@ variables:
   value: "x64"
 - name: "buildConfiguration"
   value: "Release"
+- name: "devCmd"
+  value: 'C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\IDE\devenv.com'
+- name: "disableToolPath" 
+  value: 'C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\IDE\CommonExtensions\Microsoft\VSI\DisableOutOfProcBuild'
 
 pool:
   vmImage: 'windows-2022'
-
+  
 steps:
-- powershell: |
-   $versionTag = git describe --tags
-   Write-Host "##vso[task.setvariable variable=versionTag]$versionTag"
-  displayName: Get git version tag
-
-- task: VSBuild@1
+- task: NuGetToolInstaller@1
+- task: NuGetCommand@2
+  displayName: Restore NuGet packages
   inputs:
-    solution: '$(solution)'
-    msbuildArchitecture: 'x64'
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
-    msbuildArgs: '/p:RuntimeIdentifier="win-$(buildPlatform)"
-                  /t:Restore;Build'
-  displayName: 'Build'
+    restoreSolution: '$(solution)'
+
+# https://github.com/it3xl/MSBuild-DevEnv-Build-Server-Workarounds/issues/1#issuecomment-525435637
+- task: BatchScript@1
+  displayName: Enable .vdproj Builds
+  inputs:
+    filename: '"$(disableToolPath)\DisableOutOfProcBuild.exe"'
+    workingFolder: '"$(disableToolPath)"'
+
+- script: '"$(devCmd)" $(System.DefaultWorkingDirectory)\$(solution) /Build "Release" /Project $(System.DefaultWorkingDirectory)\Clipple.Setup\Clipple.Setup.vdproj'
+  displayName: Build Installer
 
 - task: Bash@3
   inputs:
