@@ -21,14 +21,14 @@ steps:
    Write-Host "##vso[task.setvariable variable=versionTag]$versionTag"
   displayName: Get git version tag
 
-- task: MSBuild@1
+- task: VSBuild@1
   inputs:
     solution: '$(solution)'
     msbuildArchitecture: 'x64'
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
-    msbuildArguments: '/p:RuntimeIdentifier="win-$(buildPlatform)"
-                       /t:Restore;Build'
+    msbuildArgs: '/p:RuntimeIdentifier="win-$(buildPlatform)"
+                  /t:Restore;Build'
   displayName: 'Build'
 
 - task: Bash@3
