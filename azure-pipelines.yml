@@ -21,27 +21,32 @@ steps:
    Write-Host "##vso[task.setvariable variable=versionTag]$versionTag"
   displayName: Get git version tag
 
-- task: NuGetCommand@2
+- task: VSBuild@1
   inputs:
-    command: 'restore'
-    restoreSolution: 'Clipple.sln'
-    feedsToUse: 'select'
-  displayName: "Nuget"
+    solution: '**\*.sln'
+    vsVersion: '17.0'
+
+# - task: NuGetCommand@2
+#   inputs:
+#     command: 'restore'
+#     restoreSolution: 'Clipple.sln'
+#     feedsToUse: 'select'
+#   displayName: "Nuget"
   
-- task: MSBuild@1
-  inputs:
-    solution: '$(solution)'
-    msbuildArchitecture: 'x64'
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
-    msbuildArguments: '/p:RuntimeIdentifier="win-$(buildPlatform)"'
-  displayName: 'Build'
+# - task: MSBuild@1
+#   inputs:
+#     solution: '$(solution)'
+#     msbuildArchitecture: 'x64'
+#     platform: '$(buildPlatform)'
+#     configuration: '$(buildConfiguration)'
+#     msbuildArguments: '/p:RuntimeIdentifier="win-$(buildPlatform)"'
+#   displayName: 'Build'
   
-- task: Bash@3
-  inputs:
-    targetType: inline
-    workingDirectory: $(PIPELINE.WORKSPACE)
-    script: ls -R
+# - task: Bash@3
+#   inputs:
+#     targetType: inline
+#     workingDirectory: $(PIPELINE.WORKSPACE)
+#     script: ls -R
 
 # - task: GitHubRelease@1
 #   inputs:
