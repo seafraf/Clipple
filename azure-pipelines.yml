@@ -31,6 +31,12 @@ steps:
                        /t:Restore;Build'
   displayName: 'Build'
 
+- task: Bash@3
+  inputs:
+    targetType: inline
+    workingDirectory: $(PIPELINE.WORKSPACE)
+    script: ls -R
+
 # - task: NuGetCommand@2
 #   inputs:
 #     command: 'restore'
@@ -40,11 +46,6 @@ steps:
   
 
   
-# - task: Bash@3
-#   inputs:
-#     targetType: inline
-#     workingDirectory: $(PIPELINE.WORKSPACE)
-#     script: ls -R
 
 # - task: GitHubRelease@1
 #   inputs:
