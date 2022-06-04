@@ -21,10 +21,15 @@ steps:
    Write-Host "##vso[task.setvariable variable=versionTag]$versionTag"
   displayName: Get git version tag
 
-- task: VSBuild@1
+- task: MSBuild@1
   inputs:
-    solution: '**\*.sln'
-    vsVersion: '17.0'
+    solution: '$(solution)'
+    msbuildArchitecture: 'x64'
+    platform: '$(buildPlatform)'
+    configuration: '$(buildConfiguration)'
+    msbuildArguments: '/p:RuntimeIdentifier="win-$(buildPlatform)"
+                       /t:Restore'
+  displayName: 'Build'
 
 # - task: NuGetCommand@2
 #   inputs:
@@ -33,14 +38,7 @@ steps:
 #     feedsToUse: 'select'
 #   displayName: "Nuget"
   
-# - task: MSBuild@1
-#   inputs:
-#     solution: '$(solution)'
-#     msbuildArchitecture: 'x64'
-#     platform: '$(buildPlatform)'
-#     configuration: '$(buildConfiguration)'
-#     msbuildArguments: '/p:RuntimeIdentifier="win-$(buildPlatform)"'
-#   displayName: 'Build'
+
   
 # - task: Bash@3
 #   inputs:
