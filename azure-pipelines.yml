@@ -21,26 +21,12 @@ pool:
   
 steps:
 
-# The solution is set up so that a Release x64 build will not build the installer project, that will be done manually afterwards
-- task: VSBuild@1
-  displayName: "Restore and build Clipple.Wpf"
+- task: DevEnvBuild@2
   inputs:
     solution: '$(solution)'
-    msbuildArchitecture: 'x64'
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
-    msbuildArgs: '/p:RuntimeIdentifier="win-$(buildPlatform)"
-                  /t:Restore;Build'
-
-# https://github.com/it3xl/MSBuild-DevEnv-Build-Server-Workarounds/issues/1#issuecomment-525435637
-- task: BatchScript@1
-  displayName: Enable .vdproj Builds
-  inputs:
-    filename: '"$(disableToolPath)\DisableOutOfProcBuild.exe"'
-    workingFolder: '"$(disableToolPath)"'
-
-- script: '"$(devCmd)" $(System.DefaultWorkingDirectory)\$(solution) /Build "Release" /Project $(System.DefaultWorkingDirectory)\Clipple.Setup\Clipple.Setup.vdproj'
-  displayName: Build Installer
+    buildCfg: '$(buildConfiguration)'
+    buildPlatform: '$(buildPlatform)'
+    vsVersion: 'latest'
 
 - task: Bash@3
   inputs:
