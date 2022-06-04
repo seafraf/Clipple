@@ -20,11 +20,17 @@ pool:
   vmImage: 'windows-2022'
   
 steps:
-- task: NuGetToolInstaller@1
-- task: NuGetCommand@2
-  displayName: Restore NuGet packages
+
+# The solution is set up so that a Release x64 build will not build the installer project, that will be done manually afterwards
+- task: VSBuild@1
+  displayName: "Restore and build Clipple.Wpf"
   inputs:
-    restoreSolution: '$(solution)'
+    solution: '$(solution)'
+    msbuildArchitecture: 'x64'
+    platform: '$(buildPlatform)'
+    configuration: '$(buildConfiguration)'
+    msbuildArgs: '/p:RuntimeIdentifier="win-$(buildPlatform)"
+                  /t:Restore;Build'
 
 # https://github.com/it3xl/MSBuild-DevEnv-Build-Server-Workarounds/issues/1#issuecomment-525435637
 - task: BatchScript@1
