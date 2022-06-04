@@ -37,27 +37,14 @@ steps:
     buildPlatform: '$(buildPlatform)'
     vsVersion: 'latest'
 
-- task: Bash@3
+- task: GitHubRelease@1
   inputs:
-    targetType: inline
-    workingDirectory: $(PIPELINE.WORKSPACE)
-    script: ls -R
-
-# - task: NuGetCommand@2
-#   inputs:
-#     command: 'restore'
-#     restoreSolution: 'Clipple.sln'
-#     feedsToUse: 'select'
-#   displayName: "Nuget"
-  
-# - task: GitHubRelease@1
-#   inputs:
-#     gitHubConnection: 'github'
-#     repositoryName: '$(Build.Repository.Name)'
-#     action: 'create'
-#     target: '$(Build.SourceVersion)'
-#     tagSource: 'gitTag'
-#     assets: '$(Build.ArtifactStagingDirectory)\Packages\*\*.msix'
-#     changeLogCompareToRelease: 'lastFullRelease'
-#     changeLogType: 'commitBased'
-#   displayName: "Release"
+    gitHubConnection: 'github'
+    repositoryName: '$(Build.Repository.Name)'
+    action: 'create'
+    target: '$(Build.SourceVersion)'
+    tagSource: 'gitTag'
+    assets: '$(Build.ArtifactStagingDirectory)\Clipple.Setup\Release\*.msi'
+    changeLogCompareToRelease: 'lastFullRelease'
+    changeLogType: 'commitBased'
+  displayName: "Release"
