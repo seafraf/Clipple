@@ -11,16 +11,24 @@ variables:
   value: "x64"
 - name: "buildConfiguration"
   value: "Release"
-- name: "devCmd"
-  value: 'C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\IDE\devenv.com'
-- name: "disableToolPath" 
-  value: 'C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\IDE\CommonExtensions\Microsoft\VSI\DisableOutOfProcBuild'
 
 pool:
   vmImage: 'windows-2022'
   
 steps:
 
+# Restore using MSBuild (can't use nuget because that complains about vdproj)
+- task: MSBuild@1
+  inputs:
+    solution: '$(solution)'
+    msbuildArchitecture: 'x64'
+    platform: '$(buildPlatform)'
+    configuration: '$(buildConfiguration)'
+    msbuildArguments: '/p:RuntimeIdentifier="win-$(buildPlatform)"
+                       /t:Restore'
+  displayName: 'Build'
+
+# Visual Studio build (required over MSBuild for installer projects)
 - task: DevEnvBuild@2
   inputs:
     solution: '$(solution)'
@@ -41,9 +49,6 @@ steps:
 #     feedsToUse: 'select'
 #   displayName: "Nuget"
   
-
-  
-
 # - task: GitHubRelease@1
 #   inputs:
 #     gitHubConnection: 'github'
