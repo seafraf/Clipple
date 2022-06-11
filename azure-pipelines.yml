@@ -11,31 +11,61 @@ variables:
   value: "x64"
 - name: "buildConfiguration"
   value: "Release"
-
+- name: "packageDir"
+  value: '$(Build.ArtifactStagingDirectory)\Packages'
+  
 pool:
   vmImage: 'windows-2022'
-  
-steps:
 
-# Restore using MSBuild (can't use nuget because that complains about vdproj)
+steps:
+- powershell: |
+   $versionTag = git describe --tags
+   Write-Host "##vso[task.setvariable variable=versionTag]$versionTag"
+  displayName: Get git version tag
+
+- powershell: |
+     [xml]$manifest= get-content ".\Clipple.WAPP\Package.appxmanifest"
+     $manifest.Package.Identity.Version = "$(versionTag)"    
+     $manifest.save("Clipple.WAPP\Package.appxmanifest")
+  displayName: Update manifest version
+
+- task: NuGetToolInstaller@1
+
+- task: NuGetCommand@2
+  inputs:
+    command: 'restore'
+    restoreSolution: 'Clipple.sln'
+    feedsToUse: 'select'
+  displayName: "Nuget"
+
+- task: DownloadSecureFile@1
+  name: signingCert
+  inputs:
+    secureFile: 'codesign.pfx'
+  displayName: 'Cert DL'
+
 - task: MSBuild@1
   inputs:
     solution: '$(solution)'
     msbuildArchitecture: 'x64'
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
-    msbuildArguments: '/p:RuntimeIdentifier="win-$(buildPlatform)"
-                       /t:Restore'
+    msbuildArguments: '/p:AppxBundlePlatforms="$(buildPlatform)"  
+                       /p:RuntimeIdentifier="win-$(buildPlatform)"
+                       /p:AppxPackageDir="$(packageDir)"  
+                       /p:AppxBundle=Never  
+                       /p:UapAppxPackageBuildMode=SideLoadOnly  
+                       /p:AppxPackageSigningEnabled=true 
+                       /p:PackageCertificateThumbprint=""  
+                       /p:PackageCertificateKeyFile="$(signingCert.secureFilePath)" 
+                       /p:PackageCertificatePassword="$(codesignpw)"'
   displayName: 'Build'
-
-# Visual Studio build (required over MSBuild for installer projects)
-- task: DevEnvBuild@2
+  
+- task: Bash@3
   inputs:
-    solution: '$(solution)'
-    project: 'Clipple.Setup/Clipple.Setup.vdproj'
-    buildCfg: '$(buildConfiguration)'
-    buildPlatform: '$(buildPlatform)'
-    vsVersion: 'latest'
+    targetType: inline
+    workingDirectory: $(PIPELINE.WORKSPACE)
+    script: ls -R
 
 - task: GitHubRelease@1
   inputs:
@@ -44,7 +74,7 @@ steps:
     action: 'create'
     target: '$(Build.SourceVersion)'
     tagSource: 'gitTag'
-    assets: '$(Build.SourcesDirectory)\Clipple.Setup\$(buildConfiguration)\*.msi'
+    assets: '$(Build.ArtifactStagingDirectory)\Packages\*\*.msix'
     changeLogCompareToRelease: 'lastFullRelease'
     changeLogType: 'commitBased'
   displayName: "Release"
