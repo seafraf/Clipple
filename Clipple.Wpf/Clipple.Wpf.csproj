@@ -10,6 +10,7 @@
     <SignAssembly>True</SignAssembly>
     <ApplicationIcon>Resources\icon.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
   </PropertyGroup>
 
   <ItemGroup>
