@@ -11,4 +11,4 @@ Set-Alias Squirrel ($env:USERPROFILE + "\.nuget\packages\clowd.squirrel\2.9.40\t
 Squirrel github-down --repoUrl $githubURL
 
 # Package new version
-Squirrel pack --framework "net6.0" --packId "Clipple" --packVersion $version --packDirectory "Clipple.Wpf\bin\x64\Release\net6.0-windows"
+Squirrel pack --framework "net6.0" --packId "Clipple" --packVersion $version --packDirectory "Clipple.Wpf\bin\x64\Release\net6.0-windows\win-x64"
