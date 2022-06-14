@@ -53,16 +53,17 @@ steps:
     workingDirectory: $(PIPELINE.WORKSPACE)
     script: ls -R
 
-# - task: GitHubRelease@1
-#   inputs:
-#     gitHubConnection: 'github'
-#     repositoryName: '$(Build.Repository.Name)'
-#     action: 'create'
-#     target: '$(Build.SourceVersion)'
-#     tagSource: 'gitTag'
-#     assets: |
-#       $(Build.ArtifactStagingDirectory)\Packages\*\*.msix
-#       $(Build.ArtifactStagingDirectory)\Packages\*\*.cer
-#     changeLogCompareToRelease: 'lastFullRelease'
-#     changeLogType: 'commitBased'
-#   displayName: "Release"
+- task: GitHubRelease@1
+  inputs:
+    gitHubConnection: 'github'
+    repositoryName: '$(Build.Repository.Name)'
+    action: 'create'
+    target: '$(Build.SourceVersion)'
+    tagSource: 'gitTag'
+    assets: |
+      $(Build.SourcesDirectory)\Releases\*.nupkg
+      $(Build.SourcesDirectory)\Releases\ClippleSetup.exe
+      $(Build.SourcesDirectory)\Releases\RELEASES
+    changeLogCompareToRelease: 'lastFullRelease'
+    changeLogType: 'commitBased'
+  displayName: "Release"
