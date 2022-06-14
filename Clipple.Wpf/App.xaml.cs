@@ -23,6 +23,8 @@ namespace Clipple
     /// </summary>
     public partial class App : Application
     {
+        public static SemanticVersion Version { get; private set; } = new SemanticVersion(0, 0, 0, "debug");
+
         public static RootViewModel ViewModel => (RootViewModel)Current.Resources[nameof(RootViewModel)];
 
         public static MainWindow Window => (MainWindow)Current.MainWindow;
@@ -81,16 +83,19 @@ namespace Clipple
 
         private static void OnAppInstall(SemanticVersion version, IAppTools tools)
         {
-            tools.CreateShortcutForThisExe(ShortcutLocation.StartMenu | ShortcutLocation.Desktop);
+            tools.CreateShortcutForThisExe(ShortcutLocation.StartMenu);
         }
 
         private static void OnAppUninstall(SemanticVersion version, IAppTools tools)
         {
-            tools.RemoveShortcutForThisExe(ShortcutLocation.StartMenu | ShortcutLocation.Desktop);
+            tools.RemoveShortcutForThisExe(ShortcutLocation.StartMenu);
         }
 
         private static void OnAppRun(SemanticVersion version, IAppTools tools, bool firstRun)
         {
+            if (version != null)
+                Version = version;
+
             tools.SetProcessAppUserModelId();
 
             if (firstRun) 

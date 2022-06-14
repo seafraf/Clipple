@@ -322,6 +322,11 @@ namespace Clipple.ViewModel
         /// Reference to the settings
         /// </summary>
         public SettingsViewModel SettingsViewModel { get; }
+
+        /// <summary>
+        /// Title for the main window
+        /// </summary>
+        public string Title => $"Clipple ({App.Version})";
         #endregion
 
         #region Commands

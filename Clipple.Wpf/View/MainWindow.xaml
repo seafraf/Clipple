@@ -9,8 +9,8 @@
         xmlns:vm="clr-namespace:Clipple.ViewModel"
         xmlns:local="clr-namespace:Clipple"
         mc:Ignorable="d"
-        Title="Clipple beta" Height="900" Width="1440" AllowDrop="True" DragOver="OnDragOver" Drop="OnDrop" PreviewKeyDown="OnPreviewKeyDown" Closing="OnClosing"
-                 DataContext="{StaticResource RootViewModel}">
+        Height="900" Width="1440" AllowDrop="True" DragOver="OnDragOver" Drop="OnDrop" PreviewKeyDown="OnPreviewKeyDown" Closing="OnClosing"
+                 DataContext="{StaticResource RootViewModel}" Title="{Binding Path=Title}">
     <mah:MetroWindow.RightWindowCommands>
         <mah:WindowCommands >
             <StackPanel Margin="10, 0, 0, 0"  Orientation="Horizontal">
