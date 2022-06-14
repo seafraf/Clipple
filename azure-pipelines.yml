@@ -23,12 +23,6 @@ steps:
    Write-Host "##vso[task.setvariable variable=versionTag]$versionTag"
   displayName: Get git version tag
 
-- powershell: |
-     [xml]$manifest= get-content ".\Clipple.WAPP\Package.appxmanifest"
-     $manifest.Package.Identity.Version = "$(versionTag)"    
-     $manifest.save("Clipple.WAPP\Package.appxmanifest")
-  displayName: Update manifest version
-
 - task: NuGetToolInstaller@1
 
 - task: NuGetCommand@2
@@ -38,45 +32,37 @@ steps:
     feedsToUse: 'select'
   displayName: "Nuget"
 
-- task: DownloadSecureFile@1
-  name: signingCert
-  inputs:
-    secureFile: 'codesign.pfx'
-  displayName: 'Cert DL'
-
 - task: MSBuild@1
   inputs:
     solution: '$(solution)'
     msbuildArchitecture: 'x64'
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
-    msbuildArguments: '/p:AppxBundlePlatforms="$(buildPlatform)"  
-                       /p:RuntimeIdentifier="win-$(buildPlatform)"
-                       /p:AppxPackageDir="$(packageDir)"  
-                       /p:AppxBundle=Never  
-                       /p:UapAppxPackageBuildMode=SideLoadOnly  
-                       /p:AppxPackageSigningEnabled=true 
-                       /p:PackageCertificateThumbprint=""  
-                       /p:PackageCertificateKeyFile="$(signingCert.secureFilePath)" 
-                       /p:PackageCertificatePassword="$(codesignpw)"'
+    msbuildArguments: '/p:RuntimeIdentifier="win-$(buildPlatform)"'
   displayName: 'Build'
-  
+  condition: 
+
+- task: PowerShell@2
+  inputs:
+    filePath: 'squirrel.ps1'
+    arguments: '$(versionTag)'
+
 - task: Bash@3
   inputs:
     targetType: inline
     workingDirectory: $(PIPELINE.WORKSPACE)
     script: ls -R
 
-- task: GitHubRelease@1
-  inputs:
-    gitHubConnection: 'github'
-    repositoryName: '$(Build.Repository.Name)'
-    action: 'create'
-    target: '$(Build.SourceVersion)'
-    tagSource: 'gitTag'
-    assets: |
-      $(Build.ArtifactStagingDirectory)\Packages\*\*.msix
-      $(Build.ArtifactStagingDirectory)\Packages\*\*.cer
-    changeLogCompareToRelease: 'lastFullRelease'
-    changeLogType: 'commitBased'
-  displayName: "Release"
+# - task: GitHubRelease@1
+#   inputs:
+#     gitHubConnection: 'github'
+#     repositoryName: '$(Build.Repository.Name)'
+#     action: 'create'
+#     target: '$(Build.SourceVersion)'
+#     tagSource: 'gitTag'
+#     assets: |
+#       $(Build.ArtifactStagingDirectory)\Packages\*\*.msix
+#       $(Build.ArtifactStagingDirectory)\Packages\*\*.cer
+#     changeLogCompareToRelease: 'lastFullRelease'
+#     changeLogType: 'commitBased'
+#   displayName: "Release"
