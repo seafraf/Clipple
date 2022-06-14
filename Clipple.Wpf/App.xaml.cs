@@ -4,6 +4,7 @@ using FFmpeg.AutoGen;
 using FlyleafLib;
 using FlyleafLib.MediaPlayer;
 using MahApps.Metro.Controls.Dialogs;
+using Squirrel;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -37,7 +38,7 @@ namespace Clipple
         public static Timer AutoSaveTimer { get; } = new Timer();
 
         public static string LibPath { get; } = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Binaries", Environment.Is64BitProcess ? "64" : "32");
-
+        
         public App()
         {
             // This timer is started when the settings load in the RootViewModel
@@ -66,6 +67,34 @@ namespace Clipple
                 MessageBox.Show("Failed to load dependencies", ex.Message);
                 Shutdown(1);
             }
+        }
+
+        protected override void OnStartup(StartupEventArgs e)
+        {
+            base.OnStartup(e);
+
+            SquirrelAwareApp.HandleEvents(
+                onInitialInstall: OnAppInstall,
+                onAppUninstall: OnAppUninstall,
+                onEveryRun: OnAppRun);
+        }
+
+        private static void OnAppInstall(SemanticVersion version, IAppTools tools)
+        {
+            tools.CreateShortcutForThisExe(ShortcutLocation.StartMenu | ShortcutLocation.Desktop);
+        }
+
+        private static void OnAppUninstall(SemanticVersion version, IAppTools tools)
+        {
+            tools.RemoveShortcutForThisExe(ShortcutLocation.StartMenu | ShortcutLocation.Desktop);
+        }
+
+        private static void OnAppRun(SemanticVersion version, IAppTools tools, bool firstRun)
+        {
+            tools.SetProcessAppUserModelId();
+
+            if (firstRun) 
+                MessageBox.Show("Installed!");
         }
     }
 }
