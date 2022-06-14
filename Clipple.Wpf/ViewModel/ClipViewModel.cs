@@ -441,7 +441,7 @@ namespace Clipple.ViewModel
         {
             if (propertyErrors.ContainsKey(propertyName) && propertyErrors[propertyName].Count > 0)
             {
-                propertyErrors[propertyName].Clear();
+                propertyErrors.Remove(propertyName);
                 ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(propertyName));
 
                 OnPropertyChanged(nameof(HasErrors));
