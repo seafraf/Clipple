@@ -1,4 +1,5 @@
-﻿using Microsoft.Toolkit.Mvvm.ComponentModel;
+﻿using Clipple.Util;
+using Microsoft.Toolkit.Mvvm.ComponentModel;
 using Squirrel;
 using System;
 using System.Collections.Generic;
@@ -24,6 +25,7 @@ namespace Clipple.Wpf.ViewModel
             updateInfo = await Manager.CheckForUpdate();
             if (updateInfo != null && updateInfo.ReleasesToApply.Count > 0)
             {
+                UpdateSize      = updateInfo.ReleasesToApply.Sum(x => x.Filesize);
                 LatestVersion   = updateInfo.FutureReleaseEntry.Version;
                 UpdateAvailable = true;
             }
@@ -63,6 +65,19 @@ namespace Clipple.Wpf.ViewModel
             get => updateInfo;
             set => SetProperty(ref updateInfo, value);
         }
+
+        private long updateSize;
+        public long UpdateSize
+        {
+            get => updateSize;
+            set
+            {
+                SetProperty(ref updateSize, value);
+                OnPropertyChanged(nameof(UpdateSizeString));
+            }
+        }
+
+        public string UpdateSizeString => Formatting.ByteCountToString(UpdateSize);
         #endregion
     }
 }

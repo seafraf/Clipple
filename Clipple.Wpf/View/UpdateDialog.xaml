@@ -18,7 +18,7 @@
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="auto" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
             <StackPanel Grid.Column="0" VerticalAlignment="Center">
@@ -44,6 +44,10 @@
             </StackPanel>
         </Grid>
 
-        <Button Grid.Row="1" Content="Download &amp; Install" Margin="4" Command="{Binding Path=DownloadCommand}" HorizontalAlignment="Stretch" />
+        <Button Grid.Row="1" Margin="4" Command="{Binding Path=DownloadCommand}" HorizontalAlignment="Stretch" >
+            <Button.Content>
+                <TextBlock>Download (<Run Text="{Binding Path=UpdateViewModel.UpdateSizeString, Mode=OneWay}"/>) and install </TextBlock>
+            </Button.Content>
+        </Button>
     </Grid>
 </mah:MetroWindow>
