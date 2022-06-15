@@ -23,13 +23,30 @@ namespace Clipple
     /// </summary>
     public partial class App : Application
     {
+        /// <summary>
+        /// Clipple version.  Set by the Squirrel when installed, not set if ran in Visual Studio.
+        /// </summary>
         public static SemanticVersion Version { get; private set; } = new SemanticVersion(0, 0, 0, "debug");
 
+        /// <summary>
+        /// A reference to the root view model.
+        /// </summary>
         public static RootViewModel ViewModel => (RootViewModel)Current.Resources[nameof(RootViewModel)];
 
+        /// <summary>
+        /// A reference to the main window instance.
+        /// </summary>
         public static MainWindow Window => (MainWindow)Current.MainWindow;
 
+        /// <summary>
+        /// A reference to the FlyLeaf video player.
+        /// </summary>
         public static Player MediaPlayer => ViewModel.VideoPlayerViewModel.MediaPlayer;
+
+        /// <summary>
+        /// The path to the FFmpeg libraries and executables.
+        /// </summary>
+        public static string LibPath { get; } = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Binaries", Environment.Is64BitProcess ? "64" : "32");
 
         public static bool VideoPlayerVisible
         {
@@ -39,8 +56,6 @@ namespace Clipple
 
         public static Timer AutoSaveTimer { get; } = new Timer();
 
-        public static string LibPath { get; } = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Binaries", Environment.Is64BitProcess ? "64" : "32");
-        
         public App()
         {
             // This timer is started when the settings load in the RootViewModel
@@ -53,6 +68,8 @@ namespace Clipple
                 });
             };
 
+            // Load FFmpeg libraries now so that we can display an error and shut down if they fail to load.  
+            // FFmpeg libraries are required to preview video and process clips.
             try
             {
                 Engine.Start(new EngineConfig()
@@ -75,10 +92,7 @@ namespace Clipple
         {
             base.OnStartup(e);
 
-            SquirrelAwareApp.HandleEvents(
-                onInitialInstall: OnAppInstall,
-                onAppUninstall: OnAppUninstall,
-                onEveryRun: OnAppRun);
+            SquirrelAwareApp.HandleEvents(onInitialInstall: OnAppInstall, onAppUninstall: OnAppUninstall, onEveryRun: OnAppRun);
         }
 
         private static void OnAppInstall(SemanticVersion version, IAppTools tools)

@@ -1,7 +1,11 @@
 ﻿using Clipple.Util;
 using Clipple.Util.ISOBMFF;
+using Clipple.Wpf.View;
+using Clipple.Wpf.ViewModel;
+using MahApps.Metro.Controls.Dialogs;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
 using Microsoft.Toolkit.Mvvm.Input;
+using Squirrel;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -16,6 +20,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Input;
+using System.Windows.Threading;
 using System.Xml.Serialization;
 
 namespace Clipple.ViewModel
@@ -25,11 +30,52 @@ namespace Clipple.ViewModel
 
         public RootViewModel()
         {
+            updateViewModel      = new UpdateViewModel(App.Version);
             VideoPlayerViewModel = new VideoPlayerViewModel();
 
             // Create commands
-            OpenVideosFlyout = new RelayCommand(() => IsVideosFlyoutOpen = !IsVideosFlyoutOpen);
+            OpenVideosFlyout   = new RelayCommand(() => IsVideosFlyoutOpen = !IsVideosFlyoutOpen);
             OpenSettingsFlyout = new RelayCommand(() => IsSettingsFlyoutOpen = !IsSettingsFlyoutOpen);
+            OpenUpdateDialog   = new RelayCommand(() =>
+            {
+                if (UpdateViewModel.LatestVersion == null)
+                    return;
+
+                UpdateDialog? dialog = null;
+                dialog = new UpdateDialog()
+                {
+                    DataContext = new UpdateDialogViewModel(UpdateViewModel,
+                        new RelayCommand(async () =>
+                        {
+                            dialog?.Close();
+
+                            // start download
+                            var manager     = UpdateViewModel.Manager;
+                            var updateInfo  = UpdateViewModel.UpdateInfo;
+                            if (manager != null && updateInfo != null)
+                            {
+                                var progressDialog = await App.Window.ShowProgressAsync("Please wait...", "Fetching updates");
+                                await manager.DownloadReleases(updateInfo.ReleasesToApply, (progress) =>
+                                {
+                                    progressDialog.SetMessage("Downloading updates");
+                                    progressDialog.SetProgress(progress / 200.0);
+                                });
+
+                                await manager.ApplyReleases(updateInfo, (progress) =>
+                                {
+                                    progressDialog.SetMessage("Installing updates");
+                                    progressDialog.SetProgress(0.5 + (progress / 200.0));
+                                });
+                                await progressDialog.CloseAsync();
+                            }
+                        }),
+                        new RelayCommand(() =>
+                        {
+                            dialog?.Close();
+                        }))
+                };
+                dialog.ShowDialog();
+            });
             ProcessAllVideos = new RelayCommand(async () => await ClipProcessor.Process());
 
             AddVideoCommand = new RelayCommand(() =>
@@ -130,6 +176,15 @@ namespace Clipple.ViewModel
                 else if (File.Exists(ingestResource))
                     AddVideo(ingestResource);
             }
+
+            // Check for updates every 5 minutes
+            var updateTimer = new DispatcherTimer();
+            updateTimer.Tick += async (s, e) => await UpdateViewModel.CheckForUpdate();
+            updateTimer.Interval = TimeSpan.FromMinutes(5.0);
+            updateTimer.Start();
+
+            // Check for an update immediately after launch
+            App.Current.Dispatcher.Invoke(async () => await UpdateViewModel.CheckForUpdate());
         }
 
         #region Methods
@@ -294,6 +349,13 @@ namespace Clipple.ViewModel
             }
         }
 
+        private UpdateViewModel updateViewModel;
+        public UpdateViewModel UpdateViewModel
+        {
+            get => updateViewModel;
+            set => SetProperty(ref updateViewModel, value);
+        }
+
         /// <summary>
         /// Does any video have any clips?
         /// </summary>
@@ -326,11 +388,12 @@ namespace Clipple.ViewModel
         /// <summary>
         /// Title for the main window
         /// </summary>
-        public string Title => $"Clipple ({App.Version})";
+        public string Title => $"Clipple ({UpdateViewModel.CurrentVersion})";
         #endregion
 
         #region Commands
         public ICommand OpenVideosFlyout { get; }
+        public ICommand OpenUpdateDialog { get; }
         public ICommand OpenSettingsFlyout { get; }
         public ICommand ProcessAllVideos { get; }
         public ICommand AddVideoCommand { get; }
@@ -338,6 +401,7 @@ namespace Clipple.ViewModel
         public ICommand ProcessClipsCommand { get; }
         public ICommand ClearClipsCommand { get; }
         public ICommand RemoveVideoCommand { get; }
+        
         #endregion
 
         #region Member

@@ -8,6 +8,7 @@
         xmlns:views="clr-namespace:Clipple.View"
         xmlns:vm="clr-namespace:Clipple.ViewModel"
         xmlns:local="clr-namespace:Clipple"
+        xmlns:converters="clr-namespace:Clipple.Converters"
         mc:Ignorable="d"
         Height="900" Width="1440" AllowDrop="True" DragOver="OnDragOver" Drop="OnDrop" PreviewKeyDown="OnPreviewKeyDown" Closing="OnClosing"
                  DataContext="{StaticResource RootViewModel}" Title="{Binding Path=Title}">
@@ -20,6 +21,10 @@
             <StackPanel Margin="10, 0, 0, 0"  Orientation="Horizontal">
                 <iconPacks:PackIconMaterialDesign VerticalAlignment="Center" Kind="PlayArrow" />
                 <Button Content="Process all clips" Command="{Binding Path=ProcessAllVideos}" IsEnabled="{Binding Path=HasClips}" />
+            </StackPanel>
+            <StackPanel Margin="10, 0, 0, 0"  Orientation="Horizontal" Visibility="{Binding Path=UpdateViewModel.UpdateAvailable, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <iconPacks:PackIconMaterialDesign VerticalAlignment="Center" Kind="Update" />
+                <Button Content="Update available!" Command="{Binding Path=OpenUpdateDialog}" />
             </StackPanel>
         </mah:WindowCommands>
     </mah:MetroWindow.RightWindowCommands>
