@@ -30,7 +30,7 @@ namespace Clipple.ViewModel
 
         public RootViewModel()
         {
-            updateViewModel      = new UpdateViewModel(App.Version);
+            updateViewModel      = new UpdateViewModel();
             VideoPlayerViewModel = new VideoPlayerViewModel();
 
             // Create commands

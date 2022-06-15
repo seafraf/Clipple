@@ -24,11 +24,6 @@ namespace Clipple
     public partial class App : Application
     {
         /// <summary>
-        /// Clipple version.  Set by the Squirrel when installed, not set if ran in Visual Studio.
-        /// </summary>
-        public static SemanticVersion Version { get; private set; } = new SemanticVersion(0, 0, 0, "debug");
-
-        /// <summary>
         /// A reference to the root view model.
         /// </summary>
         public static RootViewModel ViewModel => (RootViewModel)Current.Resources[nameof(RootViewModel)];
@@ -107,8 +102,7 @@ namespace Clipple
 
         private static void OnAppRun(SemanticVersion version, IAppTools tools, bool firstRun)
         {
-            if (version != null)
-                Version = version;
+            ViewModel.UpdateViewModel.CurrentVersion = version ?? new SemanticVersion("1.0.0-VS-debug");
 
             tools.SetProcessAppUserModelId();
 

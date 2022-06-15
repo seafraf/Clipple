@@ -10,10 +10,8 @@ namespace Clipple.Wpf.ViewModel
 {
     public class UpdateViewModel : ObservableObject
     {
-        public UpdateViewModel(SemanticVersion currentVersion)
+        public UpdateViewModel()
         {
-            this.currentVersion = currentVersion;
-
             Manager = new GithubUpdateManager($"https://github.com/seafraf/Clipple");
         }
 
@@ -40,8 +38,8 @@ namespace Clipple.Wpf.ViewModel
             set => SetProperty(ref updateAvailable, value);
         }
 
-        private SemanticVersion currentVersion;
-        public SemanticVersion CurrentVersion
+        private SemanticVersion? currentVersion;
+        public SemanticVersion? CurrentVersion
         {
             get => currentVersion;
             set => SetProperty(ref currentVersion, value);
