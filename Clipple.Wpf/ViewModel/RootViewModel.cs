@@ -54,19 +54,31 @@ namespace Clipple.ViewModel
                             var updateInfo  = UpdateViewModel.UpdateInfo;
                             if (manager != null && updateInfo != null)
                             {
+                                App.VideoPlayerVisible = false;
+
                                 var progressDialog = await App.Window.ShowProgressAsync("Please wait...", "Fetching updates");
                                 await manager.DownloadReleases(updateInfo.ReleasesToApply, (progress) =>
                                 {
-                                    progressDialog.SetMessage("Downloading updates");
+                                    var downloadedBytes = (long)Math.Floor(UpdateViewModel.UpdateSize * (progress / 100.0));
+
+                                    progressDialog.SetTitle("Downloading...");
+                                    progressDialog.SetMessage($"Downloaded {Formatting.ByteCountToString(downloadedBytes)}/{UpdateViewModel.UpdateSizeString}");
                                     progressDialog.SetProgress(progress / 200.0);
                                 });
 
                                 await manager.ApplyReleases(updateInfo, (progress) =>
                                 {
+                                    progressDialog.SetTitle("Installing...");
                                     progressDialog.SetMessage("Installing updates");
                                     progressDialog.SetProgress(0.5 + (progress / 200.0));
                                 });
                                 await progressDialog.CloseAsync();
+
+                                // Make sure all settings are saved before exiting as the below function calls Environment.Exit
+                                await Save();
+
+                                // No need to bring back the video player since as we're restarting the app
+                                UpdateManager.RestartApp();
                             }
                         }),
                         new RelayCommand(() =>
