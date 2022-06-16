@@ -23,7 +23,7 @@ namespace Clipple.FFMPEG
         {
             ExecutablePath = executablePath;
 
-            Input  = new MediaInput(inputPath);
+            Input  = new MediaInput(inputPath, clip);
             Output = new MediaOutput(clip, firstPass);
         }
 

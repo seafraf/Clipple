@@ -23,8 +23,6 @@ namespace Clipple.FFMPEG
 
         #region Properties
         public bool IsFirstPass { get; }
-        public TimeSpan StartTime => clip.StartTime;
-        public TimeSpan Duration => clip.Duration;
         public string OutputFile => clip.FullFileName;
 
         public string VideoFilter
@@ -94,7 +92,7 @@ namespace Clipple.FFMPEG
         {
             var pass = clip.TwoPassEncoding ? $"-pass {(IsFirstPass ? '1' : '2')} -passlogfile \"{OutputFile}.clipple\" " : "";
             if (IsFirstPass && clip.TwoPassEncoding) 
-                return $"{pass}-ss {StartTime} -t {Duration} -stats -an {VideoCodec} {VideoFilter} -f null NUL";
+                return $"{pass} -stats -an {VideoCodec} {VideoFilter} -f null NUL";
 
             string videoArgs = "-vn";
             if (clip.OutputFormat.SupportsVideo)
@@ -104,7 +102,7 @@ namespace Clipple.FFMPEG
             if (clip.OutputFormat.SupportsAudio)
                 audioArgs = $"{AudioFilter} {AudioCodec} {AudioBitrate}";
 
-            return $"{pass}-ss {StartTime} -t {Duration} -stats {audioArgs} {videoArgs} {Format} \"{OutputFile}\"";
+            return $"{pass} -stats {audioArgs} {videoArgs} {Format} \"{OutputFile}\"";
         }
     }
 }
