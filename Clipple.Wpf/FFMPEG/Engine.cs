@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -95,6 +96,13 @@ namespace Clipple.FFMPEG
             {
                 if (!process.HasExited)
                     process.Kill();
+            }
+
+            if (Output.TwoPassEncoding && !Output.IsFirstPass)
+            {
+                // Delete temp files
+                File.Delete($"{Output.OutputFile}-0.log");
+                File.Delete($"{Output.OutputFile}-0.log.mbtree");
             }
 
             return process.ExitCode;

@@ -86,12 +86,13 @@ namespace Clipple.FFMPEG
         public string VideoBitrate => $"-b:v {clip.VideoBitrate}K";
         public string AudioBitrate => $"-b:a {clip.AudioBitrate}K";
         public string Format => $"-f {clip.OutputFormat.Name}";
+        public bool TwoPassEncoding => clip.TwoPassEncoding;
         #endregion
 
         public override string? ToString()
         {
-            var pass = clip.TwoPassEncoding ? $"-pass {(IsFirstPass ? '1' : '2')} -passlogfile \"{OutputFile}.clipple\" " : "";
-            if (IsFirstPass && clip.TwoPassEncoding) 
+            var pass = TwoPassEncoding ? $"-pass {(IsFirstPass ? '1' : '2')} -passlogfile \"{OutputFile}\" " : "";
+            if (IsFirstPass && TwoPassEncoding) 
                 return $"{pass} -stats -an {VideoCodec} {VideoFilter} -f null NUL";
 
             string videoArgs = "-vn";
