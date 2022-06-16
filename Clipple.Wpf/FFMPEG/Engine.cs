@@ -98,9 +98,10 @@ namespace Clipple.FFMPEG
                     process.Kill();
             }
 
+            // If the clip is using two pass encoding and this is the second pass, delete the temporary files assiocated 
+            // with the clip.  These files aren't required anymore and are not small.
             if (Output.TwoPassEncoding && !Output.IsFirstPass)
             {
-                // Delete temp files
                 File.Delete($"{Output.OutputFile}-0.log");
                 File.Delete($"{Output.OutputFile}-0.log.mbtree");
             }
