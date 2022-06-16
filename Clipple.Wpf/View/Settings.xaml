@@ -25,6 +25,7 @@
 
                 <CheckBox Content="Mark new videos for deletion automatically" Margin="2" IsChecked="{Binding Path=DefaultDeleteVideos}" />
                 <CheckBox Content="Mark new clips for deletion automatically" Margin="2" IsChecked="{Binding Path=DefaultDeleteClips}"/>
+                <CheckBox Content="Start clip processing automatically" Margin="2" IsChecked="{Binding Path=StartProcessingAutomatically}" />
             </StackPanel> 
         </Expander>
         <Expander Header="Persistence" >

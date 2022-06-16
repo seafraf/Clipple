@@ -123,7 +123,7 @@ namespace Clipple.ViewModel
         /// <summary>
         /// 
         /// </summary>
-        private async void StartProcesses()
+        public async void StartProcesses()
         {
             State = ClipProcessingDialogState.Running;
             

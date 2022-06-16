@@ -71,6 +71,13 @@ namespace Clipple.ViewModel
             set => SetProperty(ref defaultDeleteClips, value);
         }
 
+        private bool startProcessingAutomatically = true;
+        public bool StartProcessingAutomatically
+        {
+            get => startProcessingAutomatically;
+            set => SetProperty(ref startProcessingAutomatically, value);
+        }
+
         private bool autoSave = true;
         public bool AutoSave
         {

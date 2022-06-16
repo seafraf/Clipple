@@ -21,16 +21,21 @@ namespace Clipple
             App.VideoPlayerVisible = false;
 
             ClipProcessingDialog? dialog = null;
-            dialog = new ClipProcessingDialog(new ClipProcessingDialogViewModel(processingJobs.ToList(), 
+            var vm = new ClipProcessingDialogViewModel(processingJobs.ToList(),
                 new RelayCommand(async () =>
                 {
                     // On close
                     await App.Window.HideMetroDialogAsync(dialog);
-                })));
+                }));
 
-
+            dialog = new ClipProcessingDialog(vm);
 
             await App.Window.ShowMetroDialogAsync(dialog);
+
+            // If Clipple is set to process clips automatically, start processing as soon as the dialog has opened
+            if (App.ViewModel.SettingsViewModel.StartProcessingAutomatically)
+                vm.StartProcesses();
+
             await dialog.WaitUntilUnloadedAsync();
             await dialog.WaitForCloseAsync();
 
