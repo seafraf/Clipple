@@ -1,4 +1,5 @@
 ﻿using Clipple.ViewModel;
+using ControlzEx.Theming;
 using MahApps.Metro.Controls;
 using Microsoft.Toolkit.Mvvm.Input;
 using System;
@@ -17,11 +18,16 @@ namespace Clipple.View
     {
         public VideoPlayer VideoPlayer => videoPlayer;
 
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         public MainWindow()
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {
             InitializeComponent();
 
             var vm = (RootViewModel)DataContext;
+
+            // Load theme
+            ThemeManager.Current.ChangeTheme(this, vm.SettingsViewModel.ThemeKey);
 
             // Create key bindings now
             UpdateKeyBindings();

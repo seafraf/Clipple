@@ -40,7 +40,7 @@
 
     <mah:MetroWindow.Flyouts>
         <mah:FlyoutsControl>
-            <mah:Flyout Header="Videos" IsOpen="{Binding Path=IsVideosFlyoutOpen}" Position="Left" Width="auto" ClosingFinished="OnFlyoutClosed">
+            <mah:Flyout Header="Videos" IsOpen="{Binding Path=IsVideosFlyoutOpen}" Position="Left" Width="auto" ClosingFinished="OnFlyoutClosed" Theme="Adapt">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Grid.Column="0" Margin="0 0 0 6">
                         <DataGrid CanUserAddRows="False" CanUserDeleteRows="False" AutoGenerateColumns="False" SelectedValue="{Binding Path=SelectedVideo}" SelectionMode="Single"
@@ -86,7 +86,7 @@
                     </StackPanel>
                 </ScrollViewer>
             </mah:Flyout>
-            <mah:Flyout Header="Settings" IsOpen="{Binding Path=IsSettingsFlyoutOpen}" Position="Right" Width="auto" ClosingFinished="OnFlyoutClosed">
+            <mah:Flyout Header="Settings" IsOpen="{Binding Path=IsSettingsFlyoutOpen}" Position="Right" Width="auto" ClosingFinished="OnFlyoutClosed" Theme="Adapt">
                 <views:Settings DataContext="{Binding Path=SettingsViewModel}" />
             </mah:Flyout>
         </mah:FlyoutsControl>

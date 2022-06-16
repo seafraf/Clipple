@@ -1,4 +1,5 @@
-﻿using MahApps.Metro.Controls;
+﻿using ControlzEx.Theming;
+using MahApps.Metro.Controls;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
 using System;
 using System.Collections.Generic;
@@ -8,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Xml;
@@ -16,11 +18,17 @@ using System.Xml.Serialization;
 
 namespace Clipple.ViewModel
 {
-    [DataContract]
     public class SettingsViewModel : ObservableObject
     {
+        #region Methods
+        private void ChangeTheme(bool dark, string colourName)
+        {
+            if (App.Window != null)
+                ThemeManager.Current.ChangeTheme(App.Window, ThemeKey);      
+        }
+        #endregion
+
         #region Properties
-        [DataMember]
         private bool createOutputFolder = false;
         public bool CreateOutputFolder
         {
@@ -172,18 +180,26 @@ namespace Clipple.ViewModel
             set => SetProperty(ref saveHotKey, value);
         }
 
-        private bool darkMode = true;
-        public bool DarkMode
+        private bool themeIsDark = true;
+        public bool ThemeIsDark
         {
-            get => darkMode;
-            set => SetProperty(ref darkMode, value);
+            get => themeIsDark;
+            set
+            {
+                SetProperty(ref themeIsDark, value);
+                ChangeTheme(value, themeColour);
+            }
         }
 
-        private Color? accentColour = Color.Red;
-        public Color? AccentColour
+        private string themeColour = "Steel";
+        public string ThemeColour
         {
-            get => accentColour;
-            set => SetProperty(ref accentColour, value);
+            get => themeColour;
+            set
+            {
+                SetProperty(ref themeColour, value);
+                ChangeTheme(themeIsDark, value);
+            }
         }
 
         private int maxConcurrentJobs = 1;
@@ -192,6 +208,12 @@ namespace Clipple.ViewModel
             get => maxConcurrentJobs;
             set => SetProperty(ref maxConcurrentJobs, value);
         }
+
+        [JsonIgnore]
+        public ReadOnlyObservableCollection<string> AvailableColours => ThemeManager.Current.ColorSchemes;
+
+        [JsonIgnore]
+        public string ThemeKey => $"{(ThemeIsDark ? "Dark" : "Light")}.{ThemeColour}";
         #endregion
     }
 }

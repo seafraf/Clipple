@@ -7,6 +7,7 @@
              xmlns:viewmodel="clr-namespace:Clipple.ViewModel" 
              xmlns:converters="clr-namespace:Clipple.Converters"
              xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             xmlns:controlez="clr-namespace:ControlzEx.Standard;assembly=ControlzEx"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800" d:DataContext="{d:DesignInstance Type=viewmodel:SettingsViewModel}" MinWidth="400">
     <StackPanel>
@@ -73,16 +74,14 @@
         </Expander>
         <Expander Header="Appearence">
             <StackPanel>
-                <CheckBox Content="Dark mode" Margin="2" IsChecked="{Binding Path=DarkMode}"/>
+                <CheckBox Content="Dark mode" Margin="2" IsChecked="{Binding Path=ThemeIsDark}"/>
                 <Grid Margin="2">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="120" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <Label Grid.Column="0" Content="Accent colour" />
-                    <mah:ColorPicker Grid.Column="1" StandardColorPaletteHeader="Suggested colours" SelectedColor="{Binding Path=AccentColour}">
-                        
-                    </mah:ColorPicker>
+                    <Label Grid.Column="0" Content="Theme colour" />
+                    <ComboBox Grid.Column="1" ItemsSource="{Binding Path=AvailableColours}" SelectedValue="{Binding Path=ThemeColour}" />
                 </Grid>
             </StackPanel>
         </Expander>
