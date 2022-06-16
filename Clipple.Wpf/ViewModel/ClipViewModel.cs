@@ -388,6 +388,9 @@ namespace Clipple.ViewModel
             new TranscodingPreset("360p@60", "YouTube SDR recommendations", videoBitrate: 15000, targetWidth: 480, targetHeight: 360, fps: 60, videoCodec: "libx264"),
             new TranscodingPreset("360p@30", "YouTube SDR recommendations", videoBitrate: 10000, targetWidth: 480, targetHeight: 360, fps: 30, videoCodec: "libx264"),
         });
+
+        [JsonIgnore]
+        public Uri FolderURI => new Uri(Folder);
         #endregion
 
         #region INotifyDataErrorInfo implementation

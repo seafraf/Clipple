@@ -152,6 +152,9 @@ namespace Clipple.ViewModel
         [JsonIgnore]
         public string FileSize => Formatting.ByteCountToString(FileInfo.Length);
 
+        [JsonIgnore]
+        public Uri? FolderURI => FileInfo?.DirectoryName == null ? null : new Uri(FileInfo.DirectoryName);
+
         public string FilePath { get; set; }
         #endregion 
     }

@@ -56,16 +56,24 @@
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="auto" />
                                         </Grid.ColumnDefinitions>
-                                        <Label Grid.Column="0" Content="{Binding Path=VideoViewModel.FileInfo.FullName}" VerticalAlignment="Bottom" />
+                                        <TextBlock Grid.Column="0" VerticalAlignment="Bottom" Margin="4">
+                                            <Hyperlink NavigateUri="{Binding Path=VideoViewModel.FolderURI}" RequestNavigate="OnRequestNavigate">
+                                                <TextBlock Text="{Binding Path=VideoViewModel.FileInfo.FullName}" />
+                                            </Hyperlink>
+                                        </TextBlock>
                                         <StackPanel Grid.Column="1" Orientation="Horizontal">
-                                            <Label Padding="0 5 5 0" Content="{Binding Path=FirstClip.FullFileName}"  />
-                                            <Label Padding="0 5 5 0" ContentStringFormat="{}+ {0} more" ToolTip="{Binding Path=RemainingClipNames}" ToolTipService.InitialShowDelay="0" 
-                                               Visibility="{Binding Path=IsMultiClip, Converter={StaticResource BooleanToVisibilityConverter}}">
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="+ " />
-                                                    <TextBlock Text="{Binding Path=RemainingClips, StringFormat={}{0} more}" TextDecorations="Underline" Foreground="#2d89ef" />
-                                                </StackPanel>
-                                            </Label>
+                                            <TextBlock Grid.Column="0" VerticalAlignment="Bottom" Margin="4">
+                                                <Hyperlink NavigateUri="{Binding Path=FirstClip.FolderURI}" RequestNavigate="OnRequestNavigate">
+                                                    <TextBlock Text="{Binding Path=FirstClip.FullFileName}" />
+                                                </Hyperlink>
+                                            </TextBlock>
+
+                                            <TextBlock Visibility="{Binding Path=IsMultiClip, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0 4 4 0">
+                                                <Run Text="+" />
+                                                <Hyperlink ToolTip="{Binding Path=RemainingClipNames}" ToolTipService.InitialShowDelay="0" >
+                                                    <TextBlock Text="{Binding Path=RemainingClips, StringFormat={}{0} more}"  />
+                                                </Hyperlink>
+                                            </TextBlock>
                                         </StackPanel>
                                     </Grid>
                                 </StackPanel>
