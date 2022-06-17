@@ -92,11 +92,12 @@ namespace Clipple.ViewModel
 
             var audioStreams = MediaPlayer.MainDemuxer.AudioStreams;
             var players      = new BackgroundAudioPlayer[audioStreams.Count];
+            var videoState   = Video.VideoState;
 
             // Create a background audio player for each audio stream
             for (int i = 0; i < audioStreams.Count; i++)
             {
-                players[i] = new BackgroundAudioPlayer(audioStreams[i].StreamIndex, Video.FileInfo.FullName,
+                players[i] = new BackgroundAudioPlayer(videoState, audioStreams[i].StreamIndex, Video.FileInfo.FullName,
                     GetAudioTrackName(audioStreams[i].StreamIndex))
                 {
                     BaseMuted = isMuted,
@@ -112,6 +113,11 @@ namespace Clipple.ViewModel
 
             // Show the first frame of the video
             MediaPlayer.ShowFrame(0);
+
+            // Load settings from previous video state
+            Volume  = videoState.Volume;
+            IsMuted = videoState.Muted;
+            MediaPlayer.SeekAccurate((int)videoState.CurTime.TotalMilliseconds);
         }
 
         /// <summary>
@@ -122,6 +128,9 @@ namespace Clipple.ViewModel
             OnPropertyChanged(nameof(VideoCurrentTime));
             OnPropertyChanged(nameof(RemainingTime));
             OnPropertyChanged(nameof(CurTime));
+
+            if (Video != null)
+                Video.VideoState.CurTime = VideoCurrentTime;
         }
 
         /// <summary>
@@ -203,6 +212,9 @@ namespace Clipple.ViewModel
                 SetProperty(ref volume, value);
                 foreach (var audioPlayer in AudioPlayers)
                     audioPlayer.BaseVolume = value;
+
+                if (Video != null)
+                    Video.VideoState.Volume = value;
             }
         }
 
@@ -215,6 +227,10 @@ namespace Clipple.ViewModel
                 SetProperty(ref isMuted, value);
                 foreach (var audioPlayer in AudioPlayers)
                     audioPlayer.BaseMuted = value;
+
+
+                if (Video != null)
+                    Video.VideoState.Muted = value;
             }
         }
 
@@ -354,7 +370,7 @@ namespace Clipple.ViewModel
                 newClip.AudioSettings.Add(new AudioSettingsModel(player.StreamIndex, player.Name)
                 {
                     IsEnabled   = !player.IsMuted,
-                    Volume      = (int)(player.Volume / 1.5),
+                    Volume      = (int)player.Volume,
                 });
             }
 

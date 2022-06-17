@@ -1,4 +1,5 @@
-﻿using Clipple.Util;
+﻿using Clipple.DataModel;
+using Clipple.Util;
 using Clipple.Util.ISOBMFF;
 using FFmpeg.AutoGen;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
@@ -147,6 +148,13 @@ namespace Clipple.ViewModel
         {
             get => trackNames;
             set => SetProperty(ref trackNames, value);
+        }
+
+        private VideoState videoState = new();
+        public VideoState VideoState
+        {
+            get => videoState;
+            set => SetProperty(ref videoState, value);
         }
 
         [JsonIgnore]

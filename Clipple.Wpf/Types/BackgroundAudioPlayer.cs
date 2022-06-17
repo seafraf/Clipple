@@ -1,4 +1,5 @@
-﻿using FlyleafLib;
+﻿using Clipple.DataModel;
+using FlyleafLib;
 using FlyleafLib.MediaFramework.MediaStream;
 using FlyleafLib.MediaPlayer;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
@@ -12,8 +13,9 @@ namespace Clipple.Types
 {
     public class BackgroundAudioPlayer : ObservableObject, IDisposable
     {
-        public BackgroundAudioPlayer(int streamIndex, string sourceFile, string name)
+        public BackgroundAudioPlayer(VideoState videoState, int streamIndex, string sourceFile, string name)
         {
+            VideoState       = videoState;
             this.name        = name;
             this.streamIndex = streamIndex;
 
@@ -22,6 +24,7 @@ namespace Clipple.Types
             config.Player.Usage                     = Usage.Audio;
             config.Player.SeekAccurate              = true;
             config.Player.AutoPlay                  = false;
+            config.Player.VolumeMax                 = 100;
             config.Player.MouseBindings.Enabled     = false;
             config.Player.KeyBindings.Enabled       = false;
 
@@ -29,7 +32,10 @@ namespace Clipple.Types
             player.OpenAsync(sourceFile);
             player.OpenCompleted += (s, e) =>
             {
-                player.OpenAsync(player.MainDemuxer.AudioStreams.Where(x => x.StreamIndex == streamIndex).First());
+                player.Open(player.MainDemuxer.AudioStreams.Where(x => x.StreamIndex == streamIndex).First());
+
+                IsMuted = VideoState.MutedTracks.GetValueOrDefault(streamIndex, false);
+                Volume = VideoState.TrackVolume.GetValueOrDefault(streamIndex, 100.0);
             };
         }
 
@@ -42,8 +48,10 @@ namespace Clipple.Types
             {
                 SetProperty(ref volume, value);
 
-                player.Audio.Volume = (int)(value * (BaseVolume / 150));
+                player.Audio.Volume = (int)(value * (BaseVolume / 100));
                 player.Audio.Mute   = BaseMuted || IsMuted;
+
+                VideoState.TrackVolume[StreamIndex] = value;
             }
         }
 
@@ -55,7 +63,7 @@ namespace Clipple.Types
             {
                 SetProperty(ref baseVolume, value);
 
-                player.Audio.Volume = (int)(volume * (value / 150));
+                player.Audio.Volume = (int)(volume * (value / 100));
                 player.Audio.Mute   = BaseMuted || IsMuted;
             }
         }
@@ -70,6 +78,8 @@ namespace Clipple.Types
 
                 if (!BaseMuted)
                     player.Audio.Mute = value;
+
+                VideoState.MutedTracks[StreamIndex] = value;
             }
         }
 
@@ -105,6 +115,8 @@ namespace Clipple.Types
             get => name;
             set => SetProperty(ref name, value);
         }
+
+        public VideoState VideoState { get; }
         #endregion
 
         public void Dispose()

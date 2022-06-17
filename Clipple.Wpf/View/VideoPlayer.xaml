@@ -94,7 +94,7 @@
                         <ToggleButton IsChecked="{Binding Path=IsMuted}" HorizontalAlignment="Left" Grid.Column="0" Width="32" Height="32" Style="{DynamicResource MahApps.Styles.ToggleButton.Circle}" ToolTip="Mute" Margin="0 0 4 0">
                             <iconPacks:MaterialDesign Width="20" Height="20" Kind="VolumeOff" />
                         </ToggleButton>
-                        <Slider IsMoveToPointEnabled="True" TickFrequency="15" Value="{Binding Path=Volume, Mode=TwoWay}" IsEnabled="{Binding Path=IsMuted, Mode=TwoWay, Converter={StaticResource InverseBooleanConverter}}" Minimum="0" Maximum="150" Style="{StaticResource MahApps.Styles.Slider.Flat}" TickPlacement="Both" Grid.Column="1" />
+                        <Slider IsMoveToPointEnabled="True" TickFrequency="5" Value="{Binding Path=Volume, Mode=TwoWay}" IsEnabled="{Binding Path=IsMuted, Mode=TwoWay, Converter={StaticResource InverseBooleanConverter}}" Minimum="0" Maximum="100" Style="{StaticResource MahApps.Styles.Slider.Flat}" TickPlacement="Both" Grid.Column="1" />
 
                         <Button Grid.Column="2" Width="32" Height="32" x:Name="openAudioSettingsButton" Style="{DynamicResource MahApps.Styles.Button.Circle}" ToolTip="Open sound settings" Margin="4 0 0 0" Command="{Binding Path=OpenAudioSettings}" IsEnabled="{Binding Path=HasContent}" >
                             <iconPacks:MaterialDesign Kind="ViewList" />
@@ -144,7 +144,7 @@
                                             <ToggleButton Grid.Row="1" Grid.Column="0" IsChecked="{Binding Path=IsMuted}" Width="32" Height="32" Style="{DynamicResource MahApps.Styles.ToggleButton.Circle}" ToolTip="Mute" Margin="0 0 4 0">
                                                 <iconPacks:MaterialDesign Width="20" Height="20" Kind="VolumeOff" />
                                             </ToggleButton>
-                                            <Slider Grid.Row="1" Grid.Column="1" IsMoveToPointEnabled="True" TickFrequency="15" Value="{Binding Path=Volume, Mode=TwoWay}" IsEnabled="{Binding Path=IsMuted, Mode=TwoWay, Converter={StaticResource InverseBooleanConverter}}" Minimum="0" Maximum="150" Style="{StaticResource MahApps.Styles.Slider.Flat}" TickPlacement="Both" />
+                                            <Slider Grid.Row="1" Grid.Column="1" IsMoveToPointEnabled="True" TickFrequency="5" Value="{Binding Path=Volume, Mode=TwoWay}" IsEnabled="{Binding Path=IsMuted, Mode=TwoWay, Converter={StaticResource InverseBooleanConverter}}" Minimum="0" Maximum="100" Style="{StaticResource MahApps.Styles.Slider.Flat}" TickPlacement="Both" />
                                         </Grid>
                                     </StackPanel>
                                 </DataTemplate>
