@@ -8,9 +8,11 @@
     <Platforms>x64</Platforms>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <SignAssembly>True</SignAssembly>
-    <ApplicationIcon>Resources\icon.ico</ApplicationIcon>
+    <ApplicationIcon>Resources\favicon.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
+    <RootNamespace>Clipple</RootNamespace>
+    <Product>Clipple</Product>
   </PropertyGroup>
 
   <ItemGroup>
@@ -55,7 +57,7 @@
     <Content Include="Binaries\64\swscale-5.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Resources\icon.ico" />
+    <Content Include="Resources\favicon.ico" />
   </ItemGroup>
 
   <ItemGroup>
