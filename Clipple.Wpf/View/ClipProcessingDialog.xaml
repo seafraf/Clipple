@@ -58,13 +58,13 @@
                                             <ColumnDefinition Width="auto" />
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Grid.Column="0" VerticalAlignment="Bottom" Margin="4">
-                                            <Hyperlink NavigateUri="{Binding Path=VideoViewModel.FolderURI}" RequestNavigate="OnRequestNavigate">
+                                            <Hyperlink NavigateUri="{Binding Path=VideoViewModel.URI}" RequestNavigate="OnRequestNavigate">
                                                 <TextBlock Text="{Binding Path=VideoViewModel.FileInfo.FullName}" />
                                             </Hyperlink>
                                         </TextBlock>
                                         <StackPanel Grid.Column="1" Orientation="Horizontal">
                                             <TextBlock Grid.Column="0" VerticalAlignment="Bottom" Margin="4">
-                                                <Hyperlink NavigateUri="{Binding Path=FirstClip.FolderURI}" RequestNavigate="OnRequestNavigate">
+                                                <Hyperlink NavigateUri="{Binding Path=FirstClip.URI}" RequestNavigate="OnRequestNavigate">
                                                     <TextBlock Text="{Binding Path=FirstClip.FullFileName}" />
                                                 </Hyperlink>
                                             </TextBlock>

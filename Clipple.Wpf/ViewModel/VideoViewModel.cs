@@ -210,7 +210,7 @@ namespace Clipple.ViewModel
         /// Helper property. Returns the video's folder URI
         /// </summary>
         [JsonIgnore]
-        public Uri? FolderURI => FileInfo?.DirectoryName == null ? null : new Uri(FileInfo.DirectoryName);
+        public Uri? URI => FileInfo?.FullName == null ? null : new Uri(FileInfo.FullName);
 
         /// <summary>
         /// File path, used for serialization.

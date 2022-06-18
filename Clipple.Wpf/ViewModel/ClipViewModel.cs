@@ -380,7 +380,7 @@ namespace Clipple.ViewModel
         });
 
         [JsonIgnore]
-        public Uri FolderURI => new Uri(Folder);
+        public Uri URI => new Uri(FullFileName);
         #endregion
 
         #region INotifyDataErrorInfo implementation

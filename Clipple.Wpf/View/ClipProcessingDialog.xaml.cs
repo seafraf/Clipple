@@ -30,9 +30,10 @@ namespace Clipple.View
 
         private void OnRequestNavigate(object sender, RequestNavigateEventArgs e)
         {
-            Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri)
+            Process.Start(new ProcessStartInfo("explorer.exe")
             {
-                UseShellExecute = true
+                UseShellExecute = true,
+                Arguments = $"/select,\"{e.Uri.AbsoluteUri}\""
             });
             e.Handled = true;
         }
