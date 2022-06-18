@@ -53,6 +53,20 @@ namespace Clipple.ViewModel
             set => SetProperty(ref state, value);
         }
 
+        /// <summary>
+        /// Whether or not the user has enabled post processing actions
+        /// </summary>
+        private bool postProcessingActionsEnabled = false;
+        public bool PostProcessingActionsEnabled
+        {
+            get => postProcessingActionsEnabled;
+            set => SetProperty(ref postProcessingActionsEnabled, value);
+        }
+
+        /// <summary>
+        /// A list of jobs that were completed succesfully last time the job list was ran
+        /// </summary>
+        public List<JobViewModel> SuccesfulJobs { get; } = new();
         #endregion
 
         #region Commands
@@ -117,6 +131,9 @@ namespace Clipple.ViewModel
 
                 job.Status = ClipProcessingStatus.Processing;
                 job.Status = await mainJob.Run(cancellationTokenSource.Token) == 0 ? ClipProcessingStatus.Finished : ClipProcessingStatus.Failed;
+
+                if (job.Status == ClipProcessingStatus.Finished)
+                    job.SuccesfulJobCount++;
             };
         }
 
@@ -126,7 +143,10 @@ namespace Clipple.ViewModel
         public async void StartProcesses()
         {
             State = ClipProcessingDialogState.Running;
-            
+
+            // Clear succesful job list, this will be rebuilt after processing has finished
+            SuccesfulJobs.Clear();
+
             // Create new cancel token
             cancellationTokenSource = new CancellationTokenSource();
 
@@ -158,6 +178,13 @@ namespace Clipple.ViewModel
                 {
                     break;
                 }
+            }
+
+            // Tally up every job that completed each clip succesfully, these jobs qualify for PPAs
+            foreach (var job in jobs)
+            {
+                if (job.SuccesfulJobCount == job.Clips.Count)
+                    SuccesfulJobs.Add(job);
             }
 
             State = ClipProcessingDialogState.Waiting;

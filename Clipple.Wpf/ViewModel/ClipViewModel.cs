@@ -243,23 +243,13 @@ namespace Clipple.ViewModel
         }
 
         /// <summary>
-        /// Whether or not the player should pause when it hits the start of this clip
+        /// Whether or not this clip should be removed from Clipple after succesful processing
         /// </summary>
-        private bool pauseAtClipStart = true;
-        public bool PauseAtClipStart
+        private bool removeAfterProcessing = false;
+        public bool RemoveAfterProcessing
         {
-            get => pauseAtClipStart;
-            set => SetProperty(ref pauseAtClipStart, value);
-        }
-
-        /// <summary>
-        /// Whether or not the player should pause when it hits the end of this clip
-        /// </summary>
-        private bool pauseAtClipEnd = true;
-        public bool PauseAtClipEnd
-        {
-            get => pauseAtClipEnd;
-            set => SetProperty(ref pauseAtClipEnd, value);
+            get => removeAfterProcessing;
+            set => SetProperty(ref removeAfterProcessing, value);
         }
 
         /// <summary>

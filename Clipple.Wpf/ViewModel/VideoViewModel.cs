@@ -1,21 +1,21 @@
 ﻿using Clipple.DataModel;
+using Clipple.Types;
 using Clipple.Util;
 using Clipple.Util.ISOBMFF;
-using FFmpeg.AutoGen;
+using ControlzEx.Theming;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
+using Microsoft.Toolkit.Mvvm.Input;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Runtime.Serialization;
-using System.Text;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
+using System.Windows.Input;
+using System.Windows.Media;
 
 namespace Clipple.ViewModel
 {
-    public class VideoViewModel : ObservableObject, IJsonOnDeserialized
+    public partial class VideoViewModel : ObservableObject, IJsonOnDeserialized
     {
 
         /// <summary>
@@ -28,6 +28,10 @@ namespace Clipple.ViewModel
 
         {
             Clips.CollectionChanged += (s, e) => App.ViewModel.NotifyClipsChanged();
+
+            RemoveClipsCommand = new RelayCommand(() => Clips.Clear());
+            RemoveVideoCommand = new RelayCommand(() => App.ViewModel.Videos.Remove(this));
+            ProcessVideoCommand = new RelayCommand(async () => await ClipProcessor.Process(this));
         }
 
         public VideoViewModel(string filePath) : this()
@@ -55,37 +59,8 @@ namespace Clipple.ViewModel
                 trackNames = Array.Empty<string>();
             }
 
-            // Use ffmpeg to try and determine FPS and video resolution
-            unsafe
-            {
-                AVFormatContext* formatContext = null;
-                try
-                {
-                    formatContext = ffmpeg.avformat_alloc_context();
-                    var input = ffmpeg.avformat_open_input(&formatContext, fileInfo.FullName, null, null);
-
-                    // Load stream information
-                    ffmpeg.avformat_find_stream_info(formatContext, null);
-
-                    // Try to find the best video stream
-                    var streamIndex = ffmpeg.av_find_best_stream(formatContext, AVMediaType.AVMEDIA_TYPE_VIDEO, -1, -1, null, 0);
-
-                    var stream = formatContext->streams[streamIndex];
-
-                    VideoFPS    = (int)Math.Round(ffmpeg.av_q2d(ffmpeg.av_guess_frame_rate(formatContext, stream, null)));
-                    VideoWidth  = stream->codecpar->width;
-                    VideoHeight = stream->codecpar->height;
-                }
-                catch (Exception)
-                {
-                    throw;
-                }
-                finally
-                {
-                    if (formatContext != null)
-                        ffmpeg.avformat_close_input(&formatContext);
-                }
-            }
+            // Load properties that are sourced by parsing the video with ffmpeg (libav*)
+            InitialiseFFMPEG();
         }
 
         public void OnDeserialized()
@@ -95,6 +70,9 @@ namespace Clipple.ViewModel
         #endregion
 
         #region Properties
+        /// <summary>
+        /// A reference to the video's file info. This can be used to determine the path, file size, etc
+        /// </summary>
         private FileInfo fileInfo;
         [JsonIgnore]
         public FileInfo FileInfo
@@ -107,13 +85,19 @@ namespace Clipple.ViewModel
             }
         }
 
-        private ObservableCollection<ClipViewModel> clips = new ();
+        /// <summary>
+        /// A list of clips this video owns
+        /// </summary>
+        private ObservableCollection<ClipViewModel> clips = new();
         public ObservableCollection<ClipViewModel> Clips
         {
             get => clips;
             set => SetProperty(ref clips, value);
         }
 
+        /// <summary>
+        /// Video width in pixels
+        /// </summary>
         private int videoWidth = -1;
         public int VideoWidth
         {
@@ -121,6 +105,9 @@ namespace Clipple.ViewModel
             set => SetProperty(ref videoWidth, value);
         }
 
+        /// <summary>
+        /// Video height in pixels
+        /// </summary>
         private int videoHeight = -1;
         public int VideoHeight
         {
@@ -128,6 +115,9 @@ namespace Clipple.ViewModel
             set => SetProperty(ref videoHeight, value);
         }
 
+        /// <summary>
+        /// Rounded video FPS
+        /// </summary>
         private int videoFPS = -1;
         public int VideoFPS
         {
@@ -135,13 +125,19 @@ namespace Clipple.ViewModel
             set => SetProperty(ref videoFPS, value);
         }
 
-        private bool delete = false;
-        public bool Delete
+        /// <summary>
+        /// Video duration
+        /// </summary>
+        private TimeSpan videoDuration;
+        public TimeSpan VideoDuration
         {
-            get => delete;
-            set => SetProperty(ref delete, value);
+            get => videoDuration;
+            set => SetProperty(ref videoDuration, value);
         }
 
+        /// <summary>
+        /// Names of audio tracks if provided.  Currently only supported by MP4 containers
+        /// </summary>
         private string?[] trackNames;
         [JsonIgnore]
         public string?[] TrackNames
@@ -150,6 +146,10 @@ namespace Clipple.ViewModel
             set => SetProperty(ref trackNames, value);
         }
 
+        /// <summary>
+        /// Various video player state properties.  These are set and read by the player when playing and loading videos.  These are serialized to disk 
+        /// so that player state is persistent across sessions.
+        /// </summary>
         private VideoState videoState = new();
         public VideoState VideoState
         {
@@ -157,13 +157,76 @@ namespace Clipple.ViewModel
             set => SetProperty(ref videoState, value);
         }
 
+        /// <summary>
+        /// Helper property.  Set by the root view model when this video is selected.
+        /// </summary>
+        private bool isSelected = false;
+        [JsonIgnore]
+        public bool IsSelected
+        {
+            get => isSelected;
+            set => SetProperty(ref isSelected, value);
+        }
+
+        /// <summary>
+        /// Selected post processing action.  This only exists for serialization
+        /// </summary>
+        private int postProcessingActionIndex = 0;
+        public int PostProcessingActionIndex
+        {
+            get => postProcessingActionIndex;
+            set => SetProperty(ref postProcessingActionIndex, value);
+        }
+
+        /// <summary>
+        /// Action performed when the video has finished processing all of it's clips.
+        /// </summary>
+        private IVideoPostProcessingAction postProcessingAction;
+        [JsonIgnore]
+        public IVideoPostProcessingAction PostProcessingAction
+        {
+            get => postProcessingAction;
+            set => SetProperty(ref postProcessingAction, value);
+        }
+
+        /// <summary>
+        /// List of possible post processing actions
+        /// </summary>
+        [JsonIgnore]
+        public ObservableCollection<IVideoPostProcessingAction> PostProcessingActionList { get; } = new()
+        {
+            new NoVideoPostProcessingAction(),
+            new RemoveVideoPostProcessingAction(),
+            new DeleteVideoPostProcessingAction()
+        };
+
+        /// <summary>
+        /// Helper property.  Returns video file size in a human readable format.
+        /// </summary>
         [JsonIgnore]
         public string FileSize => Formatting.ByteCountToString(FileInfo.Length);
 
+        /// <summary>
+        /// Helper property. Returns the video's folder URI
+        /// </summary>
         [JsonIgnore]
         public Uri? FolderURI => FileInfo?.DirectoryName == null ? null : new Uri(FileInfo.DirectoryName);
 
+        /// <summary>
+        /// File path, used for serialization.
+        /// </summary>
         public string FilePath { get; set; }
-        #endregion 
+        #endregion
+
+        #region Commands
+        [JsonIgnore]
+        public ICommand RemoveClipsCommand { get; set; }
+
+        [JsonIgnore]
+        public ICommand RemoveVideoCommand { get; set; }
+
+        [JsonIgnore]
+        public ICommand ProcessVideoCommand { get; set; }
+        #endregion
     }
 }

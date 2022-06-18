@@ -84,8 +84,7 @@
         <Separator Margin="0 0 0 8" />
 
         <CheckBox Content="Show in video player" IsChecked="{Binding Path=ShowInPlayer}" Margin="2" />
-        <CheckBox Content="Pause video at clip start"  IsChecked="{Binding Path=PauseAtClipStart}" IsEnabled="{Binding Path=ShowInPlayer}" Margin="2"/>
-        <CheckBox Content="Pause video at clip end"  IsChecked="{Binding Path=PauseAtClipEnd}" IsEnabled="{Binding Path=ShowInPlayer}" Margin="2"/>
+        <CheckBox Content="Remove after processing (PPA)" IsChecked="{Binding Path=RemoveAfterProcessing}" Margin="2"/>
 
         <mah:MetroHeader Margin="2 10 0 2" Header="Transcoding presets"/>
         <Separator Margin="0 0 0 8" />

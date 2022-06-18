@@ -19,7 +19,7 @@ namespace Clipple.ViewModel
 {
     public class JobViewModel : ObservableObject
     {
-        public JobViewModel(VideoViewModel videoViewModel, List<ClipViewModel> clips)
+        public JobViewModel(VideoViewModel videoViewModel, List<ClipViewModel> clips, bool enablePostProcessingActions)
         {
             LogsCommand = new RelayCommand(() =>
             {
@@ -30,8 +30,9 @@ namespace Clipple.ViewModel
                 view.Show();
             });
 
-            VideoViewModel = videoViewModel;
-            Clips = clips;
+            VideoViewModel              = videoViewModel;
+            Clips                       = clips;
+            EnablePostProcessingActions = enablePostProcessingActions;
 
             var remainingClipNames = new List<string>();
             for (int i = 1; i < clips.Count; i++)
@@ -51,6 +52,8 @@ namespace Clipple.ViewModel
 
         public VideoViewModel VideoViewModel { get; }
         public List<ClipViewModel> Clips { get; }
+        public bool EnablePostProcessingActions { get; }
+        public int SuccesfulJobCount { get; set; }
 
         /// <summary>
         /// The status of this job, this will set the StatusIcon and StatusString properties.
@@ -257,6 +260,8 @@ namespace Clipple.ViewModel
         /// </summary>
         public void Reset()
         {
+            SuccesfulJobCount = 0;
+
             logOutputs.Clear();
             logOutputLookup.Clear();
 

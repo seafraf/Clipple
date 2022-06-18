@@ -108,32 +108,11 @@ namespace Clipple.ViewModel
                     AddVideosFromFolder(dialog.SelectedPath);
             });
 
-            ProcessClipsCommand = new RelayCommand(async () =>
-            {
-                if (SelectedVideo != null)
-                    await ClipProcessor.Process(SelectedVideo);
-            });
-
-            ClearClipsCommand = new RelayCommand(() =>
-            {
-                if (SelectedVideo != null)
-                    SelectedVideo.Clips.Clear();
-            });
-
-            RemoveVideoCommand = new RelayCommand(() =>
-            {
-                if (SelectedVideo != null)
-                    Videos.Remove(SelectedVideo);
-            });
-
             // Change HasClips if the videos property changes
             Videos.CollectionChanged += (s, e) =>
             {
                 if (SelectedVideo == null || !Videos.Contains(SelectedVideo))
-                {
-                    if (Videos.Count > 0)
-                        SelectedVideo = Videos.First();
-                }
+                    SelectedVideo = Videos.FirstOrDefault();
 
                 OnPropertyChanged(nameof(HasClips));
             };
@@ -263,7 +242,7 @@ namespace Clipple.ViewModel
             {
                 Videos.Add(new VideoViewModel(file));
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 return false;
             }
@@ -319,6 +298,12 @@ namespace Clipple.ViewModel
             get => selectedVideo;
             set
             {
+                if (selectedVideo != null)
+                    selectedVideo.IsSelected = false;
+
+                if (value != null)
+                    value.IsSelected = true;
+
                 SetProperty(ref selectedVideo, value);
                 OnPropertyChanged(nameof(HasSelectedVideo));
                 OnPropertyChanged(nameof(HasSelectedVideoClips));
@@ -410,9 +395,6 @@ namespace Clipple.ViewModel
         public ICommand ProcessAllVideos { get; }
         public ICommand AddVideoCommand { get; }
         public ICommand AddFolderCommand { get; }
-        public ICommand ProcessClipsCommand { get; }
-        public ICommand ClearClipsCommand { get; }
-        public ICommand RemoveVideoCommand { get; }
         
         #endregion
 
