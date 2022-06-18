@@ -38,7 +38,7 @@
         <Grid Visibility="{Binding Path=IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}">
             <mah:ProgressRing />
         </Grid>
-        <Grid >
+        <Grid Visibility="{Binding Path=IsReady, Converter={StaticResource BooleanToVisibilityConverter}}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" />
                 <RowDefinition Height="auto" />
