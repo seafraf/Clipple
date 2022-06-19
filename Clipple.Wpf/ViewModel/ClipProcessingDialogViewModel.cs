@@ -174,7 +174,7 @@ namespace Clipple.ViewModel
                 {
                     await Task.WhenAll(tasks);
                 }
-                catch (TaskCanceledException)
+                catch (OperationCanceledException)
                 {
                     break;
                 }
