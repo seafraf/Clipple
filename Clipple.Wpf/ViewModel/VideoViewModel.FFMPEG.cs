@@ -22,8 +22,13 @@ namespace Clipple.ViewModel
         #region Methods
         protected unsafe void InitialiseFFMPEG()
         {
-            // Use ffmpeg to try and determine FPS and video resolution
-            AVFormatContext* formatContext = null;
+            AVFormatContext* formatContext  = null;
+            AVCodecContext* codecContext    = null;
+            AVFrame* inputFrame             = null;
+            AVFrame* scaledFrame            = null;
+            AVPacket* packet                = null;
+            SwsContext* swsContext          = null;
+
             try
             {
                 formatContext = CheckNull(ffmpeg.avformat_alloc_context(), 
@@ -52,7 +57,7 @@ namespace Clipple.ViewModel
                 var codec = CheckNull(ffmpeg.avcodec_find_decoder(stream->codecpar->codec_id), 
                     "couldn't find decoder codec");
 
-                var codecContext = CheckNull(ffmpeg.avcodec_alloc_context3(codec),
+                codecContext = CheckNull(ffmpeg.avcodec_alloc_context3(codec),
                     "couldn't allocate decoder codec context");
 
                 CheckCode(ffmpeg.avcodec_parameters_to_context(codecContext, stream->codecpar), 
@@ -61,8 +66,8 @@ namespace Clipple.ViewModel
                 CheckCode(ffmpeg.avcodec_open2(codecContext, codec, null),
                     "couldn#t open codec");
 
-                var frame  = CheckNull(ffmpeg.av_frame_alloc(), "alloc failure");
-                var packet = CheckNull(ffmpeg.av_packet_alloc(), "alloc failure");
+                inputFrame  = CheckNull(ffmpeg.av_frame_alloc(), "alloc failure");
+                packet = CheckNull(ffmpeg.av_packet_alloc(), "alloc failure");
 
                 while (ffmpeg.av_read_frame(formatContext, packet) >= 0)
                 {
@@ -71,11 +76,11 @@ namespace Clipple.ViewModel
                         CheckCode(ffmpeg.avcodec_send_packet(codecContext, packet),
                             "couldn't send packet to decoder");
 
-                        CheckCode(ffmpeg.avcodec_receive_frame(codecContext, frame),
+                        CheckCode(ffmpeg.avcodec_receive_frame(codecContext, inputFrame),
                             "decoder did not provide frame");
 
-                        var scaledFrame = CheckNull(ffmpeg.av_frame_alloc(), "alloc failure");
-                        var scaleFactor = DOWNSCALE_HEIGHT / (double)frame->height;
+                        scaledFrame = CheckNull(ffmpeg.av_frame_alloc(), "alloc failure");
+                        var scaleFactor = DOWNSCALE_HEIGHT / (double)inputFrame->height;
 
                         scaledFrame->format = (int)AVPixelFormat.AV_PIX_FMT_BGR24;
                         scaledFrame->width  = (int)(stream->codecpar->width * scaleFactor);
@@ -83,12 +88,12 @@ namespace Clipple.ViewModel
 
                         CheckCode(ffmpeg.av_frame_get_buffer(scaledFrame, 0), "alloc failure");
 
-                        var swsContext = ffmpeg.sws_getContext(codecContext->width, codecContext->height, codecContext->pix_fmt,
+                        swsContext = ffmpeg.sws_getContext(codecContext->width, codecContext->height, codecContext->pix_fmt,
                             scaledFrame->width, scaledFrame->height, (AVPixelFormat)scaledFrame->format, ffmpeg.SWS_BICUBIC, null, null, null);
                         CheckNull(swsContext, "couldn't create scale context");
 
                         // Scale frame down (or up, but in most cases the requested thumbnail size will be smaller than the input video size)
-                        CheckCode(ffmpeg.sws_scale(swsContext, frame->data, frame->linesize, 0, frame->height, scaledFrame->data, scaledFrame->linesize), 
+                        CheckCode(ffmpeg.sws_scale(swsContext, inputFrame->data, inputFrame->linesize, 0, inputFrame->height, scaledFrame->data, scaledFrame->linesize), 
                             "couldn't scale image");
 
                         // Write bitmap data to a memory stream
@@ -121,6 +126,21 @@ namespace Clipple.ViewModel
             {
                 if (formatContext != null)
                     ffmpeg.avformat_close_input(&formatContext);
+
+                if (codecContext != null)
+                    ffmpeg.avcodec_free_context(&codecContext);
+
+                if (inputFrame != null)
+                    ffmpeg.av_frame_free(&inputFrame);
+
+                if (scaledFrame != null)
+                    ffmpeg.av_frame_free(&scaledFrame);
+
+                if (packet != null)
+                    ffmpeg.av_packet_free(&packet);
+
+                if (swsContext != null)
+                    ffmpeg.sws_freeContext(swsContext);
             }
         }
 
