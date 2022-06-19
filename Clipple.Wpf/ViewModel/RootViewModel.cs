@@ -33,6 +33,8 @@ namespace Clipple.ViewModel
             updateViewModel      = new UpdateViewModel();
             VideoPlayerViewModel = new VideoPlayerViewModel();
 
+            var stopwatch = Stopwatch.StartNew();
+
             // Create commands
             OpenVideosFlyout   = new RelayCommand(() => IsVideosFlyoutOpen = !IsVideosFlyoutOpen);
             OpenSettingsFlyout = new RelayCommand(() => IsSettingsFlyoutOpen = !IsSettingsFlyoutOpen);
@@ -117,21 +119,36 @@ namespace Clipple.ViewModel
                 OnPropertyChanged(nameof(HasClips));
             };
 
-            //Load settings and videos, or create new instances of the respective types
+            var applicationData = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                Application.ProductName);
+
+            var settingsFile = Path.Combine(applicationData, SettingsFileName);
+            var videosFile = Path.Combine(applicationData, VideosFileName);
+
             try
             {
-                var applicationData = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                    Application.ProductName);
-
-                var settingsFile = Path.Combine(applicationData, SettingsFileName);
-                var videosFile = Path.Combine(applicationData, VideosFileName);
-
+                stopwatch.Start();
                 var settingsFileReader = new FileStream(settingsFile, FileMode.Open);
                 SettingsViewModel = JsonSerializer.Deserialize<SettingsViewModel>(settingsFileReader) ?? throw new Exception();
 
+                stopwatch.Stop();
+                App.Logger.Log($"Deserialized settings in {stopwatch.ElapsedMilliseconds}ms");
+            }
+            catch (Exception e)
+            {
+                App.Logger.LogError($"Failed to deserialize settings", e);
+
+                // Use default settings if disk settings failed to load
+                SettingsViewModel ??= new SettingsViewModel();
+            }
+
+            try
+            {
+                stopwatch.Start();
                 var videosFileReader = new FileStream(videosFile, FileMode.Open);
                 var videos = JsonSerializer.Deserialize<ObservableCollection<VideoViewModel>>(videosFileReader) ?? throw new Exception();
+
                 foreach (var video in videos)
                 {
                     // Reset parent after deserialization, the parent is not serialized
@@ -140,11 +157,13 @@ namespace Clipple.ViewModel
 
                     Videos.Add(video);
                 }
+
+                stopwatch.Stop();
+                App.Logger.Log($"Deserialized videos in {stopwatch.ElapsedMilliseconds}ms");
             }
             catch (Exception e)
             {
-                // Use default settings if disk settings failed to load
-                SettingsViewModel ??= new SettingsViewModel();
+                App.Logger.LogError($"Failed to deserialize videos", e);
             }
 
             // Update timer now that settings are loaded
@@ -196,11 +215,35 @@ namespace Clipple.ViewModel
             var settingsFile = Path.Combine(applicationData, SettingsFileName);
             var videosFile = Path.Combine(applicationData, VideosFileName);
 
-            using var settingsWriter = new FileStream(settingsFile, FileMode.Create);
-            await JsonSerializer.SerializeAsync(settingsWriter, SettingsViewModel);
+            var stopwatch = Stopwatch.StartNew();
 
-            using var videosWriter = new FileStream(videosFile, FileMode.Create);
-            await JsonSerializer.SerializeAsync(videosWriter, Videos);
+            try
+            {
+                stopwatch.Start();
+                using var settingsWriter = new FileStream(settingsFile, FileMode.Create);
+                await JsonSerializer.SerializeAsync(settingsWriter, SettingsViewModel);
+
+                stopwatch.Stop();
+                App.Logger.Log($"Serialized settings in {stopwatch.ElapsedMilliseconds}ms");
+            }
+            catch (Exception e)
+            {
+                App.Logger.LogError($"Failed to serialize settings", e);
+            }
+
+            try
+            {
+                stopwatch.Start();
+                using var videosWriter = new FileStream(videosFile, FileMode.Create);
+                await JsonSerializer.SerializeAsync(videosWriter, Videos);
+
+                stopwatch.Stop();
+                App.Logger.Log($"Serialized videos in {stopwatch.ElapsedMilliseconds}ms");
+            }
+            catch (Exception e)
+            {
+                App.Logger.LogError($"Failed to serialize videos", e);
+            }
         }
 
         /// <summary>
@@ -244,6 +287,7 @@ namespace Clipple.ViewModel
             }
             catch (Exception e)
             {
+                App.Logger.LogError($"Failed to import {file}", e);
                 return false;
             }
 
@@ -374,7 +418,6 @@ namespace Clipple.ViewModel
         /// <summary>
         /// Reference to the video player view model
         /// </summary>
-        [field: XmlIgnore]
         public VideoPlayerViewModel VideoPlayerViewModel { get; }
 
         /// <summary>

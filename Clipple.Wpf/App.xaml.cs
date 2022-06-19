@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -27,6 +28,11 @@ namespace Clipple
         /// A reference to the root view model.
         /// </summary>
         public static RootViewModel ViewModel => (RootViewModel)Current.Resources[nameof(RootViewModel)];
+
+        /// <summary>
+        /// Reference to the logger
+        /// </summary>
+        public static LogsViewModel Logger { get; } = new();
 
         /// <summary>
         /// A reference to the main window instance.
@@ -67,6 +73,7 @@ namespace Clipple
             // FFmpeg libraries are required to preview video and process clips.
             try
             {
+                var stopwatch = Stopwatch.StartNew();
                 Engine.Start(new EngineConfig()
                 {
                     FFmpegLogLevel = FFmpegLogLevel.Debug,
@@ -75,6 +82,9 @@ namespace Clipple
                     UIRefreshInterval = 100,
                     UICurTimePerSecond = false,
                 });
+
+                stopwatch.Stop();
+                Logger.Log($"Loaded FFmpeg binaries in {stopwatch.ElapsedMilliseconds}ms");
             }
             catch (Exception ex)
             {

@@ -7,6 +7,7 @@ using Microsoft.Toolkit.Mvvm.ComponentModel;
 using Microsoft.Toolkit.Mvvm.Input;
 using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.Json.Serialization;
@@ -60,7 +61,11 @@ namespace Clipple.ViewModel
             }
 
             // Load properties that are sourced by parsing the video with ffmpeg (libav*)
+            var stopwatch = Stopwatch.StartNew();
             InitialiseFFMPEG();
+
+            stopwatch.Stop();
+            App.Logger.Log($"Loaded metadata for {fileInfo.FullName} in {stopwatch.ElapsedMilliseconds}ms");
         }
 
         public void OnDeserialized()

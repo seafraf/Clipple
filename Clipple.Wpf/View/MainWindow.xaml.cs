@@ -125,5 +125,11 @@ namespace Clipple.View
             if (vm.SettingsViewModel.SaveOnExit)
                 await vm.Save();
         }
+
+        private void OnStatusBarClicked(object sender, MouseButtonEventArgs e)
+        {
+            var dialog = new LogsView();
+            dialog.ShowDialog();
+        }
     }
 }
