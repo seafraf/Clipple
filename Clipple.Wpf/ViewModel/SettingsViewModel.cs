@@ -92,7 +92,7 @@ namespace Clipple.ViewModel
             set => SetProperty(ref saveOnExit, value);
         }
 
-        private int autoSaveFrequency = 10;
+        private int autoSaveFrequency = 60;
         public int AutoSaveFrequency
         {
             get => autoSaveFrequency;
