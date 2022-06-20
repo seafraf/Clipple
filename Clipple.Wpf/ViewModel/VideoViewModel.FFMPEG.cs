@@ -76,8 +76,13 @@ namespace Clipple.ViewModel
                         CheckCode(ffmpeg.avcodec_send_packet(codecContext, packet),
                             "couldn't send packet to decoder");
 
-                        CheckCode(ffmpeg.avcodec_receive_frame(codecContext, inputFrame),
-                            "decoder did not provide frame");
+                        var code = ffmpeg.avcodec_receive_frame(codecContext, inputFrame);
+                        if (code == ffmpeg.AVERROR(ffmpeg.EAGAIN) || code == ffmpeg.AVERROR_EOF)
+                        {
+                            continue;
+                        }
+                        else if (code < 0)
+                            CheckCode(code, "couldn't decode frame");
 
                         scaledFrame = CheckNull(ffmpeg.av_frame_alloc(), "alloc failure");
                         var scaleFactor = DOWNSCALE_HEIGHT / (double)inputFrame->height;
@@ -109,6 +114,7 @@ namespace Clipple.ViewModel
                             image.StreamSource = bitmapStream;
                             image.CacheOption = BitmapCacheOption.OnLoad;
                             image.EndInit();
+                            image.Freeze();
 
                             // Use bitmap image as the thumbnail
                             Thumbnail = image;
@@ -118,9 +124,9 @@ namespace Clipple.ViewModel
                     }
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                throw;
+                App.Current.Dispatcher.Invoke(() => App.Logger.LogError($"Failed to load metadata for {FileInfo.FullName}", e));
             }
             finally
             {
@@ -168,13 +174,56 @@ namespace Clipple.ViewModel
         #endregion
 
         #region Properties
-
-        private ImageSource thumbnail;
+        private ImageSource? thumbnail;
         [JsonIgnore]
-        public ImageSource Thumbnail
+        public ImageSource? Thumbnail
         {
             get => thumbnail;
             set => SetProperty(ref thumbnail, value);
+        }
+
+        /// <summary>
+        /// Video width in pixels
+        /// </summary>
+        private int videoWidth = -1;
+        [JsonIgnore]
+        public int VideoWidth
+        {
+            get => videoWidth;
+            set => SetProperty(ref videoWidth, value);
+        }
+
+        /// <summary>
+        /// Video height in pixels
+        /// </summary>
+        private int videoHeight = -1;
+        [JsonIgnore]
+        public int VideoHeight
+        {
+            get => videoHeight;
+            set => SetProperty(ref videoHeight, value);
+        }
+
+        /// <summary>
+        /// Rounded video FPS
+        /// </summary>
+        private int videoFPS = -1;
+        [JsonIgnore]
+        public int VideoFPS
+        {
+            get => videoFPS;
+            set => SetProperty(ref videoFPS, value);
+        }
+
+        /// <summary>
+        /// Video duration
+        /// </summary>
+        private TimeSpan videoDuration;
+        [JsonIgnore]
+        public TimeSpan VideoDuration
+        {
+            get => videoDuration;
+            set => SetProperty(ref videoDuration, value);
         }
         #endregion
     }

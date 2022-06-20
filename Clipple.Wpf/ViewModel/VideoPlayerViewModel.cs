@@ -254,7 +254,7 @@ namespace Clipple.ViewModel
                 OnPropertyChanged(nameof(IsWaitingVideo));
 
                 if (value != null && MediaPlayer.Control != null)
-                    MediaPlayer.Open(value.FileInfo.FullName);
+                    MediaPlayer.OpenAsync(value.FileInfo.FullName, true, true, false, false);
             }
         }
 

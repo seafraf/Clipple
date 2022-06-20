@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.Json.Serialization;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Media;
 
@@ -31,7 +32,10 @@ namespace Clipple.ViewModel
             Clips.CollectionChanged += (s, e) => App.ViewModel.NotifyClipsChanged();
 
             RemoveClipsCommand = new RelayCommand(() => Clips.Clear());
-            RemoveVideoCommand = new RelayCommand(() => App.ViewModel.Videos.Remove(this));
+            RemoveVideoCommand = new RelayCommand(() =>
+            {
+                App.ViewModel.Videos.Remove(this);
+            });
             ProcessVideoCommand = new RelayCommand(async () => await ClipProcessor.Process(this));
         }
 
@@ -42,8 +46,9 @@ namespace Clipple.ViewModel
         }
 
         #region Methods
-        private void InitializeFromFilePath()
+        public void InitializeFromFilePath()
         {
+            
             fileInfo = new FileInfo(FilePath);
 
             try
@@ -61,16 +66,23 @@ namespace Clipple.ViewModel
             }
 
             // Load properties that are sourced by parsing the video with ffmpeg (libav*)
-            var stopwatch = Stopwatch.StartNew();
-            InitialiseFFMPEG();
+            Task.Run(() =>
+            {
+                var stopwatch = Stopwatch.StartNew();
+                InitialiseFFMPEG();
+                stopwatch.Stop();
 
-            stopwatch.Stop();
-            App.Logger.Log($"Loaded metadata for {fileInfo.FullName} in {stopwatch.ElapsedMilliseconds}ms");
+                App.Current.Dispatcher.Invoke(() => App.Logger.Log($"Loaded metadata for {fileInfo.FullName} in {stopwatch.ElapsedMilliseconds}ms"));
+            });
         }
 
         public void OnDeserialized()
         {
             InitializeFromFilePath();
+
+            // Only needs to be done during deserialization. Usually bindings would resolve these, but it's possible
+            // that this view model is used before bindings have a chance to resolve anything
+            PostProcessingAction = PostProcessingActionList[PostProcessingActionIndex];
         }
         #endregion
 
@@ -98,46 +110,6 @@ namespace Clipple.ViewModel
         {
             get => clips;
             set => SetProperty(ref clips, value);
-        }
-
-        /// <summary>
-        /// Video width in pixels
-        /// </summary>
-        private int videoWidth = -1;
-        public int VideoWidth
-        {
-            get => videoWidth;
-            set => SetProperty(ref videoWidth, value);
-        }
-
-        /// <summary>
-        /// Video height in pixels
-        /// </summary>
-        private int videoHeight = -1;
-        public int VideoHeight
-        {
-            get => videoHeight;
-            set => SetProperty(ref videoHeight, value);
-        }
-
-        /// <summary>
-        /// Rounded video FPS
-        /// </summary>
-        private int videoFPS = -1;
-        public int VideoFPS
-        {
-            get => videoFPS;
-            set => SetProperty(ref videoFPS, value);
-        }
-
-        /// <summary>
-        /// Video duration
-        /// </summary>
-        private TimeSpan videoDuration;
-        public TimeSpan VideoDuration
-        {
-            get => videoDuration;
-            set => SetProperty(ref videoDuration, value);
         }
 
         /// <summary>

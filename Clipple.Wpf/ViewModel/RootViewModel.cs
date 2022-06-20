@@ -110,10 +110,9 @@ namespace Clipple.ViewModel
                     AddVideosFromFolder(dialog.SelectedPath);
             });
 
-            // Change HasClips if the videos property changes
             Videos.CollectionChanged += (s, e) =>
             {
-                if (SelectedVideo == null || !Videos.Contains(SelectedVideo))
+                if (SelectedVideo == null)
                     SelectedVideo = Videos.FirstOrDefault();
 
                 OnPropertyChanged(nameof(HasClips));
@@ -283,7 +282,8 @@ namespace Clipple.ViewModel
 
             try
             {
-                Videos.Add(new VideoViewModel(file));
+                var video = new VideoViewModel(file);
+                Videos.Add(video);
             }
             catch (Exception e)
             {
