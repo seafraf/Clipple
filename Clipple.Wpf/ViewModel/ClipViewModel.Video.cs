@@ -38,8 +38,7 @@ namespace Clipple.ViewModel
                 var enabledTracks = AudioSettings.Where(x => x.IsEnabled).Count();
 
                 // Merging audio tracks means there is only one.. unless no audio tracks are enabled, in which case there is zero
-                var totalAudioBitrate = AudioBitrate * Math.Min(enabledTracks, MergeAudio ? 1 : enabledTracks);
-                maxTotalBitrate -= (int)(totalAudioBitrate * Duration.TotalSeconds);
+                maxTotalBitrate -= AudioBitrate * Math.Min(enabledTracks, MergeAudio ? 1 : enabledTracks);
 
                 // subtract 1% for muxing overhead
                 return (long)(maxTotalBitrate * 0.99);
