@@ -59,6 +59,8 @@ namespace Clipple
 
         public App()
         {
+            DispatcherUnhandledException += OnDispatcherUnhandledException;
+
             // This timer is started when the settings load in the RootViewModel
             AutoSaveTimer.Elapsed += (s, e) =>
             {
@@ -91,6 +93,16 @@ namespace Clipple
                 MessageBox.Show("Failed to load dependencies", ex.Message);
                 Shutdown(1);
             }
+        }
+
+        /// <summary>
+        /// Attempt to handle all uncaught exceptions.  This is mostly here for debugging purposes so that users can send error messages 
+        /// in, instead of the application just closing.
+        /// </summary>
+        private void OnDispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+        {
+            App.Logger.LogError("Unhandled exception", e.Exception);
+            e.Handled = true;
         }
 
         protected override void OnStartup(StartupEventArgs e)
