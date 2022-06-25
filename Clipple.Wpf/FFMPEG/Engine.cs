@@ -92,18 +92,22 @@ namespace Clipple.FFMPEG
             {
                 await process.WaitForExitAsync(token);
             }
-            catch (TaskCanceledException)
+            catch (TaskCanceledException e)
+            {
+                throw e;
+            }
+            finally
             {
                 if (!process.HasExited)
                     process.Kill();
-            }
 
-            // If the clip is using two pass encoding and this is the second pass, delete the temporary files assiocated 
-            // with the clip.  These files aren't required anymore and are not small.
-            if (Output.TwoPassEncoding && !Output.IsFirstPass)
-            {
-                File.Delete($"{Output.OutputFile}-0.log");
-                File.Delete($"{Output.OutputFile}-0.log.mbtree");
+                // If the clip is using two pass encoding and this is the second pass, delete the temporary files assiocated 
+                // with the clip.  These files aren't required anymore and are not small.
+                if (Output.TwoPassEncoding && !Output.IsFirstPass)
+                {
+                    File.Delete($"{Output.OutputFile}-0.log");
+                    File.Delete($"{Output.OutputFile}-0.log.mbtree");
+                }
             }
 
             return process.ExitCode;
