@@ -5,7 +5,7 @@ param(
 
 $githubURL = "https://github.com/seafraf/Clipple"
 
-Set-Alias Squirrel ($env:USERPROFILE + "\.nuget\packages\clowd.squirrel\2.9.40\tools\Squirrel.exe");
+Set-Alias Squirrel ($env:USERPROFILE + "\.nuget\packages\clowd.squirrel\2.9.42\tools\Squirrel.exe");
 
 # Download relevant files from GitHub releases to form accurate delta packages
 Squirrel github-down --repoUrl $githubURL
