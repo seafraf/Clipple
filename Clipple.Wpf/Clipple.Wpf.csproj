@@ -61,8 +61,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Clowd.Squirrel" Version="2.9.40" />
-    <PackageReference Include="FlyleafLib.Controls.WPF" Version="1.1.21" />
+    <PackageReference Include="Clowd.Squirrel" Version="2.9.42" />
+    <PackageReference Include="FlyleafLib.Controls.WPF" Version="1.1.24" />
     <PackageReference Include="MahApps.Metro" Version="2.4.9" />
     <PackageReference Include="MahApps.Metro.IconPacks.MaterialDesign" Version="4.11.0" />
     <PackageReference Include="Microsoft.Toolkit.Mvvm" Version="7.1.2" />
