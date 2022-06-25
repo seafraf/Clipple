@@ -1,4 +1,5 @@
-﻿using Clipple.Types;
+﻿using Clipple.PPA;
+using Clipple.Types;
 using Clipple.Util;
 using MahApps.Metro.Controls.Dialogs;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
@@ -64,6 +65,12 @@ namespace Clipple.ViewModel
 
             TranscodingPresets.GroupDescriptions.Clear();
             TranscodingPresets.GroupDescriptions.Add(new PropertyGroupDescription("Category"));
+
+            PostProcessingActionList = new()
+            {
+                new NoAction(this),
+                new RemoveClip(this)
+            };
         }
 
         public ClipViewModel(long startTicks, long endTicks, string title, string folder) :
@@ -78,6 +85,12 @@ namespace Clipple.ViewModel
 
             // Select default output format
             OutputFormatIndex = 6; // mp4
+
+            if (App.ViewModel.SettingsViewModel.DefaultRemoveClips)
+            {
+                PostProcessingActionIndex = 1;
+                PostProcessingAction = PostProcessingActionList[PostProcessingActionIndex];
+            }
         }
 
         #region Members
@@ -104,9 +117,9 @@ namespace Clipple.ViewModel
                 // Set defaults
                 if (value != null)
                 {
-                    TargetWidth     = value.VideoWidth;
-                    TargetHeight    = value.VideoHeight;
-                    TargetFPS       = value.VideoFPS;
+                    TargetWidth ??= value.VideoWidth;
+                    TargetHeight ??= value.VideoHeight;
+                    TargetFPS ??= value.VideoFPS;
                 }
             }
         }
@@ -243,7 +256,7 @@ namespace Clipple.ViewModel
         }
 
         /// <summary>
-        /// Whether or not this clip should be removed from Clipple after succesful processing
+        /// Post processing action
         /// </summary>
         private bool removeAfterProcessing = false;
         public bool RemoveAfterProcessing
@@ -316,6 +329,27 @@ namespace Clipple.ViewModel
         }
 
         /// <summary>
+        /// Selected post processing action.  This only exists for serialization
+        /// </summary>
+        private int postProcessingActionIndex = 0;
+        public int PostProcessingActionIndex
+        {
+            get => postProcessingActionIndex;
+            set => SetProperty(ref postProcessingActionIndex, value);
+        }
+
+        /// <summary>
+        /// Post processing action
+        /// </summary>
+        private PostProcessingAction postProcessingAction;
+        [JsonIgnore]
+        public PostProcessingAction PostProcessingAction
+        {
+            get => postProcessingAction;
+            set => SetProperty(ref postProcessingAction, value);
+        }
+
+        /// <summary>
         /// Current transcoding preset
         /// </summary>
         private TranscodingPreset? transcodingPreset;
@@ -327,14 +361,14 @@ namespace Clipple.ViewModel
             {
                 if (value != null)
                 {
-                    VideoBitrate     = value.VideoBitrate ?? VideoBitrate;
-                    TargetWidth      = value.TargetWidth ?? TargetWidth;
-                    TargetHeight     = value.TargetHeight ?? TargetHeight;
-                    TargetFPS        = value.FPS ?? TargetFPS;
-                    VideoCodec       = value.VideoCodec ?? VideoCodec;
-                    AudioBitrate     = value.AudioBitrate ?? AudioBitrate;
-                    UseTargetSize    = value.UseTargetSize ?? UseTargetSize;
-                    OutputTargetSize = value.TargetSize ?? OutputTargetSize;
+                    VideoBitrate     = value.VideoBitrate ?? videoBitrate;
+                    TargetWidth      = value.TargetWidth ?? targetWidth;
+                    TargetHeight     = value.TargetHeight ?? targetHeight;
+                    TargetFPS        = value.FPS ?? targetFPS;
+                    VideoCodec       = value.VideoCodec ?? videoCodec;
+                    AudioBitrate     = value.AudioBitrate ?? audioBitrate;
+                    UseTargetSize    = value.UseTargetSize ?? useTargetSize;
+                    OutputTargetSize = value.TargetSize ?? outputTargetSize;
                 }
 
                 SetProperty(ref transcodingPreset, value);
@@ -378,6 +412,12 @@ namespace Clipple.ViewModel
             new TranscodingPreset("360p@60", "YouTube SDR recommendations", videoBitrate: 15000, targetWidth: 480, targetHeight: 360, fps: 60, videoCodec: "libx264"),
             new TranscodingPreset("360p@30", "YouTube SDR recommendations", videoBitrate: 10000, targetWidth: 480, targetHeight: 360, fps: 30, videoCodec: "libx264"),
         });
+
+        /// <summary>
+        /// List of possible post processing actions
+        /// </summary>
+        [JsonIgnore]
+        public ObservableCollection<PostProcessingAction> PostProcessingActionList { get; }
 
         [JsonIgnore]
         public Uri URI => new Uri(FullFileName);
@@ -507,6 +547,16 @@ namespace Clipple.ViewModel
         public void OnDeserialized()
         {
             isDeserializing = false;
+
+            // Bindings will set these later
+            if (OutputFormatIndex != -1 && SupportedOutputFormats.Count > OutputFormatIndex)
+                OutputFormat = (OutputFormat)SupportedOutputFormats.GetItemAt(OutputFormatIndex);
+
+            if (TranscodingPresetIndex != -1 && TranscodingPresets.Count > TranscodingPresetIndex)
+                TranscodingPreset = (TranscodingPreset)TranscodingPresets.GetItemAt(TranscodingPresetIndex);
+
+            // Never -1
+            PostProcessingAction = PostProcessingActionList[PostProcessingActionIndex];
         }
 
         public void OnDeserializing()

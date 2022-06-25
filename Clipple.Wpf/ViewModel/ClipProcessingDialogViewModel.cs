@@ -1,4 +1,5 @@
 ﻿using Clipple.FFMPEG;
+using Clipple.PPA;
 using Clipple.Types;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
 using Microsoft.Toolkit.Mvvm.Input;
@@ -23,8 +24,23 @@ namespace Clipple.ViewModel
             {
                 cancellationTokenSource.Cancel();
             });
-            StartCommand = new RelayCommand(StartProcesses);
-            CloseCommand = closeCommand;
+            StartCommand        = new RelayCommand(StartProcesses);
+            CloseCommand        = closeCommand;
+            CancelReviewCommand = new RelayCommand(() => State = ClipProcessingDialogState.Idle);
+            ReviewCommand       = new RelayCommand(() => State = ClipProcessingDialogState.Review);
+
+            RunSelectedPostProcessingActionsCommand = new RelayCommand(() =>
+            {
+                // Run every selected PPA
+                foreach (var ppa in PostProcessingActions)
+                {
+                    if (ppa.IsSelected)
+                        ppa.PostProcessingAction.Run();
+                }
+
+                // Close dialog
+                CloseCommand.Execute(null);
+            });
 
             foreach (var job in jobs)
                 Jobs.Add(job);
@@ -46,7 +62,7 @@ namespace Clipple.ViewModel
         /// <summary>
         /// Current state of this dialog
         /// </summary>
-        private ClipProcessingDialogState state = ClipProcessingDialogState.Waiting;
+        private ClipProcessingDialogState state = ClipProcessingDialogState.Idle;
         public ClipProcessingDialogState State
         {
             get => state;
@@ -54,50 +70,45 @@ namespace Clipple.ViewModel
         }
 
         /// <summary>
-        /// Whether or not the user has enabled post processing actions
+        /// Powers the check/uncheck all checkbox in the post processing actions view
         /// </summary>
-        private bool postProcessingActionsEnabled = false;
-        public bool PostProcessingActionsEnabled
+        private bool postProcessingActionsCheckAll = true;
+        public bool PostProcessingActionsCheckAll
         {
-            get => postProcessingActionsEnabled;
-            set => SetProperty(ref postProcessingActionsEnabled, value);
+            get => postProcessingActionsCheckAll;
+            set
+            {
+                SetProperty(ref postProcessingActionsCheckAll, value);
+
+                foreach (var ppa in PostProcessingActions)
+                    ppa.IsSelected = value;
+            }
         }
 
         /// <summary>
-        /// A list of jobs that were completed succesfully last time the job list was ran
+        /// A list of tuples containing a post processing action that is applicable for the last run of StartProcesses
+        /// and a boolean denoting whether or not the user has agreed to use it
         /// </summary>
-        public List<JobViewModel> SuccesfulJobs { get; } = new();
+        public ObservableCollection<PostProcessingActionViewModel> PostProcessingActions { get; } = new();
         #endregion
 
         #region Commands
         public ICommand CancelCommand { get; }
         public ICommand StartCommand { get; }
         public ICommand CloseCommand { get; }
+        public ICommand ReviewCommand { get; }
+        public ICommand CancelReviewCommand { get; }
+
+        public ICommand RunSelectedPostProcessingActionsCommand { get; }
         #endregion
 
         #region Method
-
         /// <summary>
-        /// Generates a list of actions from a job's clips. See GetActionForClip.
+        /// Returns a task that can be ran to process the specified job.
         /// </summary>
-        /// <param name="job">The job to get actions for</param>
+        /// <param name="job">The job to create a task for</param>
         /// <returns></returns>
-        private List<Func<Task>> GetTasksForClip(JobViewModel job)
-        {
-            var actions = new List<Func<Task>>();
-            foreach (var clip in job.Clips)
-                actions.Add(GetTaskForClip(job, clip));
-
-            return actions;
-        }
-
-        /// <summary>
-        /// Returns an action that can be ran to process the specified clip.
-        /// </summary>
-        /// <param name="job">The job that owns the clip</param>
-        /// <param name="clip">The clip to generate an action for</param>
-        /// <returns></returns>
-        private Func<Task> GetTaskForClip(JobViewModel job, ClipViewModel clip)
+        private Func<Task> GetTaskForJob(JobViewModel job)
         {
             return async () =>
             {
@@ -105,11 +116,11 @@ namespace Clipple.ViewModel
                 var inputFile = job.VideoViewModel.FileInfo.FullName;
 
                 // Run first pass if required
-                if (clip.TwoPassEncoding)
+                if (job.Clip.TwoPassEncoding)
                 {
-                    var firstJob = new Engine(path, inputFile, clip, true);
-                    firstJob.OnProcessStats += (s, e) => job.NotifyStats(clip, e, true);
-                    firstJob.OnOutput += (s, e) => job.RecordOutput(clip, e, true);
+                    var firstJob = new Engine(path, inputFile, job.Clip, true);
+                    firstJob.OnProcessStats += (s, e) => job.NotifyStats(e, true);
+                    firstJob.OnOutput += (s, e) => job.RecordOutput(e);
 
                     job.Status   = ClipProcessingStatus.ProcessingFirstPass;
 
@@ -125,15 +136,12 @@ namespace Clipple.ViewModel
                 }
 
                 // Run real job (first job ran if two pass is not enabled)
-                var mainJob = new Engine(path, inputFile, clip, false);
-                mainJob.OnProcessStats += (s, e) => job.NotifyStats(clip, e, false);
-                mainJob.OnOutput += (s, e) => job.RecordOutput(clip, e, false);
+                var mainJob = new Engine(path, inputFile, job.Clip, false);
+                mainJob.OnProcessStats += (s, e) => job.NotifyStats(e, false);
+                mainJob.OnOutput += (s, e) => job.RecordOutput(e);
 
                 job.Status = ClipProcessingStatus.Processing;
                 job.Status = await mainJob.Run(cancellationTokenSource.Token) == 0 ? ClipProcessingStatus.Finished : ClipProcessingStatus.Failed;
-
-                if (job.Status == ClipProcessingStatus.Finished)
-                    job.SuccesfulJobCount++;
             };
         }
 
@@ -144,8 +152,8 @@ namespace Clipple.ViewModel
         {
             State = ClipProcessingDialogState.Running;
 
-            // Clear succesful job list, this will be rebuilt after processing has finished
-            SuccesfulJobs.Clear();
+            // Clear PPAs
+            PostProcessingActions.Clear();
 
             // Create new cancel token
             cancellationTokenSource = new CancellationTokenSource();
@@ -154,7 +162,7 @@ namespace Clipple.ViewModel
             foreach (var job in jobs)
             {
                 job.Reset();
-                GetTasksForClip(job).ForEach(action => actionQueue.Enqueue(action));
+                actionQueue.Enqueue(GetTaskForJob(job));
             }
 
             while (actionQueue.Count > 0)
@@ -176,18 +184,45 @@ namespace Clipple.ViewModel
                 }
                 catch (OperationCanceledException)
                 {
+                    // Mark all non-completed jobs as cancelled
+                    foreach (var job in jobs)
+                    {
+                        if (job.Status == ClipProcessingStatus.Processing || job.Status == ClipProcessingStatus.InQueue)
+                            job.Status = ClipProcessingStatus.Cancelled;
+                    }
+
                     break;
                 }
             }
 
-            // Tally up every job that completed each clip succesfully, these jobs qualify for PPAs
+            // List of videos that had at least one clip that processed succesfully
+            var videos = new HashSet<VideoViewModel>();
+
+            // List of clips that processed succesfully
+            var clips  = new HashSet<ClipViewModel>();
             foreach (var job in jobs)
             {
-                if (job.SuccesfulJobCount == job.Clips.Count)
-                    SuccesfulJobs.Add(job);
+                if (job.Status == ClipProcessingStatus.Finished && job.Clip.Parent != null)
+                {
+                    videos.Add(job.Clip.Parent);
+                    clips.Add(job.Clip);
+                }
             }
 
-            State = ClipProcessingDialogState.Waiting;
+            // Create a list of PPAs in the order of video PPA -> video's clip's PPAs
+            foreach (var video in videos)
+            {
+                // Clips' PPAs need to be added/ran first because the video's PPA might remove the video,
+                // thus removing the video's clips
+                video.Clips.Where(x => clips.Contains(x) && x.PostProcessingAction is not NoAction)
+                    .Select(x => new PostProcessingActionViewModel(x.PostProcessingAction)).ToList().ForEach(x => PostProcessingActions.Add(x));
+
+                var allClipsRan = !video.Clips.Any(x => !clips.Contains(x));
+                if (allClipsRan && video.PostProcessingAction is not NoAction)
+                    PostProcessingActions.Add(new PostProcessingActionViewModel(video.PostProcessingAction));
+            }
+
+            State = ClipProcessingDialogState.Idle;
         }
         #endregion
     }

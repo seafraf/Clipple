@@ -50,20 +50,20 @@ namespace Clipple.ViewModel
         /// <summary>
         /// Video FPS
         /// </summary>
-        private int targetFPS;
-        public int TargetFPS
+        private int? targetFPS = null;
+        public int? TargetFPS
         {
-            get => Math.Max(1, Math.Min(targetFPS, SourceFPS));
+            get => Math.Max(1, Math.Min(targetFPS ?? SourceFPS, SourceFPS));
             set => SetProperty(ref targetFPS, value);
         }
 
         /// <summary>
         /// Video width
         /// </summary>
-        private int targetWidth;
-        public int TargetWidth
+        private int? targetWidth = null;
+        public int? TargetWidth
         {
-            get => Math.Max(1, Math.Min(targetWidth, SourceWidth));
+            get => Math.Max(1, Math.Min(targetWidth ?? SourceWidth, SourceWidth));
             set
             {
                 ResolutionPreset = null;
@@ -74,10 +74,10 @@ namespace Clipple.ViewModel
         /// <summary>
         /// Video height
         /// </summary>
-        private int targetHeight;
-        public int TargetHeight
+        private int? targetHeight = null;
+        public int? TargetHeight
         {
-            get => Math.Max(1, Math.Min(targetHeight, SourceHeight));
+            get => Math.Max(1, Math.Min(targetHeight ?? SourceHeight, SourceHeight));
             set
             {
                 ResolutionPreset = null;

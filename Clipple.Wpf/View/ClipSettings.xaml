@@ -79,15 +79,9 @@
                 </GroupStyle>
             </ComboBox.GroupStyle>
         </ComboBox>
-
-        <mah:MetroHeader Margin="2 10 0 2" Header="Player settings"/>
-        <Separator Margin="0 0 0 8" />
-
-        <CheckBox Content="Show in video player" IsChecked="{Binding Path=ShowInPlayer}" Margin="2" />
-        <CheckBox Content="Remove after processing (PPA)" IsChecked="{Binding Path=RemoveAfterProcessing}" Margin="2"/>
-
         <mah:MetroHeader Margin="2 10 0 2" Header="Transcoding presets"/>
         <Separator Margin="0 0 0 8" />
+        
 
         <ComboBox Margin="2" mah:TextBoxHelper.UseFloatingWatermark="True" mah:TextBoxHelper.Watermark="Transoding preset" 
                           ItemsSource="{Binding Path=TranscodingPresets}" 
@@ -104,6 +98,16 @@
                 </GroupStyle>
             </ComboBox.GroupStyle>
         </ComboBox>
+
+
+        <mah:MetroHeader Margin="2 10 0 2" Header="Other"/>
+        <Separator Margin="0 0 0 8" />
+
+        <CheckBox Content="Show in video player" IsChecked="{Binding Path=ShowInPlayer}" Margin="2" />
+        <ComboBox mah:TextBoxHelper.UseFloatingWatermark="True" mah:TextBoxHelper.Watermark="Post processing action"  Margin="2" 
+                  ItemsSource="{Binding Path=PostProcessingActionList}" 
+                  SelectedItem="{Binding Path=PostProcessingAction}" 
+                  SelectedIndex="{Binding Path=PostProcessingActionIndex}" />
 
         <mah:MetroHeader Margin="2 10 0 2" Header="Advanced transcoding settings"/>
         <Separator Margin="0 0 0 8" />

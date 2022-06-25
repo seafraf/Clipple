@@ -27,21 +27,6 @@ namespace Clipple
                 {
                     // On close
                     await App.Window.HideMetroDialogAsync(dialog);
-
-                    if (vm != null && vm.PostProcessingActionsEnabled)
-                    {
-                        foreach (var job in vm.SuccesfulJobs)
-                        {
-                            // Succesful jobs must have had all clips run succesfully, so this is safe to do without any further checks
-                            var clips = job.VideoViewModel.Clips.Where(x => x.RemoveAfterProcessing).ToList();
-                            foreach (var clip in clips)
-                                job.VideoViewModel.Clips.Remove(clip);
-
-                            // TODO: async? this could delete large files and take time
-                            if (job.EnablePostProcessingActions)
-                                job.VideoViewModel.PostProcessingAction.Run(job.VideoViewModel);
-                        }
-                    }
                 }));
 
             dialog = new ClipProcessingDialog(vm);
@@ -65,7 +50,7 @@ namespace Clipple
         /// <param name="clip">The clip to process</param>
         public static async Task Process(VideoViewModel video, ClipViewModel clip)
         {
-            await OpenJobsDialog(new JobViewModel(video, new List<ClipViewModel> { clip }, false));
+            await OpenJobsDialog(new JobViewModel(video, clip));
         }
 
         /// <summary>
@@ -74,7 +59,7 @@ namespace Clipple
         /// <param name="video">The video to process all clips from</param>
         public static async Task Process(VideoViewModel video)
         {
-            await OpenJobsDialog(new JobViewModel(video, video.Clips.ToList(), true));
+            await OpenJobsDialog(video.Clips.Select(x => new JobViewModel(video, x)).ToArray());
         }
 
         /// <summary>
@@ -82,7 +67,11 @@ namespace Clipple
         /// </summary>
         public static async Task Process()
         {
-            await OpenJobsDialog(App.ViewModel.Videos.Select(x => new JobViewModel(x, x.Clips.ToList(), true)).ToArray());
+            var clips = new List<JobViewModel>();
+            foreach (var video in App.ViewModel.Videos)
+                clips.AddRange(video.Clips.Select(x => new JobViewModel(video, x)));
+
+            await OpenJobsDialog(clips.ToArray());
         }
     }
 }

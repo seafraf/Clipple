@@ -42,7 +42,7 @@
         <mah:FlyoutsControl>
             <mah:Flyout Header="Videos" IsOpen="{Binding Path=IsVideosFlyoutOpen}" Position="Left" Width="auto" MinWidth="1000" ClosingFinished="OnFlyoutClosed" Theme="Adapt">
                 <ScrollViewer Margin="0 0 4 0">
-                    <ItemsControl ItemsSource="{Binding Path=Videos, Mode=TwoWay}">
+                    <ItemsControl ItemsSource="{Binding Path=Videos, Mode=TwoWay, IsAsync=True}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <views:Video DataContext="{Binding}" Margin="4 0 4 8" />

@@ -17,9 +17,12 @@ using System.Windows.Threading;
 
 namespace Clipple.ViewModel
 {
+    /// <summary>
+    /// Represents a clip proessing job
+    /// </summary>
     public class JobViewModel : ObservableObject
     {
-        public JobViewModel(VideoViewModel videoViewModel, List<ClipViewModel> clips, bool enablePostProcessingActions)
+        public JobViewModel(VideoViewModel videoViewModel, ClipViewModel clip)
         {
             LogsCommand = new RelayCommand(() =>
             {
@@ -31,29 +34,24 @@ namespace Clipple.ViewModel
             });
 
             VideoViewModel              = videoViewModel;
-            Clips                       = clips;
-            EnablePostProcessingActions = enablePostProcessingActions;
-
-            var remainingClipNames = new List<string>();
-            for (int i = 1; i < clips.Count; i++)
-                remainingClipNames.Add(clips[i].FullFileName);
-
-            RemainingClipNames = string.Join("\n", remainingClipNames);
-            Status = ClipProcessingStatus.InQueue;
-
-            foreach (var clip in clips)
-                clipCompletionFactors[clip] = 0.0;
+            Clip                        = clip;
+            Status                      = ClipProcessingStatus.InQueue;
         }
 
-        #region Members
-        private readonly Dictionary<ClipViewModel, double> clipCompletionFactors = new();
-        private readonly Dictionary<string, LogOutputViewModel> logOutputLookup = new();
-        #endregion
-
+        /// <summary>
+        /// The video that owns this clip
+        /// </summary>
         public VideoViewModel VideoViewModel { get; }
-        public List<ClipViewModel> Clips { get; }
-        public bool EnablePostProcessingActions { get; }
-        public int SuccesfulJobCount { get; set; }
+
+        /// <summary>
+        /// The clip to process
+        /// </summary>
+        public ClipViewModel Clip { get; }
+
+        /// <summary>
+        /// Current output from this job as provided by the FFmpeg engine.
+        /// </summary>
+        public StringBuilder JobOutput { get; } = new StringBuilder();
 
         /// <summary>
         /// The status of this job, this will set the StatusIcon and StatusString properties.
@@ -66,55 +64,100 @@ namespace Clipple.ViewModel
             {
                 SetProperty(ref status, value);
 
-                switch (value)
-                {
-                    case ClipProcessingStatus.InQueue:
-                        StatusIcon = PackIconMaterialDesignKind.Queue;
-                        StatusString = "In queue";
-                        ProgressIndeterminate = false;
-                        break;
-                    case ClipProcessingStatus.Failed:
-                        StatusIcon = PackIconMaterialDesignKind.Warning;
-                        StatusString = "Failed";
-                        ProgressIndeterminate = false;
-                        break;
-                    case ClipProcessingStatus.Processing:
-                        StatusIcon = PackIconMaterialDesignKind.RotateRight;
-                        StatusString = "Running";
-                        ProgressIndeterminate = true;
-                        break;
-                    case ClipProcessingStatus.ProcessingFirstPass:
-                        StatusIcon = PackIconMaterialDesignKind.RotateRight;
-                        StatusString = "First pass";
-                        ProgressIndeterminate = true;
-                        break;
-                    case ClipProcessingStatus.Finished:
-                        StatusIcon = PackIconMaterialDesignKind.Done;
-                        StatusString = "Finished";
-                        ProgressIndeterminate = false;
-                        break;
-                }
+                OnPropertyChanged(nameof(StatusIcon));
+                OnPropertyChanged(nameof(StatusString));
+                OnPropertyChanged(nameof(StatusColor));
+                OnPropertyChanged(nameof(ProgressIndeterminate));
+                OnPropertyChanged(nameof(CompletionFactor));
             }
         }
 
         /// <summary>
         /// An icon denoting the status of this job
         /// </summary>
-        private PackIconMaterialDesignKind statusIcon;
         public PackIconMaterialDesignKind StatusIcon
         {
-            get => statusIcon;
-            private set => SetProperty(ref statusIcon, value);
+            get
+            {
+                switch (status)
+                {
+                    case ClipProcessingStatus.InQueue:
+                        return PackIconMaterialDesignKind.Queue;
+                    case ClipProcessingStatus.Processing:
+                    case ClipProcessingStatus.ProcessingFirstPass:
+                        return PackIconMaterialDesignKind.RotateRight;
+                    case ClipProcessingStatus.Finished:
+                        return PackIconMaterialDesignKind.Done;
+                    case ClipProcessingStatus.Cancelled:
+                        return PackIconMaterialDesignKind.Cancel;
+                    case ClipProcessingStatus.Failed:
+                    default:
+                        return PackIconMaterialDesignKind.Warning;
+                }
+            }
         }
 
         /// <summary>
         /// A string describing the current status of this job
         /// </summary>
-        private string statusString = "In queue";
         public string StatusString
         {
-            get => statusString;
-            private set => SetProperty(ref statusString, value);
+            get
+            {
+                switch (status)
+                {
+                    case ClipProcessingStatus.InQueue:
+                        return "In queue";
+                    case ClipProcessingStatus.Processing:
+                        return "Processing";
+                    case ClipProcessingStatus.ProcessingFirstPass:
+                        return "First pass";
+                    case ClipProcessingStatus.Finished:
+                        return "Finished";
+                    case ClipProcessingStatus.Cancelled:
+                        return "Cancelled";
+                    case ClipProcessingStatus.Failed:
+                    default:
+                        return "Failed";
+                }
+            }
+        }
+
+        /// <summary>
+        /// Color used for status string and icon
+        /// </summary>
+        public Brush StatusColor
+        {
+            get
+            {
+                switch (status)
+                {
+                    case ClipProcessingStatus.InQueue:
+                        // This is actually handled by a data trigger in XAML
+                        return Brushes.White;
+                    case ClipProcessingStatus.Processing:
+                    case ClipProcessingStatus.ProcessingFirstPass:
+                        return Brushes.Turquoise;
+                    case ClipProcessingStatus.Finished:
+                        return Brushes.ForestGreen;
+                    case ClipProcessingStatus.Cancelled:
+                    case ClipProcessingStatus.Failed:
+                    default:
+                        return Brushes.Red;
+                }
+            }
+        }
+
+        /// <summary>
+        /// True if the progress cannot currently be determined 
+        /// </summary>
+        public bool ProgressIndeterminate
+        {
+            get
+            {
+                // Can't determine the progress of the first pass
+                return status == ClipProcessingStatus.ProcessingFirstPass;
+            }
         }
 
         /// <summary>
@@ -128,48 +171,29 @@ namespace Clipple.ViewModel
         }
 
         /// <summary>
-        /// The first clip in this job
-        /// </summary>
-        public ClipViewModel FirstClip => Clips.First();
-
-        /// <summary>
-        /// True if this job contains more than one clip
-        /// </summary>
-        public bool IsMultiClip => Clips.Count > 1;
-
-        /// <summary>
-        /// Number of clips other than the first clip
-        /// </summary>
-        public int RemainingClips => Clips.Count - 1;
-
-        /// <summary>
-        /// A newline separated string of the remaining clip's full paths.
-        /// </summary>
-        public string RemainingClipNames { get; }
-
-        /// <summary>
         /// A factor (0-1) describing how close this job is to being finished
         /// </summary>
+        private double completionFactor;
         public double CompletionFactor
         {
             get
             {
-                if (Status == ClipProcessingStatus.Finished)
-                    return 1.0;
-
-                double total = clipCompletionFactors.Sum(x => x.Value);
-                return total == 0.0 ? 0.0 : total / clipCompletionFactors.Count;
+                switch (status)
+                {
+                    
+                    case ClipProcessingStatus.Processing:
+                    case ClipProcessingStatus.ProcessingFirstPass:
+                        return completionFactor;
+                    case ClipProcessingStatus.Finished:
+                        return 1.0;
+                    case ClipProcessingStatus.InQueue:
+                    case ClipProcessingStatus.Cancelled:
+                    case ClipProcessingStatus.Failed:
+                    default:
+                        return 0.0;
+                }
             }
-        }
-
-        /// <summary>
-        /// True if the progress cannot currently be determined 
-        /// </summary>
-        private bool progressIndeterminate = false;
-        public bool ProgressIndeterminate
-        {
-            get => progressIndeterminate;
-            set => SetProperty(ref progressIndeterminate, value);
+            set => SetProperty(ref completionFactor, value);
         }
 
         /// <summary>
@@ -182,91 +206,43 @@ namespace Clipple.ViewModel
             set => SetProperty(ref logsViewOpen, value);
         }
 
-        /// <summary>
-        /// Outputs by name, used by the logs view
-        /// </summary>
-        private ObservableCollection<LogOutputViewModel> logOutputs = new();
-        public ObservableCollection<LogOutputViewModel> LogOutputs
-        {
-            get => logOutputs;
-            set => SetProperty(ref logOutputs, value);
-        }
-
         #region Methods
 
         /// <summary>
-        /// Called by the ffmpeg engine when it gives stats, this only occurs during the encoding phase of ffmpeg.
+        /// Called by the FFmpeg when processing the second pass (or the first and only pass when two pass encoding is not used).
         /// </summary>
-        /// <param name="clip">The clip the output is for</param>
-        /// <param name="stat">Information regarding the current encoding progress</param>
+        /// <param name="stat">Information regarding the current progress</param>
         /// <param name="firstPass">Whether or not this output came from the first or second pass (always false if the clip does not use two pass encoding)</param>
-        public void NotifyStats(ClipViewModel clip, EngineProcessStatistics stat, bool firstPass)
+        public void NotifyStats(EngineProcessStatistics stat, bool firstPass)
         {
             Statistics = $"{stat.Bitrate:N2}kbit/s";
 
-            if (clip.Duration.TotalSeconds != 0.0)
-            {
-                ProgressIndeterminate = false;
-
-                double prog = stat.Time.TotalSeconds / clip.Duration.TotalSeconds;
-
-                // If two pass encoding is on, the progress is only half what the stats say it is, but if it is the second
-                // pass then it is half what the stats say it is + 50% completion from the first pass
-                if (clip.TwoPassEncoding)
-                {
-                    prog *= 0.5;
-                    if (!firstPass)
-                        prog += 0.5;
-                }
-
-                clipCompletionFactors[clip] = Math.Min(Math.Max(0.0, prog), 1.0);
-                OnPropertyChanged(nameof(CompletionFactor));
-            }
+            if (Clip.Duration.TotalSeconds != 0.0)
+                CompletionFactor = Math.Min(Math.Max(0.0, stat.Time.TotalSeconds / Clip.Duration.TotalSeconds), 1.0);
         }
 
         /// <summary>
-        /// Called by the ffmpeg engine when it gives output.
+        /// Called by the FFmpeg engine when it receives std(out|err) output from the ffmpeg.exe process.
         /// </summary>
-        /// <param name="clip">The clip the output is for</param>
         /// <param name="output">The line of output</param>
-        /// <param name="firstPass">Whether or not this output came from the first or second pass (always false if the clip does not use two pass encoding)</param>
-        public void RecordOutput(ClipViewModel clip, string output, bool firstPass)
+        public void RecordOutput(string output)
         {
-            App.Current.Dispatcher.Invoke(new Action(() =>
+            App.Current.Dispatcher.Invoke(() =>
             {
-                string title = clip.Title;
-                if (clip.TwoPassEncoding)
-                    title += $" - Pass {(firstPass ? '1' : '2')}";
-
-                LogOutputViewModel logOut;
-                if (!logOutputLookup.ContainsKey(title))
-                {
-                    logOut = new LogOutputViewModel(title, new StringBuilder());
-
-                    logOutputLookup[title] = logOut;
-                    LogOutputs.Add(logOut);
-                }
-                else
-                {
-                    logOut = logOutputLookup[title];
-                }
-
-                logOut.AddOutput(output);
-            }));
+                JobOutput.AppendLine(output);
+                OnPropertyChanged(nameof(JobOutput));
+            });
         }
 
         /// <summary>
-        /// Reset the job.  This should be used if the user canceled the job and runs it again
+        /// Reset the job.  This should be called before each new run of this job.
         /// </summary>
         public void Reset()
         {
-            SuccesfulJobCount = 0;
-
-            logOutputs.Clear();
-            logOutputLookup.Clear();
-
-            foreach (var clip in Clips)
-                clipCompletionFactors[clip] = 0.0;
+            Status           = ClipProcessingStatus.InQueue;
+            CompletionFactor = 0.0;
+            Statistics       = "";
+            JobOutput.Clear();
         }
         #endregion
 

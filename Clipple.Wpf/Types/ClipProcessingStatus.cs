@@ -12,6 +12,7 @@ namespace Clipple.Types
         ProcessingFirstPass,
         Processing,
         Finished,
-        Failed
+        Failed,
+        Cancelled
     }
 }

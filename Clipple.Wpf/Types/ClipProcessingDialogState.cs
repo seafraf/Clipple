@@ -8,13 +8,13 @@ namespace Clipple.Types
 {
     public enum ClipProcessingDialogState
     {
-        // Waiting for the user to press the start button
-        Waiting,
+        // Waiting for user input
+        Idle,
 
-        // ffmpeg process(es) running
+        // FFmpeg process(es) running
         Running,
         
-        // All processes done, waiting for the user to hit the done button
-        Done
+        // The user is reviewing post processing actions
+        Review,
     }
 }

@@ -9,17 +9,6 @@
         xmlns:viewmodel="clr-namespace:Clipple.ViewModel" 
         Title="Job output" d:DataContext="{d:DesignInstance Type=viewmodel:JobViewModel}"  Height="450" Width="800">
     <Grid>
-        <TabControl ItemsSource="{Binding Path=LogOutputs, UpdateSourceTrigger=PropertyChanged}" >
-            <TabControl.ItemTemplate>
-                <DataTemplate>
-                    <TextBlock Text="{Binding Path=Title}" />
-                </DataTemplate>
-            </TabControl.ItemTemplate>
-            <TabControl.ContentTemplate>
-                <DataTemplate>
-                    <TextBox Margin="2" Text="{Binding Path=Output, Mode=OneWay}" IsReadOnly="True"/>
-                </DataTemplate>
-            </TabControl.ContentTemplate>
-        </TabControl>
+        <TextBox Margin="4" Text="{Binding Path=JobOutput, Mode=OneWay}" IsReadOnly="True"/>
     </Grid>
 </mah:MetroWindow>

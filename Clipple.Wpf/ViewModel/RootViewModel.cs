@@ -112,8 +112,11 @@ namespace Clipple.ViewModel
 
             Videos.CollectionChanged += (s, e) =>
             {
-                if (SelectedVideo == null)
+                // If the user has not selected a video yet, or if the selected video was removed, select a new video for the user if possible
+                if (SelectedVideo == null || (e.OldItems != null && e.Action == NotifyCollectionChangedAction.Remove && e.OldItems.Contains(SelectedVideo)))
+                {
                     SelectedVideo = Videos.FirstOrDefault();
+                }
 
                 OnPropertyChanged(nameof(HasClips));
             };
@@ -150,10 +153,6 @@ namespace Clipple.ViewModel
 
                 foreach (var video in videos)
                 {
-                    // Reset parent after deserialization, the parent is not serialized
-                    foreach (var clip in video.Clips)
-                        clip.Parent = video;
-
                     Videos.Add(video);
                 }
 

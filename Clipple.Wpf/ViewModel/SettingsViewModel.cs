@@ -64,11 +64,11 @@ namespace Clipple.ViewModel
             set => SetProperty(ref defaultDeleteVideos, value);
         }
 
-        private bool defaultDeleteClips = false;
-        public bool DefaultDeleteClips
+        private bool defaultRemoveClips = false;
+        public bool DefaultRemoveClips
         {
-            get => defaultDeleteClips;
-            set => SetProperty(ref defaultDeleteClips, value);
+            get => defaultRemoveClips;
+            set => SetProperty(ref defaultRemoveClips, value);
         }
 
         private bool startProcessingAutomatically = true;

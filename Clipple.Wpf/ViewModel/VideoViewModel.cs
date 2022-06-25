@@ -1,4 +1,5 @@
 ﻿using Clipple.DataModel;
+using Clipple.PPA;
 using Clipple.Types;
 using Clipple.Util;
 using Clipple.Util.ISOBMFF;
@@ -37,12 +38,25 @@ namespace Clipple.ViewModel
                 App.ViewModel.Videos.Remove(this);
             });
             ProcessVideoCommand = new RelayCommand(async () => await ClipProcessor.Process(this));
+
+            PostProcessingActionList = new()
+            {
+                new NoAction(this),
+                new RemoveVideo(this),
+                new DeleteVideo(this)
+            };
         }
 
         public VideoViewModel(string filePath) : this()
         {
             FilePath = filePath;
             InitializeFromFilePath();
+
+            if (App.ViewModel.SettingsViewModel.DefaultDeleteVideos)
+            {
+                PostProcessingActionIndex = 2;
+                PostProcessingAction = PostProcessingActionList[PostProcessingActionIndex];
+            }
         }
 
         #region Methods
@@ -72,7 +86,15 @@ namespace Clipple.ViewModel
                 InitialiseFFMPEG();
                 stopwatch.Stop();
 
-                App.Current.Dispatcher.Invoke(() => App.Logger.Log($"Loaded metadata for {fileInfo.FullName} in {stopwatch.ElapsedMilliseconds}ms"));
+                App.Current.Dispatcher.Invoke(() =>
+                {
+                    App.Logger.Log($"Loaded metadata for {fileInfo.FullName} in {stopwatch.ElapsedMilliseconds}ms");
+
+                    // Reset parent of each clip video meta data is loaded.  The setter for Parent will set default video resolution and FPS
+                    // using values only available after InitialiseFFMPEG has fetched them.
+                    foreach (var clip in Clips)
+                        clip.Parent = this;
+                });
             });
         }
 
@@ -158,9 +180,9 @@ namespace Clipple.ViewModel
         /// <summary>
         /// Action performed when the video has finished processing all of it's clips.
         /// </summary>
-        private IVideoPostProcessingAction postProcessingAction;
+        private PostProcessingAction postProcessingAction;
         [JsonIgnore]
-        public IVideoPostProcessingAction PostProcessingAction
+        public PostProcessingAction PostProcessingAction
         {
             get => postProcessingAction;
             set => SetProperty(ref postProcessingAction, value);
@@ -170,12 +192,7 @@ namespace Clipple.ViewModel
         /// List of possible post processing actions
         /// </summary>
         [JsonIgnore]
-        public ObservableCollection<IVideoPostProcessingAction> PostProcessingActionList { get; } = new()
-        {
-            new NoVideoPostProcessingAction(),
-            new RemoveVideoPostProcessingAction(),
-            new DeleteVideoPostProcessingAction()
-        };
+        public ObservableCollection<PostProcessingAction> PostProcessingActionList { get; }
 
         /// <summary>
         /// Helper property.  Returns video file size in a human readable format.
