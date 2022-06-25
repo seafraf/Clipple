@@ -32,6 +32,9 @@ namespace Clipple.Types
             player.OpenAsync(sourceFile);
             player.OpenCompleted += (s, e) =>
             {
+                if (player.IsDisposed)
+                    return;
+
                 player.Open(player.MainDemuxer.AudioStreams.Where(x => x.StreamIndex == streamIndex).First());
 
                 IsMuted = VideoState.MutedTracks.GetValueOrDefault(streamIndex, false);

@@ -247,6 +247,10 @@ namespace Clipple.ViewModel
             get => video;
             set
             {
+                // If the view model has been told to select no video, free any streams we may have had opened
+                if (video != null && value == null)
+                    Stop();
+
                 SetProperty(ref video, value);
                 OnPropertyChanged(nameof(IsReady));
                 OnPropertyChanged(nameof(IsFailed));
@@ -450,6 +454,17 @@ namespace Clipple.ViewModel
                 return $"Track {streamID} - {trackName}";
 
             return $"Track {streamID}";
+        }
+
+        /// <summary>
+        /// Closes all streams used by all players
+        /// </summary>
+        public void Stop()
+        {
+            foreach (var audio in AudioPlayers)
+                audio.Player.Stop();
+
+            MediaPlayer.Stop();
         }
 
         /// <summary>
