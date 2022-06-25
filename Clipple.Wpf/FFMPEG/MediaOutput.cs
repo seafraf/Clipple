@@ -93,7 +93,7 @@ namespace Clipple.FFMPEG
         {
             var pass = TwoPassEncoding ? $"-pass {(IsFirstPass ? '1' : '2')} -passlogfile \"{OutputFile}\" " : "";
             if (IsFirstPass && TwoPassEncoding) 
-                return $"{pass} -stats -an {VideoCodec} {VideoFilter} -f null NUL";
+                return $"{VideoFilter} {VideoCodec} {VideoBitrate} {pass} -stats -an -f null NUL";
 
             string videoArgs = "-vn";
             if (clip.OutputFormat.SupportsVideo)
