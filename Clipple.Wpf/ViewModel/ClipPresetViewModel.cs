@@ -12,23 +12,36 @@ namespace Clipple.ViewModel
 {
     public class ClipPresetViewModel : ObservableObject, IEquatable<ClipPresetViewModel?>, IJsonOnDeserialized
     {
-        public ClipPresetViewModel(string name, string category, long? videoBitrate = null, long? audioBitrate = null, int? targetWidth = null, int? targetHeight = null,
-            int? fps = null, bool useTargetSize = false, double? targetSize = null, string? videoCodec = null, string? audioCodec = null, OutputFormatViewModel? outputFormat = null, long priority = 0)
+        public ClipPresetViewModel(
+            string name, string category, 
+            long? videoBitrate = null, long? audioBitrate = null, 
+            int? targetWidth = null, int? targetHeight = null,
+            int? fps = null,
+            bool useTargetSize = false, double? targetSize = null, 
+            string? videoCodec = null, string? audioCodec = null, 
+            bool shouldCrop = false, int? cropX = null, int? cropY = null, int? cropWidth = null, int? cropHeight = null,
+            OutputFormatViewModel? outputFormat = null, 
+            long priority = 0)
         {
-            this.name = name;
-            this.category = category;
-            this.videoBitrate = videoBitrate;
-            this.audioBitrate = audioBitrate;
-            this.targetWidth = targetWidth;
-            this.targetHeight = targetHeight;
-            this.fps = fps;
-            this.videoCodec = videoCodec;
-            this.audioCodec = audioCodec;
-            this.audioBitrate = audioBitrate;
-            this.useTargetSize = useTargetSize;
-            this.targetSize = targetSize;
-            this.outputFormat = outputFormat;
-            this.priority = priority;
+            this.name           = name;
+            this.category       = category;
+            this.videoBitrate   = videoBitrate;
+            this.audioBitrate   = audioBitrate;
+            this.targetWidth    = targetWidth;
+            this.targetHeight   = targetHeight;
+            this.fps            = fps;
+            this.videoCodec     = videoCodec;
+            this.audioCodec     = audioCodec;
+            this.audioBitrate   = audioBitrate;
+            this.useTargetSize  = useTargetSize;
+            this.shouldCrop     = shouldCrop;
+            this.cropX          = cropX;
+            this.cropY          = cropY;
+            this.cropWidth      = cropWidth;
+            this.cropHeight     = cropHeight;
+            this.targetSize     = targetSize;
+            this.outputFormat   = outputFormat;
+            this.priority       = priority;
 
             LoadComboBoxes();
         }
@@ -111,6 +124,41 @@ namespace Clipple.ViewModel
         {
             get => targetSize;
             set => SetProperty(ref targetSize, value);
+        }
+
+        private bool shouldCrop;
+        public bool ShouldCrop
+        {
+            get => shouldCrop;
+            set => SetProperty(ref shouldCrop, value);
+        }
+
+        private int? cropX;
+        public int? CropX
+        {
+            get => cropX;
+            set => SetProperty(ref cropX, value);
+        }
+
+        private int? cropY;
+        public int? CropY
+        {
+            get => cropY;
+            set => SetProperty(ref cropY, value);
+        }
+
+        private int? cropWidth;
+        public int? CropWidth
+        {
+            get => cropWidth;
+            set => SetProperty(ref cropWidth, value);
+        }
+
+        private int? cropHeight;
+        public int? CropHeight
+        {
+            get => cropHeight;
+            set => SetProperty(ref cropHeight, value);
         }
 
         private string? videoCodec;

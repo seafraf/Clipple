@@ -16,6 +16,9 @@ namespace Clipple.ViewModel
         {
             ResolutionPresets.GroupDescriptions.Clear();
             ResolutionPresets.GroupDescriptions.Add(new PropertyGroupDescription("AspectRatioString"));
+
+            CropWidth  = SourceWidth;
+            CropHeight = SourceHeight;
         }
 
         /// <summary>
@@ -82,6 +85,86 @@ namespace Clipple.ViewModel
                 ResolutionPreset = null;
                 SetProperty(ref targetHeight, value);
             }
+        }
+
+        /// <summary>
+        /// Should the source video resolution be used in the the output clip?
+        /// </summary>
+        private bool useSourceResolution;
+        public bool UseSourceResolution
+        {
+            get => useSourceResolution;
+            set
+            {
+                SetProperty(ref useSourceResolution, value);
+                OnPropertyChanged(nameof(TargetWidth));
+                OnPropertyChanged(nameof(TargetHeight));
+            }
+        }
+
+        /// <summary>
+        /// Should the source video FPS be used in the output clip?
+        /// </summary>
+        private bool useSourceFPS;
+        public bool UseSourceFPS
+        {
+            get => useSourceFPS;
+            set
+            {
+                SetProperty(ref useSourceFPS, value);
+                OnPropertyChanged(nameof(TargetFPS));
+            }
+        }
+
+        /// <summary>
+        /// Should the video be cropped according to the crop(x/y/width/height) settings?
+        /// </summary>
+        private bool shouldCrop;
+        public bool ShouldCrop
+        {
+            get => shouldCrop;
+            set => SetProperty(ref shouldCrop, value);
+        }
+
+        /// <summary>
+        /// Crop x-position
+        /// </summary>
+        private int cropX = 0;
+        public int CropX
+        {
+            get => cropX;
+            set => SetProperty(ref cropX, value);
+        }
+
+        /// <summary>
+        /// Crop y-position
+        /// </summary>
+        private int cropY = 0;
+        public int CropY
+        {
+            get => cropY;
+            set => SetProperty(ref cropY, value);
+        }
+
+        /// <summary>
+        /// Crop width
+        /// </summary>
+        private int cropWidth = 0;
+        public int CropWidth
+        {
+            get => cropWidth;
+            set => SetProperty(ref cropWidth, value);
+        }
+
+
+        /// <summary>
+        /// Crop y-position
+        /// </summary>
+        private int cropHeight = 0;
+        public int CropHeight
+        {
+            get => cropHeight;
+            set => SetProperty(ref cropHeight, value);
         }
 
         /// <summary>

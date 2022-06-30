@@ -514,7 +514,7 @@ namespace Clipple.ViewModel
                 || e.PropertyName == "AudioBitrate" || e.PropertyName == "UseTargetSize" ||
                 e.PropertyName == "OutputTargetSize")
             {
-                TranscodingPreset = null;
+                Preset = null;
             }
         }
         #endregion

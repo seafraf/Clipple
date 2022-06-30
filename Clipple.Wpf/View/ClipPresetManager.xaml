@@ -60,6 +60,22 @@
                 <mah:DataGridNumericUpDownColumn Header="Target size" Interval="0.1" StringFormat="N2" NumericInputMode="All"
                                                          Binding="{Binding Path=TargetSize, TargetNullValue='', Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
+
+                <DataGridCheckBoxColumn Header="Crop video"
+                                                         Binding="{Binding Path=ShouldCrop, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                <mah:DataGridNumericUpDownColumn Header="Crop X" Interval="1" StringFormat="N0" NumericInputMode="All"
+                                                         Binding="{Binding Path=CropX, TargetNullValue='', Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                <mah:DataGridNumericUpDownColumn Header="Crop Y" Interval="1" StringFormat="N0" NumericInputMode="All"
+                                                         Binding="{Binding Path=CropY, TargetNullValue='', Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                <mah:DataGridNumericUpDownColumn Header="Crop width" Interval="1" StringFormat="N0" NumericInputMode="All"
+                                                         Binding="{Binding Path=CropWidth, TargetNullValue='', Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                <mah:DataGridNumericUpDownColumn Header="Crop height" Interval="1" StringFormat="N0" NumericInputMode="All"
+                                                         Binding="{Binding Path=CropHeight, TargetNullValue='', Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
                 <DataGridTemplateColumn Header="Video codec">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>

@@ -26,11 +26,11 @@ namespace Clipple.ViewModel
         /// <summary>
         /// Current transcoding preset
         /// </summary>
-        private ClipPresetViewModel? transcodingPreset;
+        private ClipPresetViewModel? preset;
         [JsonIgnore]
-        public ClipPresetViewModel? TranscodingPreset
+        public ClipPresetViewModel? Preset
         {
-            get => transcodingPreset;
+            get => preset;
             set
             {
                 if (value != null)
@@ -44,6 +44,11 @@ namespace Clipple.ViewModel
                     AudioBitrate      = value.AudioBitrate ?? audioBitrate;
                     UseTargetSize     = value.UseTargetSize;
                     OutputTargetSize  = value.TargetSize ?? outputTargetSize;
+                    ShouldCrop        = value.ShouldCrop;
+                    CropX             = value.CropX ?? cropX;
+                    CropY             = value.CropY ?? cropY;
+                    CropWidth         = value.CropWidth ?? cropWidth;
+                    CropHeight        = value.CropHeight ?? cropHeight;
 
                     if (value.OutputFormat != null)
                     {
@@ -52,19 +57,19 @@ namespace Clipple.ViewModel
                     }
                 }
 
-                SetProperty(ref transcodingPreset, value);
-                OnPropertyChanged(nameof(TranscodingPreset));
+                SetProperty(ref preset, value);
+                OnPropertyChanged(nameof(Preset));
             }
         }
 
         /// <summary>
         /// Index of transcoding preset, for serialization
         /// </summary>
-        private int transcodingPresetIndex = -1;
-        public int TranscodingPresetIndex
+        private int presetIndex = -1;
+        public int PresetIndex
         {
-            get => transcodingPresetIndex;
-            set => SetProperty(ref transcodingPresetIndex, value);
+            get => presetIndex;
+            set => SetProperty(ref presetIndex, value);
         }
 
         #endregion

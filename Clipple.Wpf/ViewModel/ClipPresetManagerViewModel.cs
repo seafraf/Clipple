@@ -65,7 +65,9 @@ namespace Clipple.ViewModel
                 ClipViewModel.UseSourceResolution ? null : ClipViewModel.TargetWidth, ClipViewModel.UseSourceResolution ? null : ClipViewModel.TargetHeight,
                 ClipViewModel.UseSourceFPS ? null : ClipViewModel.TargetFPS,
                 ClipViewModel.UseTargetSize, ClipViewModel.UseTargetSize ? ClipViewModel.OutputTargetSize : null,
-                ClipViewModel.VideoCodec, ClipViewModel.AudioCodec, ClipViewModel.OutputFormat));
+                ClipViewModel.VideoCodec, ClipViewModel.AudioCodec,
+                ClipViewModel.ShouldCrop, ClipViewModel.CropX, ClipViewModel.CropY, ClipViewModel.CropWidth, ClipViewModel.CropHeight,
+                ClipViewModel.OutputFormat, DateTime.Now.Ticks));
         }
         #endregion
     }

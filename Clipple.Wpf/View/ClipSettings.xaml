@@ -75,8 +75,8 @@
             </Grid.ColumnDefinitions>
             <ComboBox Grid.Column="0" Margin="2" mah:TextBoxHelper.UseFloatingWatermark="True" mah:TextBoxHelper.Watermark="Preset" 
                           ItemsSource="{Binding Source={x:Static local:App.ViewModel}, Path=ClipPresetsViewModel.Presets}" 
-                          SelectedItem="{Binding Path=TranscodingPreset, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                          SelectedIndex="{Binding Path=TranscodingPresetIndex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                          SelectedItem="{Binding Path=Preset, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                          SelectedIndex="{Binding Path=PresetIndex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                           DisplayMemberPath="Name">
                 <ComboBox.GroupStyle>
                     <GroupStyle>
@@ -177,6 +177,44 @@
                         </GroupStyle>
                     </ComboBox.GroupStyle>
                 </ComboBox>
+
+                <mah:MetroHeader Margin="2 10 0 2" Header="Crop"/>
+                <Separator Margin="0 0 0 8" />
+
+                <CheckBox Margin="2" Content="Crop video" IsChecked="{Binding Path=ShouldCrop}" />
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <mah:NumericUpDown Margin="2" Grid.Row="0" Grid.Column="0" mah:TextBoxHelper.UseFloatingWatermark="True" mah:TextBoxHelper.Watermark="Crop X"
+                                       Maximum="{Binding Path=SourceWidth}"
+                                       Value="{Binding Path=CropX}"
+                                       IsEnabled="{Binding Path=ShouldCrop}" />
+
+                    <mah:NumericUpDown Margin="2" Grid.Row="0" Grid.Column="1" mah:TextBoxHelper.UseFloatingWatermark="True" mah:TextBoxHelper.Watermark="Crop Y"
+                                       Maximum="{Binding Path=SourceHeight}"
+                                       Value="{Binding Path=CropY}"
+                                       IsEnabled="{Binding Path=ShouldCrop}" />
+
+                    <mah:NumericUpDown Margin="2" Grid.Row="1" Grid.Column="0" mah:TextBoxHelper.UseFloatingWatermark="True" mah:TextBoxHelper.Watermark="Crop width" Minimum="1" 
+                                       Maximum="{Binding Path=SourceWidth}"
+                                       Value="{Binding Path=CropWidth}"
+                                       IsEnabled="{Binding Path=ShouldCrop}" />
+
+                    <mah:NumericUpDown Margin="2" Grid.Row="1" Grid.Column="1" mah:TextBoxHelper.UseFloatingWatermark="True" mah:TextBoxHelper.Watermark="Crop height" Minimum="1" 
+                                       Maximum="{Binding Path=SourceWidth}"
+                                       Value="{Binding Path=CropHeight}"
+                                       IsEnabled="{Binding Path=ShouldCrop}" />
+                </Grid>
+
 
                 <mah:MetroHeader Margin="2 10 0 2" Header="Other"/>
                 <Separator Margin="0 0 0 8" />

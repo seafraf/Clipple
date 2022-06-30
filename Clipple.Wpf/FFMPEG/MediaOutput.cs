@@ -36,6 +36,9 @@ namespace Clipple.FFMPEG
                 if (clip.TargetWidth != clip.SourceWidth || clip.TargetHeight != clip.SourceHeight)
                     filterOpts.Add($"scale={clip.TargetWidth}:{clip.TargetHeight}");
 
+                if (clip.ShouldCrop)
+                    filterOpts.Add($"crop={clip.CropWidth}:{clip.CropHeight}:{clip.CropX}:{clip.CropY}");
+
                 if (filterOpts.Count > 0)
                 {
                     return $"-filter:v \"{string.Join(", ", filterOpts)}\" -map 0:v";
