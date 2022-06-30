@@ -41,59 +41,27 @@
     <mah:MetroWindow.Flyouts>
         <mah:FlyoutsControl>
             <mah:Flyout Header="Videos" IsOpen="{Binding Path=IsVideosFlyoutOpen}" Position="Left" Width="auto" MinWidth="1000" ClosingFinished="OnFlyoutClosed" Theme="Adapt">
-                <ScrollViewer Margin="0 0 4 0">
-                    <ItemsControl ItemsSource="{Binding Path=Videos, Mode=TwoWay, IsAsync=True}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <views:Video DataContext="{Binding}" Margin="4 0 4 8" />
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </ScrollViewer>
-                <!--<ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel Grid.Column="0" Margin="0 0 0 6">
-                        <DataGrid CanUserAddRows="False" CanUserDeleteRows="False" AutoGenerateColumns="False" SelectedValue="{Binding Path=SelectedVideo}" SelectionMode="Single"
-                      EnableColumnVirtualization="True" EnableRowVirtualization="True" HeadersVisibility="All" SelectionUnit="FullRow" ItemsSource="{Binding Path=Videos}">
-                            <DataGrid.Columns>
-                                <DataGridTextColumn Binding="{Binding Path=FileSize, Mode=OneWay}" Header="Size" IsReadOnly="True" />
-                                <DataGridTextColumn Binding="{Binding Path=Clips.Count, Mode=OneWay}" Header="Clips" IsReadOnly="True" />
-                                <DataGridCheckBoxColumn Binding="{Binding Path=Delete, Mode=TwoWay}" Header="Delete" />
-                                <DataGridTextColumn Binding="{Binding Path=FileInfo.FullName, Mode=OneWay}" Header="File path" IsReadOnly="True" />
-                            </DataGrid.Columns>
-                            <DataGrid.ContextMenu>
-                                <ContextMenu>
-                                    <MenuItem Header="Add video" Command="{Binding Path=AddVideoCommand}">
-                                        <MenuItem.Icon>
-                                            <iconPacks:PackIconMaterialDesign Kind="Add" />
-                                        </MenuItem.Icon>
-                                    </MenuItem>
-                                    <MenuItem Header="Add folder" Command="{Binding Path=AddFolderCommand}">
-                                        <MenuItem.Icon>
-                                            <iconPacks:PackIconMaterialDesign Kind="FolderOpen" />
-                                        </MenuItem.Icon>
-                                    </MenuItem>
-                                    <Separator />
-                                    <MenuItem Header="Process video's clips" Command="{Binding Path=ProcessClipsCommand}" IsEnabled="{Binding Path=HasSelectedVideoClips}">
-                                        <MenuItem.Icon>
-                                            <iconPacks:PackIconMaterialDesign Kind="PlayArrow" />
-                                        </MenuItem.Icon>
-                                    </MenuItem>
-                                    <Separator />
-                                    <MenuItem Header="Clear video's clips" Command="{Binding Path=ClearClipsCommand}" IsEnabled="{Binding Path=HasSelectedVideoClips}">
-                                        <MenuItem.Icon>
-                                            <iconPacks:PackIconMaterialDesign Kind="Clear" />
-                                        </MenuItem.Icon>
-                                    </MenuItem>
-                                    <MenuItem Header="Remove video from list" Command="{Binding Path=RemoveVideoCommand}" IsEnabled="{Binding Path=HasSelectedVideo}">
-                                        <MenuItem.Icon>
-                                            <iconPacks:PackIconMaterialDesign Kind="Delete" />
-                                        </MenuItem.Icon>
-                                    </MenuItem>
-                                </ContextMenu>
-                            </DataGrid.ContextMenu>
-                        </DataGrid>
-                    </StackPanel>
-                </ScrollViewer>-->
+                <ItemsControl ItemsSource="{Binding Path=Videos, Mode=TwoWay, IsAsync=True}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <VirtualizingStackPanel IsVirtualizing="True" VirtualizationMode="Recycling" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <views:Video DataContext="{Binding}" Margin="4 0 4 8" VirtualizingPanel.IsVirtualizing="True" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                    <ItemsControl.Template>
+                        <ControlTemplate TargetType="ItemsControl">
+                            <Border BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{TemplateBinding BorderBrush}" Background="{TemplateBinding Background}">
+                                <ScrollViewer CanContentScroll="True" Padding="{TemplateBinding Padding}" Focusable="False">
+                                    <ItemsPresenter />
+                                </ScrollViewer>
+                            </Border>
+                        </ControlTemplate>
+                    </ItemsControl.Template>
+                </ItemsControl>
             </mah:Flyout>
             <mah:Flyout Header="Settings" IsOpen="{Binding Path=IsSettingsFlyoutOpen}" Position="Right" Width="auto" ClosingFinished="OnFlyoutClosed" Theme="Adapt">
                 <views:Settings DataContext="{Binding Path=SettingsViewModel}" />
