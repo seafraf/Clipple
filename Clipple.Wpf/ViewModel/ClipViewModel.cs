@@ -1,5 +1,4 @@
 ﻿using Clipple.PPA;
-using Clipple.Types;
 using Clipple.Util;
 using MahApps.Metro.Controls.Dialogs;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
@@ -59,12 +58,6 @@ namespace Clipple.ViewModel
                 if (video != null)
                     await ClipProcessor.Process(video, this);
             });
-
-            SupportedOutputFormats.GroupDescriptions.Clear();
-            SupportedOutputFormats.GroupDescriptions.Add(new PropertyGroupDescription("Category"));
-
-            TranscodingPresets.GroupDescriptions.Clear();
-            TranscodingPresets.GroupDescriptions.Add(new PropertyGroupDescription("Category"));
 
             PostProcessingActionList = new()
             {
@@ -268,9 +261,9 @@ namespace Clipple.ViewModel
         /// <summary>
         /// Currently selected output format
         /// </summary>
-        private OutputFormat outputFormat;
+        private OutputFormatViewModel outputFormat;
         [JsonIgnore]
-        public OutputFormat OutputFormat
+        public OutputFormatViewModel OutputFormat
         {
             get => outputFormat;
             set
@@ -291,25 +284,6 @@ namespace Clipple.ViewModel
             get => outputFormatIndex;
             set => SetProperty(ref outputFormatIndex, value);
         }
-
-        /// <summary>
-        /// List of supported output formats, ffmpeg supports many more but these are the most popular + tested to work
-        /// </summary>
-        [JsonIgnore]
-        public ListCollectionView SupportedOutputFormats { get; } = new(new ObservableCollection<OutputFormat>()
-        {
-            // Audio only
-            new OutputFormat("wav", ".wav", "Waveform Audio", true, false),
-            new OutputFormat("adts", ".aac", "Advanced Audio Coding", true, false),
-            new OutputFormat("mp3", ".mp3", "MPEG audio layer 3", true, false),
-
-            // Video and audio
-            new OutputFormat("webm", ".webm", "WebM"),
-            new OutputFormat("avi", ".avi", "Audio Video Interleaved"),
-            new OutputFormat("mov", ".mov", "QuickTime"),
-            new OutputFormat("mp4", ".mp4", "MPEG-4 Part 14"),
-            new OutputFormat("matroska", ".mkv", "Matroska"),
-        });
 
         /// <summary>
         /// Returns a full file name for this clip, including absolute directory and extension.
@@ -348,70 +322,6 @@ namespace Clipple.ViewModel
             get => postProcessingAction;
             set => SetProperty(ref postProcessingAction, value);
         }
-
-        /// <summary>
-        /// Current transcoding preset
-        /// </summary>
-        private TranscodingPreset? transcodingPreset;
-        [JsonIgnore]
-        public TranscodingPreset? TranscodingPreset
-        {
-            get => transcodingPreset;
-            set
-            {
-                if (value != null)
-                {
-                    VideoBitrate     = value.VideoBitrate ?? videoBitrate;
-                    TargetWidth      = value.TargetWidth ?? targetWidth;
-                    TargetHeight     = value.TargetHeight ?? targetHeight;
-                    TargetFPS        = value.FPS ?? targetFPS;
-                    VideoCodec       = value.VideoCodec ?? videoCodec;
-                    AudioBitrate     = value.AudioBitrate ?? audioBitrate;
-                    UseTargetSize    = value.UseTargetSize ?? useTargetSize;
-                    OutputTargetSize = value.TargetSize ?? outputTargetSize;
-                }
-
-                SetProperty(ref transcodingPreset, value);
-            }
-        }
-
-        /// <summary>
-        /// Index of transcoding preset, for serialization
-        /// </summary>
-        private int transcodingPresetIndex = -1;
-        public int TranscodingPresetIndex
-        {
-            get => transcodingPresetIndex;
-            set => SetProperty(ref transcodingPresetIndex, value);
-        }
-
-        /// <summary>
-        /// List of transcoding presets
-        /// </summary>
-        [JsonIgnore]
-        public ListCollectionView TranscodingPresets { get; } = new(new ObservableCollection<TranscodingPreset>()
-        {
-            new TranscodingPreset("10MB (no nitro)", "Discord", useTargetSize: true, targetSize: 10, videoCodec: "libx264"),
-            new TranscodingPreset("50MB (nitro classic)", "Discord", useTargetSize: true, targetSize: 50, videoCodec: "libx264"),
-            new TranscodingPreset("100MB (nitro)", "Discord", useTargetSize: true, targetSize: 100, videoCodec: "libx264"),
-
-            new TranscodingPreset("10MB (no nitro)", "Discord, VP9 (Slow)", useTargetSize: true, targetSize: 10, videoCodec: "libvpx-vp9"),
-            new TranscodingPreset("50MB (nitro classic)", "Discord, VP9 (Slow)", useTargetSize: true, targetSize: 50, videoCodec: "libvpx-vp9"),
-            new TranscodingPreset("100MB (nitro)", "Discord, VP9 (Slow)", useTargetSize: true, targetSize: 100, videoCodec: "libvpx-vp9"),
-
-            new TranscodingPreset("2160p@60", "YouTube SDR recommendations", videoBitrate: 680000, targetWidth: 3840, targetHeight: 2160, fps: 60, videoCodec: "libx264"),
-            new TranscodingPreset("2160p@30", "YouTube SDR recommendations", videoBitrate: 450000, targetWidth: 3840, targetHeight: 2160, fps: 30, videoCodec: "libx264"),
-            new TranscodingPreset("1440p@60", "YouTube SDR recommendations", videoBitrate: 240000, targetWidth: 2560, targetHeight: 1440, fps: 60, videoCodec: "libx264"),
-            new TranscodingPreset("1440p@30", "YouTube SDR recommendations", videoBitrate: 160000, targetWidth: 2560, targetHeight: 1440, fps: 30, videoCodec: "libx264"),
-            new TranscodingPreset("1080p@60", "YouTube SDR recommendations", videoBitrate: 120000, targetWidth: 1920, targetHeight: 1080, fps: 60, videoCodec: "libx264"),
-            new TranscodingPreset("1080p@30", "YouTube SDR recommendations", videoBitrate: 80000, targetWidth: 1920, targetHeight: 1080, fps: 30, videoCodec: "libx264"),
-            new TranscodingPreset("720p@60", "YouTube SDR recommendations", videoBitrate: 75000, targetWidth: 1280, targetHeight: 720, fps: 60, videoCodec: "libx264"),
-            new TranscodingPreset("720p@30", "YouTube SDR recommendations", videoBitrate: 50000, targetWidth: 1280, targetHeight: 720, fps: 30, videoCodec: "libx264"),
-            new TranscodingPreset("480p@60", "YouTube SDR recommendations", videoBitrate: 40000, targetWidth: 852, targetHeight: 480, fps: 60, videoCodec: "libx264"),
-            new TranscodingPreset("480p@30", "YouTube SDR recommendations", videoBitrate: 25000, targetWidth: 852, targetHeight: 480, fps: 30, videoCodec: "libx264"),
-            new TranscodingPreset("360p@60", "YouTube SDR recommendations", videoBitrate: 15000, targetWidth: 480, targetHeight: 360, fps: 60, videoCodec: "libx264"),
-            new TranscodingPreset("360p@30", "YouTube SDR recommendations", videoBitrate: 10000, targetWidth: 480, targetHeight: 360, fps: 30, videoCodec: "libx264"),
-        });
 
         /// <summary>
         /// List of possible post processing actions
@@ -548,12 +458,8 @@ namespace Clipple.ViewModel
         {
             isDeserializing = false;
 
-            // Bindings will set these later
-            if (OutputFormatIndex != -1 && SupportedOutputFormats.Count > OutputFormatIndex)
-                OutputFormat = (OutputFormat)SupportedOutputFormats.GetItemAt(OutputFormatIndex);
-
-            if (TranscodingPresetIndex != -1 && TranscodingPresets.Count > TranscodingPresetIndex)
-                TranscodingPreset = (TranscodingPreset)TranscodingPresets.GetItemAt(TranscodingPresetIndex);
+            // Load output format from index
+            OutputFormat = OutputFormatViewModel.SupportedFormats.ElementAtOrDefault(OutputFormatIndex) ?? outputFormat;
 
             // Never -1
             PostProcessingAction = PostProcessingActionList[PostProcessingActionIndex];

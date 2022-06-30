@@ -1,0 +1,137 @@
+﻿<mah:MetroWindow x:Class="Clipple.View.ClipPresetManager"
+        xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls" 
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Clipple"
+        xmlns:types="clr-namespace:Clipple.Types"
+        mc:Ignorable="d"
+        xmlns:viewmodel="clr-namespace:Clipple.ViewModel" 
+        xmlns:converters="clr-namespace:Clipple.Converters" 
+        xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+                 Title="Clip preset manager" d:DataContext="{d:DesignInstance Type=viewmodel:ClipPresetManagerViewModel}" Height="450" Width="800">
+    <mah:MetroWindow.Resources>
+        <converters:InverseBooleanConverter x:Key="InverseBooleanConverter" />
+    </mah:MetroWindow.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+        <DataGrid SelectionMode="Single" SelectionUnit="FullRow" AutoGenerateColumns="False" mah:DataGridHelper.EnableCellEditAssist="True" CanUserAddRows="False" EnableColumnVirtualization="True"
+                                  ItemsSource="{Binding Source={x:Static local:App.ViewModel}, Path=ClipPresetsViewModel.Presets, IsAsync=True}" SelectedItem="{Binding Path=SelectedPreset}">
+            <DataGrid.GroupStyle>
+                <GroupStyle ContainerStyle="{StaticResource MahApps.Styles.GroupItem.DataGrid}">
+                    <GroupStyle.HeaderTemplate>
+                        <DataTemplate>
+                            <TextBlock VerticalAlignment="Center" Text="{Binding Path=Name}" />
+                        </DataTemplate>
+                    </GroupStyle.HeaderTemplate>
+                </GroupStyle>
+            </DataGrid.GroupStyle>
+            <DataGrid.Columns>
+
+                <DataGridCheckBoxColumn Header="Selected" IsReadOnly="True"
+                                                Binding="{Binding RelativeSource={RelativeSource AncestorType=DataGridRow}, Path=IsSelected}"/>
+
+                <DataGridTextColumn Header="Name"
+                                            Binding="{Binding Path=Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+
+                <mah:DataGridNumericUpDownColumn Header="Video bitrate" Interval="100" NumericInputMode="All" StringFormat="N0"
+                                                         Binding="{Binding Path=VideoBitrate, TargetNullValue='', Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+
+                <mah:DataGridNumericUpDownColumn Header="Audio bitrate" Interval="10" NumericInputMode="All" StringFormat="N0"
+                                                         Binding="{Binding Path=AudioBitrate, TargetNullValue='', Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                <mah:DataGridNumericUpDownColumn Header="Target width" Interval="1" StringFormat="N0" NumericInputMode="All"
+                                                         Binding="{Binding Path=TargetWidth, TargetNullValue='', Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                <mah:DataGridNumericUpDownColumn Header="Target height" Interval="1" StringFormat="N0" NumericInputMode="All"
+                                                         Binding="{Binding Path=TargetHeight, TargetNullValue='', Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                <mah:DataGridNumericUpDownColumn Header="FPS" Interval="5" NumericInputMode="All" StringFormat="N0"
+                                                         Binding="{Binding Path=FPS, TargetNullValue='', Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                <DataGridCheckBoxColumn Header="Use target size"
+                                                         Binding="{Binding Path=UseTargetSize, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                <mah:DataGridNumericUpDownColumn Header="Target size" Interval="0.1" StringFormat="N2" NumericInputMode="All"
+                                                         Binding="{Binding Path=TargetSize, TargetNullValue='', Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                <DataGridTemplateColumn Header="Video codec">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <ComboBox mah:TextBoxHelper.ClearTextButton="True" mah:TextBoxHelper.ButtonCommand="{Binding Path=ClearVideoCodecCommand}"
+                                      ItemsSource="{Binding Source={x:Static types:VideoCodec.SupportedCodecs}}"
+                                      SelectedIndex="{Binding Path=VideoCodecIndex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <DataGridTemplateColumn Header="Audio codec">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <ComboBox mah:TextBoxHelper.ClearTextButton="True" mah:TextBoxHelper.ButtonCommand="{Binding Path=ClearAudioCodecCommand}" 
+                                      ItemsSource="{Binding Source={x:Static types:AudioCodec.SupportedCodecs}}"
+                                      SelectedIndex="{Binding Path=AudioCodecIndex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <DataGridTemplateColumn Header="Output format">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <ComboBox mah:TextBoxHelper.ClearTextButton="True" mah:TextBoxHelper.ButtonCommand="{Binding Path=ClearOutputFormatCommand}" 
+                                      ItemsSource="{Binding Source={x:Static viewmodel:OutputFormatViewModel.SupportedFormats}}"
+                                      SelectedIndex="{Binding Path=OutputFormatIndex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                <ComboBox.GroupStyle>
+                                    <GroupStyle>
+                                        <GroupStyle.HeaderTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Name}"/>
+                                            </DataTemplate>
+                                        </GroupStyle.HeaderTemplate>
+                                    </GroupStyle>
+                                </ComboBox.GroupStyle>
+                            </ComboBox>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+        <Separator Grid.Row="1" />
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto" />
+                <ColumnDefinition Width="auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="auto" />
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="0" Margin="2" 
+                            Command="{Binding Path=DeleteSelectedCommand}"
+                            IsEnabled="{Binding Path=HasSelected}">
+                <StackPanel Orientation="Horizontal" >
+                    <iconPacks:PackIconMaterialDesign Kind="Delete" Margin="0 0 8 0" VerticalAlignment="Center" />
+                    <TextBlock Text="Delete selected" />
+                </StackPanel>
+            </Button>
+
+            <Button Grid.Column="1" Margin="2" Command="{Binding Path=RestoreDefaultsCommand}">
+                <StackPanel Orientation="Horizontal" >
+                    <iconPacks:PackIconMaterialDesign Kind="Restore" Margin="0 0 8 0" VerticalAlignment="Center" />
+                    <TextBlock Text="Restore default presets" />
+                </StackPanel>
+            </Button>
+
+            <Button Grid.Column="3" Margin="2" Command="{Binding Path=CreateNewCommand}">
+                <StackPanel Orientation="Horizontal" >
+                    <iconPacks:PackIconMaterialDesign Kind="Add" Margin="0 0 8 0" VerticalAlignment="Center" />
+                    <TextBlock Text="Create new preset" />
+                </StackPanel>
+            </Button>
+        </Grid>
+    </Grid>
+</mah:MetroWindow>

@@ -3,11 +3,13 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:Clipple.View"
+             xmlns:local="clr-namespace:Clipple"
+             xmlns:views="clr-namespace:Clipple.View"
+             xmlns:types="clr-namespace:Clipple.Types"
              xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls" 
              xmlns:viewmodel="clr-namespace:Clipple.ViewModel" 
              xmlns:converters="clr-namespace:Clipple.Converters"
-             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks" 
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=viewmodel:ClipViewModel}" d:DesignWidth="350" >
     <UserControl.Resources>
@@ -62,11 +64,43 @@
             <TextBox Grid.Column="1" Grid.ColumnSpan="3" Grid.Row="2" Margin="2" IsReadOnly="True" Text="{Binding Path=Duration, Mode=OneWay, StringFormat=hh\\:mm\\:ss\\.fff}" />
         </Grid>
 
+        <mah:MetroHeader Margin="2 10 0 2" Header="Preset"/>
+        <Separator Margin="0 0 0 8" />
+
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="auto" />
+            </Grid.ColumnDefinitions>
+            <ComboBox Grid.Column="0" Margin="2" mah:TextBoxHelper.UseFloatingWatermark="True" mah:TextBoxHelper.Watermark="Preset" 
+                          ItemsSource="{Binding Source={x:Static local:App.ViewModel}, Path=ClipPresetsViewModel.Presets}" 
+                          SelectedItem="{Binding Path=TranscodingPreset, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                          SelectedIndex="{Binding Path=TranscodingPresetIndex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                          DisplayMemberPath="Name">
+                <ComboBox.GroupStyle>
+                    <GroupStyle>
+                        <GroupStyle.HeaderTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Name}"/>
+                            </DataTemplate>
+                        </GroupStyle.HeaderTemplate>
+                    </GroupStyle>
+                </ComboBox.GroupStyle>
+            </ComboBox>
+
+            <Button Grid.Column="1" Command="{Binding Path=OpenPresetManagerCommand}" Margin="2">
+                <StackPanel Orientation="Horizontal">
+                    <iconPacks:PackIconMaterialDesign Kind="Settings" VerticalAlignment="Center" Margin="0 0 8 0" />
+                    <TextBlock Text="Edit" />
+                </StackPanel>
+            </Button>
+        </Grid>
         <mah:MetroHeader Margin="2 10 0 2" Header="Output format"/>
         <Separator Margin="0 0 0 8" />
 
         <ComboBox Margin="2" 
-                  ItemsSource="{Binding Path=SupportedOutputFormats}"
+                  ItemsSource="{Binding Source={x:Static viewmodel:OutputFormatViewModel.SupportedFormats}}"
                   SelectedItem="{Binding Path=OutputFormat}"
                   SelectedIndex="{Binding Path=OutputFormatIndex}">
             <ComboBox.GroupStyle>
@@ -79,26 +113,6 @@
                 </GroupStyle>
             </ComboBox.GroupStyle>
         </ComboBox>
-        <mah:MetroHeader Margin="2 10 0 2" Header="Transcoding presets"/>
-        <Separator Margin="0 0 0 8" />
-        
-
-        <ComboBox Margin="2" mah:TextBoxHelper.UseFloatingWatermark="True" mah:TextBoxHelper.Watermark="Transoding preset" 
-                          ItemsSource="{Binding Path=TranscodingPresets}" 
-                          SelectedItem="{Binding Path=TranscodingPreset}"
-                          SelectedIndex="{Binding Path=TranscodingPresetIndex}"
-                          DisplayMemberPath="Name">
-            <ComboBox.GroupStyle>
-                <GroupStyle>
-                    <GroupStyle.HeaderTemplate>
-                        <DataTemplate>
-                            <TextBlock Text="{Binding Name}"/>
-                        </DataTemplate>
-                    </GroupStyle.HeaderTemplate>
-                </GroupStyle>
-            </ComboBox.GroupStyle>
-        </ComboBox>
-
 
         <mah:MetroHeader Margin="2 10 0 2" Header="Other"/>
         <Separator Margin="0 0 0 8" />
@@ -124,7 +138,14 @@
 
                 <mah:MetroHeader Margin="2 10 0 2" Header="Resolution"/>
                 <Separator Margin="0 0 0 8" />
-                
+
+                <CheckBox Margin="2" IsChecked="{Binding Path=UseSourceResolution}">
+                    <TextBlock>
+                        <Run Text="Use source resolution"/>
+                        (<Run Text="{Binding Path=SourceWidth, Mode=OneWay}"  />x<Run Text="{Binding Path=SourceHeight, Mode=OneWay}" />)
+                    </TextBlock>
+                </CheckBox>
+
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -133,10 +154,12 @@
 
                     <TextBox Margin="2" Grid.Column="0" 
                              mah:TextBoxHelper.UseFloatingWatermark="True" mah:TextBoxHelper.Watermark="Width"
-                             Text="{Binding Path=TargetWidth}"/>
+                             Text="{Binding Path=TargetWidth}"
+                             IsEnabled="{Binding Path=UseSourceResolution, Converter={StaticResource InverseBooleanConverter}}"/>
                     <TextBox Margin="2" Grid.Column="1" 
                              mah:TextBoxHelper.UseFloatingWatermark="True" mah:TextBoxHelper.Watermark="Height" 
-                             Text="{Binding Path=TargetHeight}"/>
+                             Text="{Binding Path=TargetHeight}"
+                             IsEnabled="{Binding Path=UseSourceResolution, Converter={StaticResource InverseBooleanConverter}}"/>
                 </Grid>
 
 
@@ -158,13 +181,20 @@
                 <mah:MetroHeader Margin="2 10 0 2" Header="Other"/>
                 <Separator Margin="0 0 0 8" />
 
+                <CheckBox Margin="2" IsChecked="{Binding Path=UseSourceFPS}">
+                    <TextBlock>
+                        <Run Text="Use source FPS"/>
+                        (<Run Text="{Binding Path=SourceFPS, Mode=OneWay}"  />fps)
+                    </TextBlock>
+                </CheckBox>
+
                 <mah:NumericUpDown Minimum="5" Interval="5" Margin="2" mah:TextBoxHelper.UseFloatingWatermark="True" mah:TextBoxHelper.Watermark="FPS" 
-                                   Maximum="{Binding Path=SourceFPS}" 
-                                   Value="{Binding Path=TargetFPS}"/>
+                                   Value="{Binding Path=TargetFPS}"
+                                   IsEnabled="{Binding Path=UseSourceFPS, Converter={StaticResource InverseBooleanConverter}}"/>
 
                 <ComboBox Margin="2" mah:TextBoxHelper.UseFloatingWatermark="True" mah:TextBoxHelper.Watermark="Codec" 
                           ToolTipService.InitialShowDelay="100" ToolTip="Use libx264 if unsure"
-                          ItemsSource="{Binding Path=SupportedVideoCodecs}"
+                          ItemsSource="{Binding Source={x:Static types:VideoCodec.SupportedCodecs}}"
                           SelectedItem="{Binding Path=VideoCodec}" />
             </StackPanel>
         </Expander>
@@ -204,6 +234,7 @@
                 <mah:MetroHeader  Margin="2 10 0 2" Header="Track settings"/>
                 <Separator Margin="0 0 0 8" />
 
+
                 <CheckBox Margin="2 0 2 2" Content="Merge audio tracks?" IsChecked="{Binding Path=MergeAudio}" IsEnabled="{Binding Path=OutputFormat.SupportsVideo}" />
 
                 <mah:MetroHeader  Margin="2 10 0 2" Header="Quality"/>
@@ -213,6 +244,14 @@
                                    ToolTipService.InitialShowDelay="100" ToolTip="kilobits/second"
                                    mah:TextBoxHelper.UseFloatingWatermark="True" mah:TextBoxHelper.Watermark="Audio bitrate" 
                                    Value="{Binding Path=AudioBitrate}"/>
+
+                <mah:MetroHeader  Margin="2 10 0 2" Header="Other"/>
+                <Separator Margin="0 0 0 8" />
+
+                <ComboBox Margin="2" mah:TextBoxHelper.UseFloatingWatermark="True" mah:TextBoxHelper.Watermark="Audio codec" mah:TextBoxHelper.ClearTextButton="True"
+                          ToolTipService.InitialShowDelay="100" ToolTip="Use libopus if unsure"
+                          ItemsSource="{Binding Source={x:Static types:AudioCodec.SupportedCodecs}}"
+                          SelectedItem="{Binding Path=AudioCodec}" />
             </StackPanel>
         </Expander>
         <Expander Header="Encoding" Margin="0 0 0 4">

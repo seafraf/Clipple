@@ -52,7 +52,7 @@ namespace Clipple.ViewModel
         private int? targetFPS = null;
         public int? TargetFPS
         {
-            get => Math.Max(1, Math.Min(targetFPS ?? SourceFPS, SourceFPS));
+            get => useSourceFPS ? SourceFPS : (targetFPS ?? SourceFPS);
             set => SetProperty(ref targetFPS, value);
         }
 
@@ -62,7 +62,7 @@ namespace Clipple.ViewModel
         private int? targetWidth = null;
         public int? TargetWidth
         {
-            get => Math.Max(1, Math.Min(targetWidth ?? SourceWidth, SourceWidth));
+            get => useSourceResolution ? SourceWidth : (targetWidth ?? SourceWidth);
             set
             {
                 ResolutionPreset = null;
@@ -76,7 +76,7 @@ namespace Clipple.ViewModel
         private int? targetHeight = null;
         public int? TargetHeight
         {
-            get => Math.Max(1, Math.Min(targetHeight ?? SourceHeight, SourceHeight));
+            get => useSourceResolution ? SourceHeight : (targetHeight ?? SourceHeight);
             set
             {
                 ResolutionPreset = null;
@@ -155,19 +155,5 @@ namespace Clipple.ViewModel
             get => videoCodec;
             set => SetProperty(ref videoCodec, value);
         }
-
-        /// <summary>
-        /// List of supported video encoders.  This is not the full list that ffmpeg supports, but the list that is confirmed 
-        /// to work with the options provided in Clipple
-        /// </summary>
-        [JsonIgnore]
-        public ObservableCollection<string> SupportedVideoCodecs { get; } = new()
-        {
-            "libx264",
-            "libx265",
-            "libaom-av1",
-            "libvpx-vp9",
-            "libvpx"
-        };
     }
 }

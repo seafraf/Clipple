@@ -126,7 +126,8 @@ namespace Clipple.ViewModel
                 Application.ProductName);
 
             var settingsFile = Path.Combine(applicationData, SettingsFileName);
-            var videosFile = Path.Combine(applicationData, VideosFileName);
+            var videosFile   = Path.Combine(applicationData, VideosFileName);
+            var presetsFile  = Path.Combine(applicationData, ClipPresetsFileName);
 
             try
             {
@@ -139,7 +140,8 @@ namespace Clipple.ViewModel
             }
             catch (Exception e)
             {
-                App.Logger.LogError($"Failed to deserialize settings", e);
+                if (File.Exists(settingsFile))
+                    App.Logger.LogError($"Failed to deserialize settings", e);
 
                 // Use default settings if disk settings failed to load
                 SettingsViewModel ??= new SettingsViewModel();
@@ -161,7 +163,27 @@ namespace Clipple.ViewModel
             }
             catch (Exception e)
             {
-                App.Logger.LogError($"Failed to deserialize videos", e);
+                if (File.Exists(videosFile))
+                    App.Logger.LogError($"Failed to deserialize videos", e);
+            }
+
+            try
+            {
+                stopwatch.Start();
+                var presetsFileReader = new FileStream(presetsFile, FileMode.Open);
+                clipPresetsViewModel = JsonSerializer.Deserialize<ClipPresetsViewModel>(presetsFileReader) ?? throw new Exception();
+
+
+                stopwatch.Stop();
+                App.Logger.Log($"Deserialized clip presets in {stopwatch.ElapsedMilliseconds}ms");
+            }
+            catch (Exception e)
+            {
+                if (File.Exists(presetsFile))
+                    App.Logger.LogError($"Failed to deserialize clip presets", e);
+
+                // Use default presets if disk settings failed to load
+                clipPresetsViewModel ??= new ClipPresetsViewModel(true);
             }
 
             // Update timer now that settings are loaded
@@ -211,7 +233,8 @@ namespace Clipple.ViewModel
                 Directory.CreateDirectory(applicationData);
 
             var settingsFile = Path.Combine(applicationData, SettingsFileName);
-            var videosFile = Path.Combine(applicationData, VideosFileName);
+            var videosFile   = Path.Combine(applicationData, VideosFileName);
+            var presetsFile  = Path.Combine(applicationData, ClipPresetsFileName);
 
             var stopwatch = Stopwatch.StartNew();
 
@@ -241,6 +264,20 @@ namespace Clipple.ViewModel
             catch (Exception e)
             {
                 App.Logger.LogError($"Failed to serialize videos", e);
+            }
+
+            try
+            {
+                stopwatch.Start();
+                using var presetsWriter = new FileStream(presetsFile, FileMode.Create);
+                await JsonSerializer.SerializeAsync(presetsWriter, ClipPresetsViewModel);
+
+                stopwatch.Stop();
+                App.Logger.Log($"Serialized clip presets in {stopwatch.ElapsedMilliseconds}ms");
+            }
+            catch (Exception e)
+            {
+                App.Logger.LogError($"Failed to serialize clip presets", e);
             }
         }
 
@@ -396,6 +433,13 @@ namespace Clipple.ViewModel
             set => SetProperty(ref updateViewModel, value);
         }
 
+        private ClipPresetsViewModel clipPresetsViewModel;
+        public ClipPresetsViewModel ClipPresetsViewModel
+        {
+            get => clipPresetsViewModel;
+            set => SetProperty(ref clipPresetsViewModel, value);
+        }
+
         /// <summary>
         /// Does any video have any clips?
         /// </summary>
@@ -443,6 +487,7 @@ namespace Clipple.ViewModel
         #region Member
         private const string SettingsFileName = "settings.json";
         private const string VideosFileName = "videos.json";
+        private const string ClipPresetsFileName = "clip-presets.json";
         #endregion
     }
 }
