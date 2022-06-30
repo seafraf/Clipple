@@ -26,6 +26,7 @@
                 <CheckBox Content="Mark new videos for deletion automatically" Margin="2" IsChecked="{Binding Path=DefaultDeleteVideos}" />
                 <CheckBox Content="Mark new clips for removal automatically" Margin="2" IsChecked="{Binding Path=DefaultRemoveClips}"/>
                 <CheckBox Content="Start clip processing automatically" Margin="2" IsChecked="{Binding Path=StartProcessingAutomatically}" />
+                <CheckBox Content="Convert Microphone input to mono by default (experimental)" Margin="2" IsChecked="{Binding Path=DefaultMicrophoneMono}" />
             </StackPanel> 
         </Expander>
         <Expander Header="Persistence" >

@@ -78,6 +78,13 @@ namespace Clipple.ViewModel
             set => SetProperty(ref startProcessingAutomatically, value);
         }
 
+        private bool defaultMicrophoneMono = true;
+        public bool DefaultMicrophoneMono
+        {
+            get => defaultMicrophoneMono;
+            set => SetProperty(ref defaultMicrophoneMono, value);
+        }
+
         private bool autoSave = true;
         public bool AutoSave
         {

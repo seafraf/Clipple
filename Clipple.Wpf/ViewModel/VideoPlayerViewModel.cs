@@ -10,6 +10,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -375,6 +376,7 @@ namespace Clipple.ViewModel
                 {
                     IsEnabled   = !player.IsMuted,
                     Volume      = (int)player.Volume,
+                    ConvertMono = App.ViewModel.SettingsViewModel.DefaultMicrophoneMono && Regex.IsMatch(player.Name, ".*(([Mm]ic)|([Dd]isc)|([Tt]eam[Sspeak])|([Tt][Ss])|([Vv]oice)).*")
                 });
             }
 
