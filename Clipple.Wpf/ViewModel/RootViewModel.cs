@@ -113,9 +113,14 @@ namespace Clipple.ViewModel
             Videos.CollectionChanged += (s, e) =>
             {
                 // If the user has not selected a video yet, or if the selected video was removed, select a new video for the user if possible
-                if (SelectedVideo == null || (e.OldItems != null && e.Action == NotifyCollectionChangedAction.Remove && e.OldItems.Contains(SelectedVideo)))
+                if (SelectedVideo == null)
                 {
                     SelectedVideo = Videos.FirstOrDefault();
+                }
+                else if (e.OldItems != null && e.Action == NotifyCollectionChangedAction.Remove && e.OldItems.Contains(SelectedVideo))
+                {
+                    // Try to select a video closest to where the last selected index 
+                    SelectedVideo = Videos.ElementAtOrDefault(Math.Min(videos.Count - 1, e.OldStartingIndex));
                 }
 
                 OnPropertyChanged(nameof(HasClips));

@@ -1,6 +1,7 @@
 ﻿using Clipple.ViewModel;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -29,6 +30,16 @@ namespace Clipple.View
         private void OnSelected(object sender, MouseButtonEventArgs e)
         {
             App.ViewModel.SelectedVideo = (VideoViewModel)DataContext;
+        }
+
+        private void OnRequestNavigate(object sender, RequestNavigateEventArgs e)
+        {
+            Process.Start(new ProcessStartInfo("explorer.exe")
+            {
+                UseShellExecute = true,
+                Arguments = $"/select,\"{e.Uri.AbsoluteUri}\""
+            });
+            e.Handled = true;
         }
     }
 }

@@ -58,7 +58,11 @@
                     <TextBlock Text="Clips" Margin="2"/>
                 </StackPanel>
                 <StackPanel VerticalAlignment="Center" Grid.Column="1">
-                    <TextBlock Text="{Binding Path=FileInfo.FullName}" Margin="2" />
+                    <TextBlock Grid.Column="0" VerticalAlignment="Bottom" Margin="2">
+                        <Hyperlink NavigateUri="{Binding Path=FileInfo.FullName}" RequestNavigate="OnRequestNavigate">
+                            <TextBlock Text="{Binding Path=FileInfo.FullName}" />
+                        </Hyperlink>
+                    </TextBlock>
                     <TextBlock Text="{Binding Path=FileSize}"  Margin="2" />
                     <TextBlock Margin="2">
                         <Run Text="{Binding Path=VideoWidth}" />

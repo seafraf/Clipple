@@ -117,10 +117,10 @@
                                         <ColumnDefinition Width="auto" />
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="0" VerticalAlignment="Bottom" Margin="4">
-                                            <Hyperlink NavigateUri="{Binding Path=VideoViewModel.URI}" RequestNavigate="OnRequestNavigate">
-                                                <TextBlock Text="{Binding Path=VideoViewModel.FileInfo.FullName}" />
-                                            </Hyperlink>
-                                        </TextBlock>
+                                        <Hyperlink NavigateUri="{Binding Path=VideoViewModel.URI}" RequestNavigate="OnRequestNavigate">
+                                            <TextBlock Text="{Binding Path=VideoViewModel.FileInfo.FullName}" />
+                                        </Hyperlink>
+                                    </TextBlock>
                                     <StackPanel Grid.Column="1" Orientation="Horizontal">
                                         <TextBlock Grid.Column="0" VerticalAlignment="Bottom" Margin="4">
                                                 <Hyperlink NavigateUri="{Binding Path=Clip.URI}" RequestNavigate="OnRequestNavigate">
@@ -195,7 +195,9 @@
                 <ItemsControl ItemsSource="{Binding Path=PostProcessingActions}" >
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <CheckBox Content="{Binding Path=PostProcessingAction.LongDescription}" IsChecked="{Binding Path=IsSelected}" Style="{StaticResource MahApps.Styles.CheckBox.Win10}"  />
+                            <CheckBox IsChecked="{Binding Path=IsSelected}" Style="{StaticResource MahApps.Styles.CheckBox.Win10}">
+                                <TextBlock Text="{Binding Path=PostProcessingAction.LongDescription}" TextWrapping="Wrap" />
+                            </CheckBox>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>

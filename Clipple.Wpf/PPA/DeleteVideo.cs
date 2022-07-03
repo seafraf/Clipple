@@ -16,7 +16,7 @@ namespace Clipple.PPA
         {
         }
 
-        public override string LongDescription => $"Delete {Video.FileInfo.FullName}";
+        public override string LongDescription => $"Delete {Video.FileInfo.FullName} ({string.Join(", ", Video.Clips.Select(x => $"\"{x.Title}\""))})";
 
         public override string ShortDescription => $"Permanently delete the video";
 
