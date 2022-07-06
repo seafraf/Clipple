@@ -4,6 +4,7 @@ using MahApps.Metro.Controls;
 using Microsoft.Toolkit.Mvvm.Input;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
@@ -34,6 +35,24 @@ namespace Clipple.View
 
             // Update key bindings when the settings change
             vm.SettingsViewModel.PropertyChanged += (s, e) => UpdateKeyBindings();
+
+            // Load ingest resources
+            var ingestResource = vm.SettingsViewModel.IngestAutomatically ? vm.SettingsViewModel.IngestFolder : null;
+
+            // Handle CLI input path/video
+            var args = Environment.GetCommandLineArgs();
+            if (args.Length > 1)
+                ingestResource = args[1];
+
+            if (ingestResource != null)
+            {
+                if (Directory.Exists(ingestResource))
+                {
+                    vm.AddVideosFromFolder(ingestResource);
+                }
+                else if (File.Exists(ingestResource))
+                    vm.AddVideo(ingestResource);
+            }
         }
 
         private void UpdateKeyBindings()

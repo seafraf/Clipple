@@ -195,23 +195,6 @@ namespace Clipple.ViewModel
             App.AutoSaveTimer.Interval = SettingsViewModel.AutoSaveFrequency * 1000;
             App.AutoSaveTimer.Start();
 
-            var ingestResource = SettingsViewModel.IngestAutomatically ? SettingsViewModel.IngestFolder : null;
-
-            // Handle CLI input path/video
-            var args = Environment.GetCommandLineArgs();
-            if (args.Length > 1)
-                ingestResource = args[1];
-
-            if (ingestResource != null)
-            {
-                if (Directory.Exists(ingestResource))
-                {
-                    AddVideosFromFolder(ingestResource);
-                }
-                else if (File.Exists(ingestResource))
-                    AddVideo(ingestResource);
-            }
-
             // Check for updates every 5 minutes
             var updateTimer = new DispatcherTimer();
             updateTimer.Tick += async (s, e) => await UpdateViewModel.CheckForUpdate();
@@ -297,7 +280,8 @@ namespace Clipple.ViewModel
                 return false;
 
             var failed = false;
-            foreach (var file in Directory.GetFiles(folder))
+            var files = Directory.GetFiles(folder, "*", SearchOption.AllDirectories).Where(x => VideoExtensions.Any(ext => x.EndsWith(ext)));
+            foreach (var file in files)
             {
                 if (!AddVideo(file))
                     failed = true;
@@ -493,6 +477,7 @@ namespace Clipple.ViewModel
         private const string SettingsFileName = "settings.json";
         private const string VideosFileName = "videos.json";
         private const string ClipPresetsFileName = "clip-presets.json";
+        private readonly string[] VideoExtensions = { ".mp4", ".mkv", ".webm", ".flv", ".vob", ".drc", ".avi", ".mov", ".wmv", ".yuv", ".m4v", ".mpeg", ".mpg", ".f4v" };
         #endregion
     }
 }
