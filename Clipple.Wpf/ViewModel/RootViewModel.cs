@@ -224,16 +224,10 @@ namespace Clipple.ViewModel
             var videosFile   = Path.Combine(applicationData, VideosFileName);
             var presetsFile  = Path.Combine(applicationData, ClipPresetsFileName);
 
-            var stopwatch = Stopwatch.StartNew();
-
             try
             {
-                stopwatch.Start();
                 using var settingsWriter = new FileStream(settingsFile, FileMode.Create);
                 await JsonSerializer.SerializeAsync(settingsWriter, SettingsViewModel);
-
-                stopwatch.Stop();
-                App.Logger.Log($"Serialized settings in {stopwatch.ElapsedMilliseconds}ms");
             }
             catch (Exception e)
             {
@@ -242,12 +236,8 @@ namespace Clipple.ViewModel
 
             try
             {
-                stopwatch.Start();
                 using var videosWriter = new FileStream(videosFile, FileMode.Create);
                 await JsonSerializer.SerializeAsync(videosWriter, Videos);
-
-                stopwatch.Stop();
-                App.Logger.Log($"Serialized videos in {stopwatch.ElapsedMilliseconds}ms");
             }
             catch (Exception e)
             {
@@ -256,12 +246,8 @@ namespace Clipple.ViewModel
 
             try
             {
-                stopwatch.Start();
                 using var presetsWriter = new FileStream(presetsFile, FileMode.Create);
                 await JsonSerializer.SerializeAsync(presetsWriter, ClipPresetsViewModel);
-
-                stopwatch.Stop();
-                App.Logger.Log($"Serialized clip presets in {stopwatch.ElapsedMilliseconds}ms");
             }
             catch (Exception e)
             {
