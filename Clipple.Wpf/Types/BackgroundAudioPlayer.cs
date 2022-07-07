@@ -98,6 +98,17 @@ namespace Clipple.Types
             }
         }
 
+        private double playbackSpeed;
+        public double PlaybackSpeed
+        {
+            get => playbackSpeed;
+            set
+            {
+                SetProperty(ref playbackSpeed, value);
+                player.Speed = value;
+            }
+        }
+
         private Player player;
         public Player Player
         {

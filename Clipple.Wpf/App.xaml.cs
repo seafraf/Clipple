@@ -49,12 +49,6 @@ namespace Clipple
         /// </summary>
         public static string LibPath { get; } = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Binaries", Environment.Is64BitProcess ? "64" : "32");
 
-        public static bool VideoPlayerVisible
-        {
-            get => ViewModel.VideoPlayerViewModel.VideoVisibility == Visibility.Visible;
-            set => ViewModel.VideoPlayerViewModel.VideoVisibility = value ? Visibility.Visible : Visibility.Hidden;
-        }
-
         public static Timer AutoSaveTimer { get; } = new Timer();
 
         public App()

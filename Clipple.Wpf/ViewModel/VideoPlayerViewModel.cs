@@ -8,12 +8,16 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace Clipple.ViewModel
 {
@@ -116,8 +120,10 @@ namespace Clipple.ViewModel
             MediaPlayer.ShowFrame(0);
 
             // Load settings from previous video state
-            Volume  = videoState.Volume;
-            IsMuted = videoState.Muted;
+            Volume          = videoState.Volume;
+            IsMuted         = videoState.Muted;
+            PlaybackSpeed   = videoState.PlaybackSpeed;
+
             MediaPlayer.SeekAccurate((int)videoState.CurTime.TotalMilliseconds);
         }
 
@@ -147,6 +153,9 @@ namespace Clipple.ViewModel
         }
 
         #region Properties
+        /// <summary>
+        /// Current video time in Flyleaf format
+        /// </summary>
         public long CurTime
         {
             get => MediaPlayer.CurTime;
@@ -157,29 +166,25 @@ namespace Clipple.ViewModel
             }
         }
 
+        /// <summary>
+        /// Current video time in TimeSpan format
+        /// </summary>
         public TimeSpan VideoCurrentTime
         {
             get => TimeSpan.FromTicks(MediaPlayer.CurTime);
         }
 
+        /// <summary>
+        /// Duration of the currently loaded video
+        /// </summary>
         public TimeSpan VideoDuration
         {
             get => TimeSpan.FromTicks(MediaPlayer.Duration);
         }
 
-        private Visibility videoVisibility = Visibility.Visible;
-        public Visibility VideoVisibility
-        {
-            get => videoVisibility;
-            set
-            {
-                if (value != Visibility.Visible && MediaPlayer.IsPlaying)
-                    MediaPlayer.Pause();
-
-                SetProperty(ref videoVisibility, value);
-            }
-        }
-
+        /// <summary>
+        /// Current video's FPS
+        /// </summary>
         private int videoFPS;
         public int VideoFPS
         {
@@ -190,6 +195,9 @@ namespace Clipple.ViewModel
             }
         }
 
+        /// <summary>
+        /// Current video's width in pixels
+        /// </summary>
         private int videoWidth;
         public int VideoWidth
         {
@@ -197,6 +205,9 @@ namespace Clipple.ViewModel
             set => SetProperty(ref videoWidth, value);
         }
 
+        /// <summary>
+        /// Current video's height in pixels
+        /// </summary>
         private int videoHeight;
         public int VideoHeight
         {
@@ -204,6 +215,9 @@ namespace Clipple.ViewModel
             set => SetProperty(ref videoHeight, value);
         }
 
+        /// <summary>
+        /// Volume, between 0 and 100.  Setting this will change the volumes of the background audio players
+        /// </summary>
         private double volume = 100.0;
         public double Volume
         {
@@ -219,6 +233,9 @@ namespace Clipple.ViewModel
             }
         }
 
+        /// <summary>
+        /// Whether or not the video is muted.  Setting this will change the muted state of the background audio players
+        /// </summary>
         private bool isMuted = false;
         public bool IsMuted
         {
@@ -229,12 +246,34 @@ namespace Clipple.ViewModel
                 foreach (var audioPlayer in AudioPlayers)
                     audioPlayer.BaseMuted = value;
 
-
                 if (Video != null)
                     Video.VideoState.Muted = value;
             }
         }
 
+        /// <summary>
+        /// Video and audio playback speed.
+        /// </summary>
+        private double playbackSpeed = 1.0;
+        public double PlaybackSpeed
+        {
+            get => playbackSpeed;
+            set
+            {
+                SetProperty(ref playbackSpeed, value);
+
+                MediaPlayer.Speed = value;
+                foreach (var audioPlayer in AudioPlayers)
+                    audioPlayer.PlaybackSpeed = value;
+
+                if (Video != null)
+                    Video.VideoState.PlaybackSpeed = value;
+            }
+        }
+
+        /// <summary>
+        /// Audio players for each audio stream in the video.  These are played asynchronously 
+        /// </summary>
         private BackgroundAudioPlayer[] audioPlayers = Array.Empty<BackgroundAudioPlayer>();
         public BackgroundAudioPlayer[] AudioPlayers
         {
@@ -242,6 +281,9 @@ namespace Clipple.ViewModel
             set => SetProperty(ref audioPlayers, value);
         }
 
+        /// <summary>
+        /// The currently loaded video
+        /// </summary>
         private VideoViewModel? video;
         public VideoViewModel? Video
         {
@@ -263,6 +305,9 @@ namespace Clipple.ViewModel
             }
         }
 
+        /// <summary>
+        /// Whether or not the controls for individual audio track settings is open
+        /// </summary>
         private bool isAudioSettingsOpen = false;
         public bool IsAudioSettingsOpen
         {
@@ -324,6 +369,51 @@ namespace Clipple.ViewModel
         public PackIconMaterialDesignKind ControlButtonIcon
         {
             get => MediaPlayer.IsPlaying ? PackIconMaterialDesignKind.Pause : PackIconMaterialDesignKind.PlayArrow;
+        }
+
+        private int overlayContentCount = 0;
+        public int OverlayContentCount
+        {
+            get => overlayContentCount;
+            set
+            {
+                SetProperty(ref overlayContentCount, value);
+
+                if (value == 1)
+                {
+                    if (MediaPlayer.IsPlaying)
+                        MediaPlayer.Pause();
+
+                    using (var bitmapStream = new MemoryStream())
+                    {
+                        // Generate bitmap from the last frame rendered in the video
+                        var bitmap = MediaPlayer.renderer.GetBitmap();
+                        bitmap.Save(bitmapStream, ImageFormat.Bmp);
+                        bitmapStream.Position = 0;
+
+                        // Source bitmap image with the formatted bitmap data
+                        var image = new BitmapImage();
+                        image.BeginInit();
+                        image.StreamSource = bitmapStream;
+                        image.CacheOption = BitmapCacheOption.OnLoad;
+                        image.EndInit();
+                        image.Freeze();
+
+                        // Use bitmap image as overlay
+                        OverlayFrame = image;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Last frame recorded when OverlayContentCount was increased
+        /// </summary>
+        private ImageSource? overlayFrame;
+        public ImageSource? OverlayFrame
+        {
+            get => overlayFrame;
+            set => SetProperty(ref overlayFrame, value);
         }
 
         /// <summary>
@@ -474,7 +564,8 @@ namespace Clipple.ViewModel
         /// </summary>
         public void TogglePlayPause()
         {
-            MediaPlayer.TogglePlayPause();
+            if (OverlayContentCount == 0)
+                MediaPlayer.TogglePlayPause();
         }
 
         /// <summary>
@@ -482,7 +573,8 @@ namespace Clipple.ViewModel
         /// </summary>
         public void Play()
         {
-            MediaPlayer.Play();
+            if (OverlayContentCount == 0)
+                MediaPlayer.Play();
         }
 
         /// <summary>
@@ -498,6 +590,9 @@ namespace Clipple.ViewModel
         /// </summary>
         public void ShowFrameNext()
         {
+            if (OverlayContentCount != 0)
+                return;
+            
             Pause();
 
             MediaPlayer.ShowFrameNext();
@@ -509,6 +604,9 @@ namespace Clipple.ViewModel
         /// </summary>
         public void ShowFramePrev()
         {
+            if (OverlayContentCount != 0)
+                return;
+
             Pause();
 
             MediaPlayer.ShowFramePrev();

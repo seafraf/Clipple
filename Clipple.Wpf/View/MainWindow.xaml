@@ -40,7 +40,7 @@
 
     <mah:MetroWindow.Flyouts>
         <mah:FlyoutsControl>
-            <mah:Flyout Header="Videos" IsOpen="{Binding Path=IsVideosFlyoutOpen}" Position="Left" Width="auto" MinWidth="1000" ClosingFinished="OnFlyoutClosed" Theme="Adapt">
+            <mah:Flyout Header="Videos" IsOpen="{Binding Path=IsVideosFlyoutOpen}" Position="Left" Width="auto" MinWidth="1000" IsOpenChanged="FlyoutIsOpenChanged" ClosingFinished="FlyoutClosingFinished" Theme="Adapt">
                 <ItemsControl ItemsSource="{Binding Path=Videos, Mode=TwoWay, IsAsync=True}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -63,7 +63,7 @@
                     </ItemsControl.Template>
                 </ItemsControl>
             </mah:Flyout>
-            <mah:Flyout Header="Settings" IsOpen="{Binding Path=IsSettingsFlyoutOpen}" Position="Right" Width="auto" ClosingFinished="OnFlyoutClosed" Theme="Adapt">
+            <mah:Flyout Header="Settings" IsOpen="{Binding Path=IsSettingsFlyoutOpen}" Position="Right" Width="auto" IsOpenChanged="FlyoutIsOpenChanged" ClosingFinished="FlyoutClosingFinished" Theme="Adapt">
                 <views:Settings DataContext="{Binding Path=SettingsViewModel}" />
             </mah:Flyout>
         </mah:FlyoutsControl>

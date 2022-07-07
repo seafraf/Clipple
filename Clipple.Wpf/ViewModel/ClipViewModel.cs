@@ -40,8 +40,7 @@ namespace Clipple.ViewModel
 
             DeleteCommand = new RelayCommand(async () =>
             {
-                var oldVisiblity = App.VideoPlayerVisible;
-                App.VideoPlayerVisible = false;
+                App.ViewModel.VideoPlayerViewModel.OverlayContentCount++;
 
                 if (await App.Window.ShowMessageAsync($"Delete {title}?",
                     "This action cannot be undone.", MessageDialogStyle.AffirmativeAndNegative) == MessageDialogResult.Affirmative)
@@ -49,7 +48,7 @@ namespace Clipple.ViewModel
                     App.ViewModel.SelectedVideo?.Clips.Remove(this);
                 }
 
-                App.VideoPlayerVisible = oldVisiblity;
+                App.ViewModel.VideoPlayerViewModel.OverlayContentCount--;
             });
 
             ProcessCommand = new RelayCommand(async () =>

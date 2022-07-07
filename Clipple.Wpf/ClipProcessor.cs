@@ -17,8 +17,7 @@ namespace Clipple
     {
         private static async Task OpenJobsDialog(params JobViewModel[] processingJobs)
         {
-            var oldVisiblity = App.VideoPlayerVisible;
-            App.VideoPlayerVisible = false;
+            App.ViewModel.VideoPlayerViewModel.OverlayContentCount++;
 
             ClipProcessingDialog? dialog = null;
             ClipProcessingDialogViewModel? vm = null;
@@ -40,7 +39,7 @@ namespace Clipple
             await dialog.WaitUntilUnloadedAsync();
             await dialog.WaitForCloseAsync();
 
-            App.VideoPlayerVisible = oldVisiblity;
+            App.ViewModel.VideoPlayerViewModel.OverlayContentCount--;
         }
 
         /// <summary>

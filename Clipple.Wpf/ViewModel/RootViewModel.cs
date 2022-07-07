@@ -56,7 +56,7 @@ namespace Clipple.ViewModel
                             var updateInfo  = UpdateViewModel.UpdateInfo;
                             if (manager != null && updateInfo != null)
                             {
-                                App.VideoPlayerVisible = false;
+                                App.ViewModel.VideoPlayerViewModel.OverlayContentCount++;
 
                                 var progressDialog = await App.Window.ShowProgressAsync("Please wait...", "Fetching updates");
                                 await manager.DownloadReleases(updateInfo.ReleasesToApply, (progress) =>
@@ -81,6 +81,8 @@ namespace Clipple.ViewModel
 
                                 // No need to bring back the video player since as we're restarting the app
                                 UpdateManager.RestartApp();
+
+                                App.ViewModel.VideoPlayerViewModel.OverlayContentCount--;
                             }
                         }),
                         new RelayCommand(() =>
@@ -379,26 +381,14 @@ namespace Clipple.ViewModel
         public bool IsVideosFlyoutOpen
         {
             get => isVideosFlyoutOpen;
-            set
-            {
-                if (value)
-                    VideoPlayerViewModel.VideoVisibility = System.Windows.Visibility.Hidden;
-
-                SetProperty(ref isVideosFlyoutOpen, value);
-            }
+            set => SetProperty(ref isVideosFlyoutOpen, value);
         }
 
         private bool isSettingsFlyoutOpen;
         public bool IsSettingsFlyoutOpen
         {
             get => isSettingsFlyoutOpen;
-            set
-            {
-                if (value)
-                    VideoPlayerViewModel.VideoVisibility = System.Windows.Visibility.Hidden;
-
-                SetProperty(ref isSettingsFlyoutOpen, value);
-            }
+            set => SetProperty(ref isSettingsFlyoutOpen, value);
         }
 
         private UpdateViewModel updateViewModel;

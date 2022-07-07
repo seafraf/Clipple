@@ -78,6 +78,7 @@ namespace Clipple.View
 
         #region Members
         private List<(HotKey, RelayCommand)> hotKeys;
+        private HashSet<Flyout> openFlyouts = new();
         #endregion
 
         private void OnDragOver(object sender, DragEventArgs e)
@@ -129,14 +130,6 @@ namespace Clipple.View
             }
         }
 
-        private void OnFlyoutClosed(object sender, RoutedEventArgs e)
-        {
-            var vm = (RootViewModel)DataContext;
-
-            if (!vm.IsSettingsFlyoutOpen && !vm.IsVideosFlyoutOpen)
-                App.VideoPlayerVisible = true;
-        }
-
         private async void OnClosing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             var vm = (RootViewModel)DataContext;
@@ -149,6 +142,25 @@ namespace Clipple.View
         {
             var dialog = new LogsView();
             dialog.ShowDialog();
+        }
+
+        private void FlyoutIsOpenChanged(object sender, RoutedEventArgs e)
+        {
+            var flyout = ((Flyout)sender);
+
+            if (flyout.IsOpen && !openFlyouts.Contains(flyout))
+            {
+                openFlyouts.Add(flyout);
+                App.ViewModel.VideoPlayerViewModel.OverlayContentCount++;
+            }
+        }
+
+        private void FlyoutClosingFinished(object sender, RoutedEventArgs e)
+        {
+            var flyout = ((Flyout)sender);
+
+            openFlyouts.Remove(flyout);
+            App.ViewModel.VideoPlayerViewModel.OverlayContentCount--;
         }
     }
 }

@@ -39,6 +39,11 @@ namespace Clipple.DataModel
         /// Whether or not individual tracks are muted.  The key is the audio stream's stream index.
         /// </summary>
         public Dictionary<int, bool> MutedTracks { get; set; } = new();
+
+        /// <summary>
+        /// Playback speed
+        /// </summary>
+        public double PlaybackSpeed { get; set; } = 1.0;
         #endregion
     }
 }

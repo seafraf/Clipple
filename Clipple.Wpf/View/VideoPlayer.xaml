@@ -15,6 +15,15 @@
              d:DesignHeight="1080" d:DesignWidth="1920" >
     <UserControl.Resources>
         <converters:InverseBooleanConverter x:Key="InverseBooleanConverter" />
+        <converters:ValueConverterGroup x:Key="InverseVisibilityGT0">
+            <converters:GreaterThanZeroConverter />
+            <converters:InverseBooleanConverter />
+            <BooleanToVisibilityConverter />
+        </converters:ValueConverterGroup>
+        <converters:ValueConverterGroup x:Key="VisibilityGT0">
+            <converters:GreaterThanZeroConverter />
+            <BooleanToVisibilityConverter />
+        </converters:ValueConverterGroup>
     </UserControl.Resources>
     <Grid>
         <Grid Visibility="{Binding Path=IsWaitingVideo, Converter={StaticResource BooleanToVisibilityConverter}}">
@@ -44,7 +53,10 @@
                 <RowDefinition Height="auto" />
             </Grid.RowDefinitions>
 
-            <fl:VideoView x:Name="videoView" Player="{Binding Path=MediaPlayer}" Visibility="{Binding Path=VideoVisibility}" Loaded="OnLoaded" />
+            <fl:VideoView x:Name="videoView" Player="{Binding Path=MediaPlayer}" Visibility="{Binding Path=OverlayContentCount, Converter={StaticResource InverseVisibilityGT0}}" />
+            <Grid Background="Black">
+                <Image Source="{Binding Path=OverlayFrame}" Visibility="{Binding Path=OverlayContentCount, Converter={StaticResource VisibilityGT0}}" Loaded="OnLoaded" />
+            </Grid>
 
             <Grid Margin="8 8 8 8" Grid.Row="1" VerticalAlignment="Bottom">
                 <Grid.RowDefinitions>
@@ -90,15 +102,17 @@
                             <ColumnDefinition Width="auto" />
                             <ColumnDefinition Width="*" MaxWidth="200" />
                             <ColumnDefinition Width="auto" />
+                            <ColumnDefinition Width="auto" />
                         </Grid.ColumnDefinitions>
                         <ToggleButton IsChecked="{Binding Path=IsMuted}" HorizontalAlignment="Left" Grid.Column="0" Width="32" Height="32" Style="{DynamicResource MahApps.Styles.ToggleButton.Circle}" ToolTip="Mute" Margin="0 0 4 0">
                             <iconPacks:MaterialDesign Width="20" Height="20" Kind="VolumeOff" />
                         </ToggleButton>
-                        <Slider IsMoveToPointEnabled="True" TickFrequency="5" Value="{Binding Path=Volume, Mode=TwoWay}" IsEnabled="{Binding Path=IsMuted, Mode=TwoWay, Converter={StaticResource InverseBooleanConverter}}" Minimum="0" Maximum="100" Style="{StaticResource MahApps.Styles.Slider.Flat}" TickPlacement="Both" Grid.Column="1" />
+                        <Slider Height="30" IsMoveToPointEnabled="True" TickFrequency="5" Value="{Binding Path=Volume, Mode=TwoWay}" IsEnabled="{Binding Path=IsMuted, Mode=TwoWay, Converter={StaticResource InverseBooleanConverter}}" Minimum="0" Maximum="100" Style="{StaticResource MahApps.Styles.Slider.Flat}" TickPlacement="Both" Grid.Column="1" />
 
                         <Button Grid.Column="2" Width="32" Height="32" x:Name="openAudioSettingsButton" Style="{DynamicResource MahApps.Styles.Button.Circle}" ToolTip="Open sound settings" Margin="4 0 0 0" Command="{Binding Path=OpenAudioSettings}" IsEnabled="{Binding Path=HasContent}" >
                             <iconPacks:MaterialDesign Kind="ViewList" />
                         </Button>
+                        <!--<mah:NumericUpDown Margin="8" Grid.Column="3" mah:TextBoxHelper.UseFloatingWatermark="True" mah:TextBoxHelper.Watermark="Playback speed" Value="{Binding Path=PlaybackSpeed}" Maximum="4" Minimum="0.25" Interval="0.25" StringFormat="N2" />-->
                     </Grid>
                     <StackPanel Grid.Column="1" Orientation="Horizontal">
                         <Button Width="48" Height="48" Style="{DynamicResource MahApps.Styles.Button.Circle}" ToolTip="Previous frame" Margin="0 0 4 0" Command="{Binding Source={x:Static local:AppCommands.PreviousFrameCommand}}" IsEnabled="{Binding Path=IsReady}">
