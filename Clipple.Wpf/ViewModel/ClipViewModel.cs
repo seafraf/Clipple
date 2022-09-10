@@ -13,6 +13,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 
@@ -117,7 +118,7 @@ namespace Clipple.ViewModel
         }
 
         /// <summary>
-        /// Clip start time in ticks (native format for the video player)
+        /// Clip start time in ticks
         /// </summary>
         private long startTicks;
         public long StartTicks
@@ -135,7 +136,7 @@ namespace Clipple.ViewModel
         }
 
         /// <summary>
-        /// Clip end time in ticks (native format for the video player)
+        /// Clip end time in ticks
         /// </summary>
         private long endTicks;
         public long EndTicks
@@ -179,6 +180,7 @@ namespace Clipple.ViewModel
         public TimeSpan Duration
         {
             get => TimeSpan.FromTicks(EndTicks - StartTicks);
+            set => EndTicks = StartTicks + value.Ticks;
         }
 
         /// <summary>

@@ -18,11 +18,11 @@ namespace Clipple.FFMPEG
     /// - Seeking to specific point using the input is considerably faster 
     /// - ffmpeg will only output stats for the last output processed, so there was no way of doing a progress bar using multiple outputs
     /// </summary>
-    public class Engine
+    public class ClipEngine
     {
-        public Engine(string executablePath, string inputPath, ClipViewModel clip, bool firstPass)
+        public ClipEngine(string inputPath, ClipViewModel clip, bool firstPass)
         {
-            ExecutablePath = executablePath;
+            ExecutablePath = Path.Combine(App.LibPath, "ffmpeg.exe");
 
             Input  = new MediaInput(inputPath, clip);
             Output = new MediaOutput(clip, firstPass);

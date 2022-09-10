@@ -5,6 +5,7 @@ using FlyleafLib.MediaPlayer;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -40,6 +41,18 @@ namespace Clipple.Types
                 IsMuted = VideoState.MutedTracks.GetValueOrDefault(streamIndex, false);
                 Volume = VideoState.TrackVolume.GetValueOrDefault(streamIndex, 100.0);
             };
+            player.BufferingStarted += Player_BufferingStarted;
+            player.BufferingCompleted += Player_BufferingCompleted;
+        }
+
+        private void Player_BufferingStarted(object? sender, EventArgs e)
+        {
+            Trace.WriteLine("buffere started");
+        }
+
+        private void Player_BufferingCompleted(object? sender, BufferingCompletedArgs e)
+        {
+            Trace.WriteLine("buffere completed");
         }
 
         #region Properties

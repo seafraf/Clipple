@@ -112,13 +112,12 @@ namespace Clipple.ViewModel
         {
             return async () =>
             {
-                var path      = Path.Combine(App.LibPath, "ffmpeg.exe");
                 var inputFile = job.VideoViewModel.FileInfo.FullName;
 
                 // Run first pass if required
                 if (job.Clip.TwoPassEncoding)
                 {
-                    var firstJob = new Engine(path, inputFile, job.Clip, true);
+                    var firstJob = new ClipEngine(inputFile, job.Clip, true);
                     firstJob.OnProcessStats += (s, e) => job.NotifyStats(e, true);
                     firstJob.OnOutput += (s, e) => job.RecordOutput(e);
 
@@ -136,7 +135,7 @@ namespace Clipple.ViewModel
                 }
 
                 // Run real job (first job ran if two pass is not enabled)
-                var mainJob = new Engine(path, inputFile, job.Clip, false);
+                var mainJob = new ClipEngine(inputFile, job.Clip, false);
                 mainJob.OnProcessStats += (s, e) => job.NotifyStats(e, false);
                 mainJob.OnOutput += (s, e) => job.RecordOutput(e);
 

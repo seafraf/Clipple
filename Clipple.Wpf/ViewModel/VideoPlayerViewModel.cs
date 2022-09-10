@@ -1,9 +1,11 @@
-﻿using Clipple.Types;
+﻿using Clipple.DataModel;
+using Clipple.Types;
 using FlyleafLib;
 using FlyleafLib.MediaPlayer;
 using MahApps.Metro.IconPacks;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
 using Microsoft.Toolkit.Mvvm.Input;
+using Microsoft.VisualBasic.Devices;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -44,6 +46,8 @@ namespace Clipple.ViewModel
     {
         public VideoPlayerViewModel()
         {
+            ZoomIn = new RelayCommand(() => Zoom = Math.Clamp(Zoom + 0.05, 0.0, 1.0));
+            ZoomOut = new RelayCommand(() => Zoom = Math.Clamp(Zoom - 0.05, 0.0, 1.0));
             AddClipCommand = new RelayCommand(CreateClip);
             OpenAudioSettings = new RelayCommand(() =>
             {
@@ -65,20 +69,7 @@ namespace Clipple.ViewModel
         private void OnActivityChanged(object? sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == "Status")
-            {
                 UpdateStatusProperties();
-                
-                if (MediaPlayer.Status == Status.Playing)
-                {
-                    foreach (var audio in AudioPlayers)
-                        audio.Player.Play();
-                }
-                else if (MediaPlayer.Status == Status.Paused)
-                {
-                    foreach (var audio in AudioPlayers)
-                        audio.Player.Pause();
-                }
-            }
 
             if (e.PropertyName == "CurTime")
                 UpdateTimeProperties();
@@ -124,7 +115,7 @@ namespace Clipple.ViewModel
             IsMuted         = videoState.Muted;
             PlaybackSpeed   = videoState.PlaybackSpeed;
 
-            MediaPlayer.SeekAccurate((int)videoState.CurTime.TotalMilliseconds);
+            MediaPlayer.CurTime = (long)(videoState.CurTime.TotalMilliseconds * TimeSpan.TicksPerMillisecond);
         }
 
         /// <summary>
@@ -159,11 +150,7 @@ namespace Clipple.ViewModel
         public long CurTime
         {
             get => MediaPlayer.CurTime;
-            set
-            {
-                MediaPlayer.SeekAccurate((int)(value / TimeSpan.TicksPerMillisecond));
-                SyncAudio();
-            }
+            set => MediaPlayer.CurTime = value;
         }
 
         /// <summary>
@@ -172,6 +159,7 @@ namespace Clipple.ViewModel
         public TimeSpan VideoCurrentTime
         {
             get => TimeSpan.FromTicks(MediaPlayer.CurTime);
+            set => MediaPlayer.CurTime = (long)(value.TotalMilliseconds * TimeSpan.TicksPerMillisecond);
         }
 
         /// <summary>
@@ -379,10 +367,10 @@ namespace Clipple.ViewModel
             {
                 SetProperty(ref overlayContentCount, value);
 
-                if (value == 1)
+                if (value == 1 && HasContent)
                 {
                     if (MediaPlayer.IsPlaying)
-                        MediaPlayer.Pause();
+                        Pause();
 
                     using (var bitmapStream = new MemoryStream())
                     {
@@ -421,11 +409,54 @@ namespace Clipple.ViewModel
         /// </summary>
         public Player MediaPlayer { get; }
 
+        /// <summary>
+        /// Set by the Timeline control when the user is dragging any of the controls, whilst dragging the media players
+        /// should be paused
+        /// </summary>
+        private bool isTimelineBusy = false;
+        private bool isPlayQueued   = false;
+        public bool IsTimelineBusy
+        {
+            get => isTimelineBusy;
+            set
+            {
+                if (isTimelineBusy == value)
+                    return;
+
+                SetProperty(ref isTimelineBusy, value);
+                if (value && MediaPlayer.IsPlaying)
+                {
+                    isPlayQueued = true;
+                    Pause();
+                }
+                else if (!value && isPlayQueued) 
+                {
+                    isPlayQueued = false;
+                    Play();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Zoom level for timeline.  0 - 1. 
+        /// 0: fit waveform in timeline size
+        /// 1: one to one pixel ratio with waveform resolution
+        /// </summary>
+        private double zoom = 0.0;
+        public double Zoom
+        {
+            get => zoom;
+            set => SetProperty(ref zoom, value);
+        }
         #endregion
 
         #region Commands
         public ICommand AddClipCommand { get; }
         public ICommand OpenAudioSettings { get; }
+
+        public ICommand ZoomIn { get; }
+
+        public ICommand ZoomOut { get; }
         #endregion
 
         #region Methods
@@ -438,8 +469,7 @@ namespace Clipple.ViewModel
             if (ticks > MediaPlayer.Duration)
                 return;
 
-            MediaPlayer.SeekAccurate((int)(ticks / TimeSpan.TicksPerMillisecond));
-            SyncAudio();
+            MediaPlayer.CurTime = ticks;
         }
 
         /// <summary>
@@ -541,7 +571,7 @@ namespace Clipple.ViewModel
         private string GetAudioTrackName(int streamID)
         {
             // Try to get the track names from the root viewmodel's videofile data
-            string? trackName = Video?.TrackNames.ElementAtOrDefault(streamID);
+            string? trackName = Video?.TrackNames?.ElementAtOrDefault(streamID);
             if (trackName != null)
                 return $"Track {streamID} - {trackName}";
 
@@ -564,6 +594,12 @@ namespace Clipple.ViewModel
         /// </summary>
         public void TogglePlayPause()
         {
+            // Sync audio before playing
+            SyncAudio();
+
+            foreach (var audio in AudioPlayers)
+                audio.Player.TogglePlayPause();
+
             if (OverlayContentCount == 0)
                 MediaPlayer.TogglePlayPause();
         }
@@ -573,6 +609,12 @@ namespace Clipple.ViewModel
         /// </summary>
         public void Play()
         {
+            // Sync audio before playing
+            SyncAudio();
+
+            foreach (var audio in AudioPlayers)
+                audio.Player.Play();
+
             if (OverlayContentCount == 0)
                 MediaPlayer.Play();
         }
@@ -582,6 +624,9 @@ namespace Clipple.ViewModel
         /// </summary>
         public void Pause()
         {
+            foreach (var audio in AudioPlayers)
+                audio.Player.Pause();
+
             MediaPlayer.Pause();
         }
 
@@ -596,7 +641,6 @@ namespace Clipple.ViewModel
             Pause();
 
             MediaPlayer.ShowFrameNext();
-            SyncAudio();
         }
 
         /// <summary>
@@ -615,8 +659,6 @@ namespace Clipple.ViewModel
             App.MediaPlayer.ReversePlayback = false;
             foreach (var audio in AudioPlayers)
                 audio.Player.ReversePlayback = false;
-
-            SyncAudio();
         }
 
         /// <summary>
@@ -625,7 +667,7 @@ namespace Clipple.ViewModel
         private void SyncAudio()
         {
             foreach (var audio in AudioPlayers)
-                audio.Player.Seek((int)(MediaPlayer.CurTime / TimeSpan.TicksPerMillisecond));
+                audio.Player.CurTime = MediaPlayer.CurTime;
         }
         #endregion
     }
