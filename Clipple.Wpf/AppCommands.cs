@@ -40,7 +40,7 @@ namespace Clipple
         /// </summary>
         public static RelayCommand ToggleMuteCommand => new(() =>
         {
-            App.MediaPlayer.Audio.ToggleMute();
+            //App.MediaPlayer.Audio.ToggleMute();
         });
 
         /// <summary>
@@ -48,7 +48,7 @@ namespace Clipple
         /// </summary>
         public static RelayCommand VolumeUpCommand => new(() =>
         {
-            App.MediaPlayer.Audio.VolumeUp();
+            //App.MediaPlayer.Audio.VolumeUp();
         });
 
         /// <summary>
@@ -56,7 +56,7 @@ namespace Clipple
         /// </summary>
         public static RelayCommand VolumeDownCommand => new(() =>
         {
-            App.MediaPlayer.Audio.VolumeDown();
+            //App.MediaPlayer.Audio.VolumeDown();
         });
 
         /// <summary>
@@ -84,19 +84,19 @@ namespace Clipple
         });
 
         /// <summary>
-        /// Goes to the next clip edge
+        /// Goes to the end of the video or clip
         /// </summary>
-        public static RelayCommand NextClipEdgeCommand => new(() =>
+        public static RelayCommand SeekStartCommand => new(() =>
         {
-            App.ViewModel.VideoPlayerViewModel.NextClipEdge();
+            App.ViewModel.VideoPlayerViewModel.SeekStart();
         });
 
         /// <summary>
-        /// Goes to the previous clip edge
+        /// Goes to the start of the video or clip
         /// </summary>
-        public static RelayCommand PreviousClipEdgeCommand => new(() =>
+        public static RelayCommand SeekEndCommand => new(() =>
         {
-            App.ViewModel.VideoPlayerViewModel.PreviosClipEdge();
+            App.ViewModel.VideoPlayerViewModel.SeekEnd();
         });
 
         /// <summary>

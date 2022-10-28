@@ -1,7 +1,6 @@
 ﻿using Clipple.ViewModel;
 using FFmpeg.AutoGen;
-using FlyleafLib;
-using FlyleafLib.MediaPlayer;
+using Mpv.NET.Player;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,8 +31,10 @@ namespace Clipple.View
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
             var vm = (VideoPlayerViewModel)DataContext;
+            vm.MediaPlayer.Handle = playerHost.Handle;
+
             if (vm.Video != null)
-                vm.MediaPlayer.OpenAsync(vm.Video.FileInfo.FullName);
+                vm.Load(vm.Video.FileInfo.FullName);
         }
     }
 }

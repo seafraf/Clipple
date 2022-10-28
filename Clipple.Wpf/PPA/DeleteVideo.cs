@@ -24,7 +24,7 @@ namespace Clipple.PPA
         {
             // Handles to this file used by the media player need to be freed before the file is deleted
             if (App.ViewModel.SelectedVideo == Video)
-                App.ViewModel.VideoPlayerViewModel.Stop();
+                App.ViewModel.VideoPlayerViewModel.Unload();
 
             try
             {

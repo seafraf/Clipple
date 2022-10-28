@@ -1,4 +1,6 @@
-﻿using FFmpeg.AutoGen;
+﻿using Clipple.Types;
+using Clipple.Util.ISOBMFF;
+using FFmpeg.AutoGen;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -25,6 +27,17 @@ namespace Clipple.ViewModel
             AVFormatContext* formatContext  = null;
             AVCodecContext* codecContext    = null;
 
+            // Attempt to read names of audio tracks
+            List<Track> audioTracks = new();
+            try
+            {
+                var parser = new SimpleParser(FilePath);
+                parser.Parse();
+
+                audioTracks = parser.Tracks;
+            }
+            catch (Exception) { }
+
             try
             {
                 formatContext = CheckNull(ffmpeg.avformat_alloc_context(), 
@@ -41,7 +54,7 @@ namespace Clipple.ViewModel
                 var bestVideoStreamIndex = CheckCode(ffmpeg.av_find_best_stream(formatContext, AVMediaType.AVMEDIA_TYPE_VIDEO, -1, -1, null, 0),
                     "couldn't find best stream");
 
-                AudioStreamCount = 0;
+                var audioStreams = new List<AudioStreamViewModel>();
                 for (var i = 0; i < formatContext->nb_streams; i++)
                 {
                     var stream = formatContext->streams[i];
@@ -53,8 +66,12 @@ namespace Clipple.ViewModel
                         VideoDuration   = TimeSpan.FromSeconds(stream->duration * ffmpeg.av_q2d(stream->time_base));
                     }
                     else if (stream->codecpar->codec_type == AVMediaType.AVMEDIA_TYPE_AUDIO)
-                        AudioStreamCount++;
+                    {
+                        audioStreams.Add(new AudioStreamViewModel(audioTracks[i].Name ?? $"Stream {audioStreams.Count}", i, audioStreams.Count));
+                    }
                 }
+
+                AudioStreams = audioStreams.ToArray();
             }
             catch (Exception e)
             {
@@ -135,22 +152,12 @@ namespace Clipple.ViewModel
         }
 
         /// <summary>
-        /// Number of audio streams in this video
-        /// </summary>
-        private int audioStreamCount = -1;
-        public int AudioStreamCount
-        {
-            get => audioStreamCount;
-            set => SetProperty(ref audioStreamCount, value);
-        }
-
-        /// <summary>
         /// True if all fields populated by GetStreamInfo have been populated.
         /// This can be false between Clipple versions that used older video view models, this will also always be
         /// true when a video is imported for the first time
         /// </summary>
         [JsonIgnore]
-        public bool HasStreamInfo => VideoWidth != -1 && VideoHeight != -1 && VideoFPS != -1 && VideoDuration != TimeSpan.Zero && AudioStreamCount != -1;
+        public bool HasStreamInfo => VideoWidth != -1 && VideoHeight != -1 && VideoFPS != -1 && VideoDuration != TimeSpan.Zero && AudioStreams == null;
         #endregion
     }
 }

@@ -1,5 +1,4 @@
 ﻿using Clipple.FFMPEG;
-using FlyleafLib;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -49,15 +48,17 @@ namespace Clipple.ViewModel
             return new BitmapImage(new Uri(path));
         }
 
-        private async Task<ObservableCollection<ImageSource>> GetAudioWaveforms()
+        private async Task BuildAudioWaveforms()
         {
+            if (AudioStreams == null)
+                return;
+
             if (!Directory.Exists(CachePath))
                 Directory.CreateDirectory(CachePath);
 
-            var audioWaveforms = new ObservableCollection<ImageSource>();
-            for (int i = 0; i < AudioStreamCount; i++)
+            foreach (var audioStream in AudioStreams)
             {
-                var path = Path.Combine(CachePath, $"waveform{i:00}.png");
+                var path = Path.Combine(CachePath, $"waveform{audioStream.AudioStreamIndex:00}.png");
 
                 if (!File.Exists(path))
                 {
@@ -65,15 +66,15 @@ namespace Clipple.ViewModel
                     await Task.Run(() => RateLimitSemaphore.WaitOne());
 
                     var stopwatch = Stopwatch.StartNew();
-                    var engine = new WaveformEngine(FilePath, path, i);
+                    var engine = new WaveformEngine(FilePath, path, audioStream.AudioStreamIndex);
                     if (await engine.Run() != 0)
                     {
-                        App.Logger.Log($"Failed to generate waveform {i} for {FilePath}", engine.Output.ToString());
+                        App.Logger.Log($"Failed to generate waveform {audioStream.AudioStreamIndex} for {FilePath}", engine.Output.ToString());
                     }
                     else
                     {
                         stopwatch.Stop();
-                        App.Logger.Log($"Generated waveform {i} for {FilePath} in {stopwatch.ElapsedMilliseconds}");
+                        App.Logger.Log($"Generated waveform {audioStream.AudioStreamIndex} for {FilePath} in {stopwatch.ElapsedMilliseconds}");
                     }
 
                     RateLimitSemaphore.Release();
@@ -81,10 +82,8 @@ namespace Clipple.ViewModel
 
                 var img = new BitmapImage(new Uri(path));
                 img.Freeze();
-                audioWaveforms.Add(img);
+                audioStream.Waveform = img;
             }
-
-            return audioWaveforms;
         }
 
         #region Properties
@@ -97,17 +96,6 @@ namespace Clipple.ViewModel
         {
             get => thumbnail;
             set => SetProperty(ref thumbnail, value);
-        }
-
-        /// <summary>
-        /// Images of waveforms for individual audio streams
-        /// </summary>
-        private ObservableCollection<ImageSource>? audioWaveforms;
-        [JsonIgnore]
-        public ObservableCollection<ImageSource>? AudioWaveforms
-        {
-            get => audioWaveforms;
-            set => SetProperty(ref audioWaveforms, value);
         }
         #endregion
     }

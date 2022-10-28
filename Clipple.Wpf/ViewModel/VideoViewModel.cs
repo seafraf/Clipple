@@ -3,11 +3,13 @@ using Clipple.PPA;
 using Clipple.Types;
 using Clipple.Util;
 using Clipple.Util.ISOBMFF;
+using Clipple.View;
 using ControlzEx.Theming;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
 using Microsoft.Toolkit.Mvvm.Input;
 using System;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -30,7 +32,7 @@ namespace Clipple.ViewModel
 #pragma warning restore CS8618
 
         {
-            Clips.CollectionChanged += (s, e) => App.ViewModel.NotifyClipsChanged();
+            Clips.CollectionChanged += OnClipsChanged;
 
             RemoveClipsCommand = new RelayCommand(() => Clips.Clear());
             RemoveVideoCommand = new RelayCommand(() =>
@@ -86,24 +88,7 @@ namespace Clipple.ViewModel
                 foreach (var clip in Clips)
                     clip.Parent = this;
             }
-            
-            // Generate track names if required, pretty fast also 
-            if (TrackNames == null)
-            {
-                try
-                {
-                    // mp4 only
-                    var parser = new SimpleParser(FilePath);
-                    parser.Parse();
-
-                    trackNames = parser.Tracks.Select(x => x.Name).ToArray();
-                }
-                catch (Exception)
-                {
-                    // Temp fix for other container formats..
-                    trackNames = Array.Empty<string>();
-                }
-            }
+           
 
             // Load properties that are sourced by parsing the video with ffmpeg (libav*)
             Task.Run(async () =>
@@ -112,13 +97,15 @@ namespace Clipple.ViewModel
                 Thumbnail ??= await GetThumbnail();
                 Thumbnail?.Freeze();
 
-                // Get audio waveform images for the audio streams, this will return cached images if they exist
-                AudioWaveforms ??= await GetAudioWaveforms();
+                // Generates waveforms for all audio streams, using cached audio waveforms if available
+                await BuildAudioWaveforms();
             });
         }
 
         public void OnDeserialized()
         {
+            Clips.CollectionChanged += OnClipsChanged;
+
             // Old versions of Clipple do not have GUIDs, so generate GUIDs for them here
             GUID ??= Guid.NewGuid().ToString();
 
@@ -190,17 +177,6 @@ namespace Clipple.ViewModel
         {
             get => trackNames;
             set => SetProperty(ref trackNames, value);
-        }
-
-        /// <summary>
-        /// Various video player state properties.  These are set and read by the player when playing and loading videos.  These are serialized to disk 
-        /// so that player state is persistent across sessions.
-        /// </summary>
-        private VideoState videoState = new();
-        public VideoState VideoState
-        {
-            get => videoState;
-            set => SetProperty(ref videoState, value);
         }
 
         /// <summary>
@@ -279,6 +255,23 @@ namespace Clipple.ViewModel
 
         [JsonIgnore]
         public ICommand ProcessVideoCommand { get; set; }
+        #endregion
+
+        #region Events
+        private void OnClipsChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        {
+            App.ViewModel.NotifyClipsChanged();
+
+            if (SelectedClip == null)
+            {
+                SelectedClip = Clips.FirstOrDefault();
+            }
+            else if (e.OldItems != null && e.Action == NotifyCollectionChangedAction.Remove && e.OldItems.Contains(SelectedClip))
+            {
+                // Try to select a video closest to where the last selected index 
+                SelectedClip = Clips.ElementAtOrDefault(Math.Min(Clips.Count - 1, e.OldStartingIndex));
+            }
+        }
         #endregion
     }
 }

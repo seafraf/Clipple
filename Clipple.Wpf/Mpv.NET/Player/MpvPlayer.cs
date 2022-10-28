@@ -340,11 +340,33 @@ namespace Mpv.NET.Player
 			}
 		}
 
-		/// <summary>
-		/// Playback speed of the current media. Ranging from 0.01 to 100 inclusive.
-		/// For example, 0.5 is half the speed, 1 is normal speed and 2 is double the speed.
-		/// </summary>
-		public double Speed
+        /// <summary>
+        /// Whether or not the video is muted
+        /// </summary>
+        public bool IsMuted
+        {
+            get
+            {
+                lock (mpvLock)
+                {
+                    return MpvPlayerHelper.YesNoToBool(mpv.GetPropertyString("mute"));
+                }
+            }
+            set
+            {
+                lock (mpvLock)
+                {
+                    mpv.SetPropertyString("mute", MpvPlayerHelper.BoolToYesNo(value));
+                }
+            }
+        }
+
+
+        /// <summary>
+        /// Playback speed of the current media. Ranging from 0.01 to 100 inclusive.
+        /// For example, 0.5 is half the speed, 1 is normal speed and 2 is double the speed.
+        /// </summary>
+        public double Speed
 		{
 			get
 			{
@@ -365,10 +387,10 @@ namespace Mpv.NET.Player
 			}
 		}
 
-		/// <summary>
-		/// Invoked when media is resumed.
-		/// </summary>
-		public event EventHandler MediaResumed;
+        /// <summary>
+        /// Invoked when media is resumed.
+        /// </summary>
+        public event EventHandler MediaResumed;
 
 		/// <summary>
 		/// Invoked when media is paused.
@@ -464,8 +486,8 @@ namespace Mpv.NET.Player
 
 		private readonly string[] possibleLibMpvPaths = new string[]
 		{
-			"mpv-1.dll",
-			@"lib\mpv-1.dll"
+			"mpv-2.dll",
+			@"lib\mpv-2.dll"
 		};
 
 		private readonly string[] possibleYtdlHookPaths = new string[]
@@ -538,7 +560,7 @@ namespace Mpv.NET.Player
 
 			// Set the host of the mpv player.
 			if (hwnd != IntPtr.Zero)
-				SetMpvHost(hwnd);
+				Handle = hwnd;
 		}
 
 		private void InitialiseMpv(string libMpvPath)
@@ -560,10 +582,10 @@ namespace Mpv.NET.Player
 			mpv.ObserveProperty("paused-for-cache", MpvFormat.String, pausedForCacheUserData);
 		}
 
-		private void SetMpvHost(IntPtr hwnd)
+		public IntPtr Handle
 		{
-			var playerHostPtrLong = hwnd.ToInt64();
-			mpv.SetPropertyLong("wid", playerHostPtrLong);
+			get => new(mpv.GetPropertyLong("wid"));
+			set => mpv.SetPropertyLong("wid", value.ToInt64());
 		}
 
 		/// <summary>

@@ -15,35 +15,7 @@ namespace Clipple.DataModel
     public class VideoState 
     {
         #region Properties
-        /// <summary>
-        /// Position of the video play head.
-        /// </summary>
-        public TimeSpan CurTime { get; set; }
 
-        /// <summary>
-        /// Volume modifier for all tracks.
-        /// </summary>
-        public double Volume { get; set; } = 100;
-
-        /// <summary>
-        /// Whether or not all audio tracks should be muted.
-        /// </summary>
-        public bool Muted { get; set; } = false;
-
-        /// <summary>
-        /// The volumes of individual tracks.  The key is the audio stream's stream index.
-        /// </summary>
-        public Dictionary<int, double> TrackVolume { get; set; } = new();
-
-        /// <summary>
-        /// Whether or not individual tracks are muted.  The key is the audio stream's stream index.
-        /// </summary>
-        public Dictionary<int, bool> MutedTracks { get; set; } = new();
-
-        /// <summary>
-        /// Playback speed
-        /// </summary>
-        public double PlaybackSpeed { get; set; } = 1.0;
         #endregion
     }
 }

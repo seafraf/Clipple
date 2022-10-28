@@ -1,18 +1,20 @@
 ﻿using Clipple.DataModel;
 using Clipple.Types;
-using FlyleafLib;
-using FlyleafLib.MediaPlayer;
+using Clipple.View;
 using MahApps.Metro.IconPacks;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
 using Microsoft.Toolkit.Mvvm.Input;
-using Microsoft.VisualBasic.Devices;
+using Mpv.NET.Player;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing.Imaging;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -20,6 +22,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 
 namespace Clipple.ViewModel
 {
@@ -54,220 +57,129 @@ namespace Clipple.ViewModel
                 IsAudioSettingsOpen = !IsAudioSettingsOpen;
             });
 
-            var Config = new Config();
-            Config.Player.SeekAccurate = true;
-            Config.Player.AutoPlay = false;
-            Config.Player.MouseBindings.Enabled = false;
-            Config.Player.KeyBindings.Enabled = false;
-            Config.Audio.Enabled = false;
+            MediaPlayer = new MpvPlayer(Path.Combine(App.LibPath, "mpv-2.dll"))
+            {
+                KeepOpen = KeepOpen.Always
+            };
 
-            MediaPlayer = new Player(Config);
-            MediaPlayer.OpenCompleted   += OnMediaOpened;
-            MediaPlayer.PropertyChanged += OnActivityChanged;
+            MediaPlayer.PositionChanged += OnVideoPositionChanged;
+
+            MediaPlayer.MediaPaused   += (s, e) => OnPropertyChanged(nameof(IsPlaying));
+            MediaPlayer.MediaResumed  += (s, e) => OnPropertyChanged(nameof(IsPlaying));
+            MediaPlayer.MediaFinished += (s, e) => OnPropertyChanged(nameof(IsPlaying));
+            MediaPlayer.MediaError    += (s, e) => State = MediaPlayerState.Error;
+            MediaPlayer.MediaLoaded   += OnVideoLoaded;
+
+            var timelineSeekTimer = new DispatcherTimer();
+            timelineSeekTimer.Tick += (s, e) =>
+            {
+                if (State == MediaPlayerState.Ready && IsTimelineBusy)
+                    Seek(VideoCurrentTime);
+            };
+
+            timelineSeekTimer.Interval = TimeSpan.FromMilliseconds(100);
+            timelineSeekTimer.Start();
         }
-
-        private void OnActivityChanged(object? sender, PropertyChangedEventArgs e)
+    
+        /// <summary>
+        /// Called when a loading video finishes loading.
+        /// </summary>
+        private void OnVideoLoaded(object? sender, EventArgs e)
         {
-            if (e.PropertyName == "Status")
-                UpdateStatusProperties();
-
-            if (e.PropertyName == "CurTime")
-                UpdateTimeProperties();
-        }
-
-        private void OnMediaOpened(object? sender, OpenCompletedArgs e)
-        {
-            if (Video == null)
-                return;
-
+            // Duration changes when a new video loads
             OnPropertyChanged(nameof(VideoDuration));
 
-            VideoFPS    = (int)Math.Round(MediaPlayer.Video.FPS);
-            VideoWidth  = MediaPlayer.Video.Width;
-            VideoHeight = MediaPlayer.Video.Height;
+            State = MediaPlayerState.Ready;
 
-            var audioStreams = MediaPlayer.MainDemuxer.AudioStreams;
-            var players      = new BackgroundAudioPlayer[audioStreams.Count];
-            var videoState   = Video.VideoState;
-
-            // Create a background audio player for each audio stream
-            for (int i = 0; i < audioStreams.Count; i++)
+            // Load Video settings into the MediaPlayer
+            if (Video != null)
             {
-                players[i] = new BackgroundAudioPlayer(videoState, audioStreams[i].StreamIndex, Video.FileInfo.FullName,
-                    GetAudioTrackName(audioStreams[i].StreamIndex))
+                WaitingFirstSeek = true;
+
+                MediaPlayer.Volume  = Volume;
+                MediaPlayer.IsMuted = IsMuted;
+                MediaPlayer.Speed   = PlaybackSpeed;
+
+                VideoCurrentTime = Video.CurrentTime;
+                Seek(Video.CurrentTime);
+
+                // Apply updated audio stream filter
+                UpdateAudioStreamFilter();
+            }
+        }
+
+        /// <summary>
+        /// Called every time the position chang
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void OnVideoPositionChanged(object? sender, MpvPlayerPositionChangedEventArgs e)
+        {
+            if (State != MediaPlayerState.Ready || WaitingFirstSeek)
+                return;
+
+            var clip = Video?.SelectedClip;
+            if (clip != null)
+            {
+                if (e.NewPosition > clip.EndTime)
                 {
-                    BaseMuted = isMuted,
-                    BaseVolume = volume
-                };
+                    Pause();
+                    VideoCurrentTime = clip.EndTime;
+
+                    Seek(VideoCurrentTime);
+                }
+
+                if (e.NewPosition < clip.StartTime)
+                {
+                    VideoCurrentTime = clip.StartTime;
+
+                    Seek(VideoCurrentTime);
+                }
             }
 
-            // Destroy old background audio players, only useful when swapping videos
-            foreach (var audioPlayer in AudioPlayers)
-                audioPlayer.Dispose();
-
-            AudioPlayers = players;
-
-            // Show the first frame of the video
-            MediaPlayer.ShowFrame(0);
-
-            // Load settings from previous video state
-            Volume          = videoState.Volume;
-            IsMuted         = videoState.Muted;
-            PlaybackSpeed   = videoState.PlaybackSpeed;
-
-            MediaPlayer.CurTime = (long)(videoState.CurTime.TotalMilliseconds * TimeSpan.TicksPerMillisecond);
-        }
-
-        /// <summary>
-        /// Updates all properties that are related to the time or duration of the video
-        /// </summary>
-        private void UpdateTimeProperties()
-        {
             OnPropertyChanged(nameof(VideoCurrentTime));
-            OnPropertyChanged(nameof(RemainingTime));
-            OnPropertyChanged(nameof(CurTime));
 
             if (Video != null)
-                Video.VideoState.CurTime = VideoCurrentTime;
+                Video.CurrentTime = e.NewPosition;
+
+            if (!IsTimelineBusy)
+                VideoCurrentTime = e.NewPosition;
         }
 
         /// <summary>
-        /// Updates all properties that are related to the media player's status
+        /// Called when a propety from the selected video changes
         /// </summary>
-        private void UpdateStatusProperties()
+        private void OnAudioStreamPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            OnPropertyChanged(nameof(IsReady));
-            OnPropertyChanged(nameof(IsFailed));
-            OnPropertyChanged(nameof(IsLoading));
-            OnPropertyChanged(nameof(HasContent));
-            OnPropertyChanged(nameof(ControlButtonIcon));
+            if (e.PropertyName == nameof(AudioStreamViewModel.IsMuted) ||
+                e.PropertyName == nameof(AudioStreamViewModel.IsEnabled) ||
+                e.PropertyName == nameof(AudioStreamViewModel.Volume) ||
+                e.PropertyName == nameof(AudioStreamViewModel.IsMono))
+            {
+                UpdateAudioStreamFilter();
+            }
         }
 
         #region Properties
         /// <summary>
-        /// Current video time in Flyleaf format
+        /// A reference to the media player
         /// </summary>
-        public long CurTime
-        {
-            get => MediaPlayer.CurTime;
-            set => MediaPlayer.CurTime = value;
-        }
+        public MpvPlayer MediaPlayer { get; }
 
         /// <summary>
         /// Current video time in TimeSpan format
         /// </summary>
+        private TimeSpan videoCurrentTime;
         public TimeSpan VideoCurrentTime
         {
-            get => TimeSpan.FromTicks(MediaPlayer.CurTime);
-            set => MediaPlayer.CurTime = (long)(value.TotalMilliseconds * TimeSpan.TicksPerMillisecond);
+            get => videoCurrentTime;
+            set => SetProperty(ref videoCurrentTime, value);
         }
 
         /// <summary>
         /// Duration of the currently loaded video
         /// </summary>
-        public TimeSpan VideoDuration
-        {
-            get => TimeSpan.FromTicks(MediaPlayer.Duration);
-        }
-
-        /// <summary>
-        /// Current video's FPS
-        /// </summary>
-        private int videoFPS;
-        public int VideoFPS
-        {
-            get => videoFPS;
-            set
-            {
-                SetProperty(ref videoFPS, value);
-            }
-        }
-
-        /// <summary>
-        /// Current video's width in pixels
-        /// </summary>
-        private int videoWidth;
-        public int VideoWidth
-        {
-            get => videoWidth;
-            set => SetProperty(ref videoWidth, value);
-        }
-
-        /// <summary>
-        /// Current video's height in pixels
-        /// </summary>
-        private int videoHeight;
-        public int VideoHeight
-        {
-            get => videoHeight;
-            set => SetProperty(ref videoHeight, value);
-        }
-
-        /// <summary>
-        /// Volume, between 0 and 100.  Setting this will change the volumes of the background audio players
-        /// </summary>
-        private double volume = 100.0;
-        public double Volume
-        {
-            get => volume;
-            set
-            {
-                SetProperty(ref volume, value);
-                foreach (var audioPlayer in AudioPlayers)
-                    audioPlayer.BaseVolume = value;
-
-                if (Video != null)
-                    Video.VideoState.Volume = value;
-            }
-        }
-
-        /// <summary>
-        /// Whether or not the video is muted.  Setting this will change the muted state of the background audio players
-        /// </summary>
-        private bool isMuted = false;
-        public bool IsMuted
-        {
-            get => isMuted;
-            set
-            {
-                SetProperty(ref isMuted, value);
-                foreach (var audioPlayer in AudioPlayers)
-                    audioPlayer.BaseMuted = value;
-
-                if (Video != null)
-                    Video.VideoState.Muted = value;
-            }
-        }
-
-        /// <summary>
-        /// Video and audio playback speed.
-        /// </summary>
-        private double playbackSpeed = 1.0;
-        public double PlaybackSpeed
-        {
-            get => playbackSpeed;
-            set
-            {
-                SetProperty(ref playbackSpeed, value);
-
-                MediaPlayer.Speed = value;
-                foreach (var audioPlayer in AudioPlayers)
-                    audioPlayer.PlaybackSpeed = value;
-
-                if (Video != null)
-                    Video.VideoState.PlaybackSpeed = value;
-            }
-        }
-
-        /// <summary>
-        /// Audio players for each audio stream in the video.  These are played asynchronously 
-        /// </summary>
-        private BackgroundAudioPlayer[] audioPlayers = Array.Empty<BackgroundAudioPlayer>();
-        public BackgroundAudioPlayer[] AudioPlayers
-        {
-            get => audioPlayers;
-            set => SetProperty(ref audioPlayers, value);
-        }
+        public TimeSpan VideoDuration => MediaPlayer.Duration;
 
         /// <summary>
         /// The currently loaded video
@@ -278,18 +190,28 @@ namespace Clipple.ViewModel
             get => video;
             set
             {
-                // If the view model has been told to select no video, free any streams we may have had opened
-                if (video != null && value == null)
-                    Stop();
+                // Unload old video
+                if (video != null)
+                {
+                    SetStreamEvents(false);
+                    Unload();
+                }
+                    
 
                 SetProperty(ref video, value);
-                OnPropertyChanged(nameof(IsReady));
-                OnPropertyChanged(nameof(IsFailed));
-                OnPropertyChanged(nameof(IsLoading));
-                OnPropertyChanged(nameof(IsWaitingVideo));
 
-                if (value != null && MediaPlayer.Control != null)
-                    MediaPlayer.OpenAsync(value.FileInfo.FullName, true, true, false, false);
+                OnPropertyChanged(nameof(Volume));
+                OnPropertyChanged(nameof(IsMuted));
+                OnPropertyChanged(nameof(PlaybackSpeed));
+                OnPropertyChanged(nameof(Zoom));
+         
+                if (value != null)
+                {
+                    SetStreamEvents(true);
+
+                    if (MediaPlayer.Handle.ToInt64() != -1)
+                        Load(value.FileInfo.FullName);
+                }
             }
         }
 
@@ -304,61 +226,25 @@ namespace Clipple.ViewModel
         }
 
         /// <summary>
-        /// Whether or not the video state is ready
+        /// Video state
         /// </summary>
-        public bool IsReady => MediaPlayer.Status != Status.Failed &&
-            MediaPlayer.Status != Status.Failed &&
-            !IsWaitingVideo;
-
-        /// <summary>
-        /// Whether or not the video state is failed
-        /// </summary>
-        public bool IsFailed => MediaPlayer.Status == Status.Failed && !IsWaitingVideo;
-
-        /// <summary>
-        /// Whether or not the video state is loading
-        /// </summary>
-        public bool IsLoading => MediaPlayer.Status == Status.Opening && !IsWaitingVideo;
-
-        /// <summary>
-        /// True if the video player is waiting for a video to be selected
-        /// </summary>
-        public bool IsWaitingVideo => Video == null;
-
-        /// <summary>
-        /// True if the video state is ready and the video has not finished
-        /// </summary>
-        public bool HasContent => IsReady && MediaPlayer.Status != Status.Ended;
-
-        /// <summary>
-        /// The amount of time remaining in the video clip
-        /// </summary>
-        public TimeSpan RemainingTime => VideoDuration - VideoCurrentTime;
-
-        /// <summary>
-        /// True when the remaining time is less than the length of one frame
-        /// </summary>
-        public bool IsFinished
+        private MediaPlayerState state = MediaPlayerState.Waiting; 
+        public MediaPlayerState State
         {
-            get
-            {
-                return MediaPlayer.Status == Status.Ended;
-            }
+            get => state;
+            set => SetProperty(ref state, value);
         }
 
         /// <summary>
-        /// Amount of ticks in one frame
+        /// Whether or not the video is playing
         /// </summary>
-        public long FrameTicks => TimeSpan.FromSeconds(1.0 / VideoFPS).Ticks;
+        public bool IsPlaying => MediaPlayer.IsPlaying && !MediaPlayer.EndReached;
 
         /// <summary>
-        /// Icon for play/pause
+        /// Number of UI elements covering the video player.  This is used to hide the video
+        /// when UI elements are on top of it.  This is required because the video player is
+        /// in a WindowsFormsHost and has airspacing issues.
         /// </summary>
-        public PackIconMaterialDesignKind ControlButtonIcon
-        {
-            get => MediaPlayer.IsPlaying ? PackIconMaterialDesignKind.Pause : PackIconMaterialDesignKind.PlayArrow;
-        }
-
         private int overlayContentCount = 0;
         public int OverlayContentCount
         {
@@ -367,29 +253,29 @@ namespace Clipple.ViewModel
             {
                 SetProperty(ref overlayContentCount, value);
 
-                if (value == 1 && HasContent)
+                if (value == 1 && State == MediaPlayerState.Ready)
                 {
                     if (MediaPlayer.IsPlaying)
                         Pause();
 
-                    using (var bitmapStream = new MemoryStream())
-                    {
-                        // Generate bitmap from the last frame rendered in the video
-                        var bitmap = MediaPlayer.renderer.GetBitmap();
-                        bitmap.Save(bitmapStream, ImageFormat.Bmp);
-                        bitmapStream.Position = 0;
+                    //using (var bitmapStream = new MemoryStream())
+                    //{
+                    //    // Generate bitmap from the last frame rendered in the video
+                    //    var bitmap = MediaPlayer.renderer.GetBitmap();
+                    //    bitmap.Save(bitmapStream, ImageFormat.Bmp);
+                    //    bitmapStream.Position = 0;
 
-                        // Source bitmap image with the formatted bitmap data
-                        var image = new BitmapImage();
-                        image.BeginInit();
-                        image.StreamSource = bitmapStream;
-                        image.CacheOption = BitmapCacheOption.OnLoad;
-                        image.EndInit();
-                        image.Freeze();
+                    //    // Source bitmap image with the formatted bitmap data
+                    //    var image = new BitmapImage();
+                    //    image.BeginInit();
+                    //    image.StreamSource = bitmapStream;
+                    //    image.CacheOption = BitmapCacheOption.OnLoad;
+                    //    image.EndInit();
+                    //    image.Freeze();
 
-                        // Use bitmap image as overlay
-                        OverlayFrame = image;
-                    }
+                    //    // Use bitmap image as overlay
+                    //    OverlayFrame = image;
+                    //}
                 }
             }
         }
@@ -403,11 +289,6 @@ namespace Clipple.ViewModel
             get => overlayFrame;
             set => SetProperty(ref overlayFrame, value);
         }
-
-        /// <summary>
-        /// A reference to the media player
-        /// </summary>
-        public Player MediaPlayer { get; }
 
         /// <summary>
         /// Set by the Timeline control when the user is dragging any of the controls, whilst dragging the media players
@@ -434,6 +315,71 @@ namespace Clipple.ViewModel
                     isPlayQueued = false;
                     Play();
                 }
+
+                // When dragging, the actual video position is seeked to every 100 milliseconds (avoids unneccesary seeks),
+                // but this also means if the total drag time is less than 100ms, it will never seek.  Seek here to avoid 
+                // this happening
+                if (!value)
+                    Seek(VideoCurrentTime);
+            }
+        }
+
+        /// <summary>
+        /// This is true immediately after loading a video and is set back to false when the first
+        /// seek used to recover the old position has finished.  This is required because at some 
+        /// random (thread based) time, OnPositionChanged will be called with a zero point time, if
+        /// this happens after the first seek then it reset the previously loaded position.  This 
+        /// variable call be used to ignore that OnPositionChanged event
+        /// </summary>
+        private bool WaitingFirstSeek { get; set; } = false;
+        #endregion
+
+        #region Video view model passthrough properties
+        /// <summary>
+        /// Player volume, 0-100
+        /// </summary>
+        public int Volume
+        {
+            get => Video != null ? Video.Volume : 100;
+            set
+            {
+                if (Video != null)
+                    Video.Volume = value;
+
+                MediaPlayer.Volume = value;
+                OnPropertyChanged(nameof(Volume));
+            }
+        }
+
+        /// <summary>
+        /// Whether or not audio for this video is muted or not
+        /// </summary>
+        public bool IsMuted
+        {
+            get => Video != null ? Video.IsMuted : false;
+            set
+            {
+                if (Video != null)
+                    Video.IsMuted = value;
+
+                MediaPlayer.IsMuted = value;
+                OnPropertyChanged(nameof(IsMuted));
+            }
+        }
+
+        /// <summary>
+        /// Playback sppeed
+        /// </summary>
+        public double PlaybackSpeed
+        {
+            get => Video != null ? Video.PlaybackSpeed : 1.0;
+            set
+            {
+                if (Video != null)
+                    Video.PlaybackSpeed = value;
+
+                MediaPlayer.Speed = value;
+                OnPropertyChanged(nameof(PlaybackSpeed));
             }
         }
 
@@ -442,11 +388,16 @@ namespace Clipple.ViewModel
         /// 0: fit waveform in timeline size
         /// 1: one to one pixel ratio with waveform resolution
         /// </summary>
-        private double zoom = 0.0;
         public double Zoom
         {
-            get => zoom;
-            set => SetProperty(ref zoom, value);
+            get => Video != null ? Video.TimelineZoom : 1.0;
+            set
+            {
+                if (Video != null)
+                    Video.TimelineZoom = value;
+
+                OnPropertyChanged(nameof(Zoom));
+            }
         }
         #endregion
 
@@ -461,15 +412,31 @@ namespace Clipple.ViewModel
 
         #region Methods
         /// <summary>
-        /// Tries to seek a specific frame in the video
+        /// Tries to seek to a specific position in the video.
         /// </summary>
-        /// <param name="frame">The time to seek to, in TimeSpan ticks</param>
-        public void SeekTicks(long ticks)
+        /// <param name="time">The time to seek to</param>
+        public void Seek(TimeSpan time)
         {
-            if (ticks > MediaPlayer.Duration)
+            if (Video == null || State != MediaPlayerState.Ready)
                 return;
 
-            MediaPlayer.CurTime = ticks;
+            // Only perform a seek if the requested position is more 1 frame or greater away in time
+            // NOTE: this optimisation is almost REQUIRED as otherwise when seeking to a position near the
+            // end of a clip boundary, the PositionChanged callback will request a new position again, causing
+            // an infinite loop of seeks
+            var frameTime   = 1.0 / Video.VideoFPS;
+            var diff        = Math.Abs(time.TotalSeconds - MediaPlayer.Position.TotalSeconds);
+
+            if (diff >= frameTime)
+            {
+                Task.Run(async () =>
+                {
+                    await MediaPlayer.SeekAsync(time.TotalSeconds);
+                    WaitingFirstSeek = false;
+                });
+            }
+            else
+                WaitingFirstSeek = false;
         }
 
         /// <summary>
@@ -478,25 +445,26 @@ namespace Clipple.ViewModel
         /// <exception cref="NotImplementedException"></exception>
         internal void CreateClip()
         {
-            if (Video == null)
+            if (Video == null || Video.AudioStreams == null)
                 return;
 
             // Set a default clip length of 10 seconds
             var numTicks = TimeSpan.FromSeconds(10).Ticks;
-            var newClip  = new ClipViewModel(MediaPlayer.CurTime, Math.Min(MediaPlayer.CurTime + numTicks, MediaPlayer.Duration),
+            var newClip = new ClipViewModel(VideoCurrentTime,
+                TimeSpan.FromTicks(Math.Min(numTicks, MediaPlayer.Duration.Ticks - VideoCurrentTime.Ticks)),
                 $"Untitled {Video.Clips.Count + 1}", App.ViewModel.SettingsViewModel.DefaultOutputFolder)
             {
                 Parent = Video
             };
 
             // Create default audio settings from current preview audio settings
-            foreach (var player in AudioPlayers)
+            foreach (var audioStream in Video.AudioStreams)
             {
-                newClip.AudioSettings.Add(new AudioSettingsModel(player.StreamIndex, player.Name)
+                newClip.AudioSettings.Add(new AudioSettingsModel(audioStream.StreamIndex, audioStream.Name)
                 {
-                    IsEnabled   = !player.IsMuted,
-                    Volume      = (int)player.Volume,
-                    ConvertMono = App.ViewModel.SettingsViewModel.DefaultMicrophoneMono && Regex.IsMatch(player.Name, ".*(([Mm]ic)|([Dd]isc)|([Tt]eam[Sspeak])|([Tt][Ss])|([Vv]oice)).*")
+                    IsEnabled   = !audioStream.IsMuted && audioStream.IsEnabled,
+                    Volume      = audioStream.Volume,
+                    ConvertMono = App.ViewModel.SettingsViewModel.DefaultMicrophoneMono && Regex.IsMatch(audioStream.Name, ".*(([Mm]ic)|([Dd]isc)|([Tt]eam[Sspeak])|([Tt][Ss])|([Vv]oice)).*")
                 });
             }
 
@@ -504,89 +472,40 @@ namespace Clipple.ViewModel
         }
 
         /// <summary>
-        /// NextClipEdge
+        /// Seeks to the start of the video or clip
         /// </summary>
-        internal void NextClipEdge()
+        public void SeekStart()
         {
-            var edges = GetClipEdges();
-            edges.Sort();
+            Seek(Video?.SelectedClip != null ? Video.SelectedClip.StartTime : TimeSpan.Zero);
+        }
 
-            foreach (var edge in edges)
-            {
-                var edgeDifference = Math.Abs(edge - MediaPlayer.CurTime);
 
-                if (edge >= MediaPlayer.CurTime && edgeDifference >= FrameTicks)
-                {
-                    SeekTicks(edge);
-                    return;
-                }
-            }
+        /// <summary>
+        /// Seeks to the end of the video or clip
+        /// </summary>
+        public void SeekEnd()
+        {
+            Seek(Video?.SelectedClip != null ? Video.SelectedClip.EndTime : VideoDuration);
         }
 
         /// <summary>
-        /// PreviosClipEdge
+        /// Close current video
         /// </summary>
-        internal void PreviosClipEdge()
+        public void Unload()
         {
-            var edges = GetClipEdges();
-            edges.Sort();
-
-            for (int i = edges.Count - 1; i >= 0; i--)
-            {
-                var edge           = edges[i];
-                var edgeDifference = Math.Abs(edge - MediaPlayer.CurTime);
-
-                if (edge <= MediaPlayer.CurTime && edgeDifference >= FrameTicks)
-                {
-                    SeekTicks(edges[i]);
-                    return;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Generates a list of start and end times of clips
-        /// </summary>
-        /// <returns>Said list</returns>
-        private List<long> GetClipEdges()
-        {
-            var edges = new List<long>();
-            if (Video == null)
-                return edges;
-
-            foreach (var clip in Video.Clips)
-            {
-                edges.Add(clip.StartTicks);
-                edges.Add(clip.EndTicks);
-            }
-
-            return edges;
-        }
-
-        /// <summary>
-        /// Tries to get a name for an audio stream by ID
-        /// </summary>
-        /// <param name="streamID">The audio stream ID</param>
-        /// <returns>A name for the specified stream</returns>
-        private string GetAudioTrackName(int streamID)
-        {
-            // Try to get the track names from the root viewmodel's videofile data
-            string? trackName = Video?.TrackNames?.ElementAtOrDefault(streamID);
-            if (trackName != null)
-                return $"Track {streamID} - {trackName}";
-
-            return $"Track {streamID}";
-        }
-
-        /// <summary>
-        /// Closes all streams used by all players
-        /// </summary>
-        public void Stop()
-        {
-            foreach (var audio in AudioPlayers)
-                audio.Player.Stop();
+            State = MediaPlayerState.Waiting;
 
             MediaPlayer.Stop();
+        }
+
+        /// <summary>
+        /// Loads a video
+        /// </summary>
+        /// <param name="video">Full path to the video</param>
+        public void Load(string video)
+        {
+            State = MediaPlayerState.Loading;
+            MediaPlayer.Load(video);
         }
 
         /// <summary>
@@ -594,14 +513,15 @@ namespace Clipple.ViewModel
         /// </summary>
         public void TogglePlayPause()
         {
-            // Sync audio before playing
-            SyncAudio();
-
-            foreach (var audio in AudioPlayers)
-                audio.Player.TogglePlayPause();
-
-            if (OverlayContentCount == 0)
-                MediaPlayer.TogglePlayPause();
+            if (OverlayContentCount == 0 && State == MediaPlayerState.Ready && !IsTimelineBusy)
+            {
+                if (MediaPlayer.IsPlaying)
+                {
+                    MediaPlayer.Pause();
+                }
+                else
+                    MediaPlayer.Resume();
+            }
         }
 
         /// <summary>
@@ -609,14 +529,8 @@ namespace Clipple.ViewModel
         /// </summary>
         public void Play()
         {
-            // Sync audio before playing
-            SyncAudio();
-
-            foreach (var audio in AudioPlayers)
-                audio.Player.Play();
-
-            if (OverlayContentCount == 0)
-                MediaPlayer.Play();
+            if (OverlayContentCount == 0 && State == MediaPlayerState.Ready && !IsTimelineBusy)
+                MediaPlayer.Resume();
         }
 
         /// <summary>
@@ -624,10 +538,8 @@ namespace Clipple.ViewModel
         /// </summary>
         public void Pause()
         {
-            foreach (var audio in AudioPlayers)
-                audio.Player.Pause();
-
-            MediaPlayer.Pause();
+            if (OverlayContentCount == 0 && State == MediaPlayerState.Ready)
+                MediaPlayer.Pause();
         }
 
         /// <summary>
@@ -635,12 +547,8 @@ namespace Clipple.ViewModel
         /// </summary>
         public void ShowFrameNext()
         {
-            if (OverlayContentCount != 0)
-                return;
-            
-            Pause();
-
-            MediaPlayer.ShowFrameNext();
+            if (OverlayContentCount == 0 && State == MediaPlayerState.Ready && !IsTimelineBusy)
+                MediaPlayer.NextFrame();
         }
 
         /// <summary>
@@ -648,26 +556,47 @@ namespace Clipple.ViewModel
         /// </summary>
         public void ShowFramePrev()
         {
-            if (OverlayContentCount != 0)
-                return;
 
-            Pause();
-
-            MediaPlayer.ShowFramePrev();
-
-            // Reset reverse playback settings
-            App.MediaPlayer.ReversePlayback = false;
-            foreach (var audio in AudioPlayers)
-                audio.Player.ReversePlayback = false;
+            if (OverlayContentCount == 0 && State == MediaPlayerState.Ready && !IsTimelineBusy)
+                MediaPlayer.PreviousFrame();
         }
 
         /// <summary>
-        /// Seeks all audio players to the current position of the main media player
+        /// Adds or removes event handlers for all of the current video's audio streams.
         /// </summary>
-        private void SyncAudio()
+        /// <param name="install">True to install event handlers, false to remove them</param>
+        private void SetStreamEvents(bool install = true)
         {
-            foreach (var audio in AudioPlayers)
-                audio.Player.CurTime = MediaPlayer.CurTime;
+            if (Video != null && Video.AudioStreams != null)
+            {
+                foreach (var audioStream in Video.AudioStreams)
+                {
+                    if (install)
+                    {
+                        audioStream.PropertyChanged += OnAudioStreamPropertyChanged;
+                    }
+                    else
+                        audioStream.PropertyChanged -= OnAudioStreamPropertyChanged;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Updates the filter used for audio on the media player to reflect the current videos AudioStream settings
+        /// </summary>
+        private void UpdateAudioStreamFilter()
+        {
+            if (Video == null || Video.AudioStreams == null)
+                return;
+
+            var volumeFilters = string.Join("; ", 
+                Video.AudioStreams.Select(x => $"[aid{x.AudioStreamIndex + 1}]volume={x.VolumeString}[v{x.AudioStreamIndex}]" 
+                + (x.IsMono ? $"; [v{x.AudioStreamIndex}]pan=mono|c0=.5*c0+.5*c1[p{x.AudioStreamIndex}]" : "")));
+
+            var inputList = string.Join("", Video.AudioStreams.Select(x => $"[{(x.IsMono ? 'p' : 'v')}{x.AudioStreamIndex}]"));
+            var filter    = $"{volumeFilters}; {inputList}amix=inputs={Video.AudioStreams.Length}[ao]";
+
+            MediaPlayer.API.SetPropertyString("lavfi-complex", filter);
         }
         #endregion
     }

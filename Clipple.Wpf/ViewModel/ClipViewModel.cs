@@ -1,5 +1,6 @@
 ﻿using Clipple.PPA;
 using Clipple.Util;
+using FFmpeg.AutoGen;
 using MahApps.Metro.Controls.Dialogs;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
 using Microsoft.Toolkit.Mvvm.Input;
@@ -34,10 +35,10 @@ namespace Clipple.ViewModel
             AudioSettings.CollectionChanged += OnAudioSettingsChanged;
             PropertyChanged += OnPropertyChanged;
 
-            SetStartTimeCommand     = new RelayCommand(() => StartTicks = App.MediaPlayer.CurTime);
-            SetEndTimeCommand       = new RelayCommand(() => EndTicks = App.MediaPlayer.CurTime);
-            GoToStartTimeCommand    = new RelayCommand(() => App.ViewModel.VideoPlayerViewModel.SeekTicks(StartTicks));
-            GoToEndTimeCommand      = new RelayCommand(() => App.ViewModel.VideoPlayerViewModel.SeekTicks(EndTicks));
+            SetStartTimeCommand     = new RelayCommand(() => StartTime  = App.ViewModel.VideoPlayerViewModel.VideoCurrentTime);
+            SetEndTimeCommand       = new RelayCommand(() => EndTime    = App.ViewModel.VideoPlayerViewModel.VideoCurrentTime);
+            GoToStartTimeCommand    = new RelayCommand(() => App.ViewModel.VideoPlayerViewModel.Seek(StartTime));
+            GoToEndTimeCommand      = new RelayCommand(() => App.ViewModel.VideoPlayerViewModel.Seek(EndTime));
 
             DeleteCommand = new RelayCommand(async () =>
             {
@@ -66,15 +67,14 @@ namespace Clipple.ViewModel
             };
         }
 
-        public ClipViewModel(long startTicks, long endTicks, string title, string folder) :
+        public ClipViewModel(TimeSpan startTime, TimeSpan duration, string title, string folder) :
             this()
         {
             this.title      = title;
             this.folder     = folder;
 
-            // End time has to be set first so that it doesn't get clamped
-            EndTicks    = endTicks;
-            StartTicks  = startTicks;
+            StartTime = startTime;
+            Duration  = duration;
 
             // Select default output format
             OutputFormatIndex = 6; // mp4
@@ -118,34 +118,20 @@ namespace Clipple.ViewModel
         }
 
         /// <summary>
-        /// Clip start time in ticks
+        /// Clip start time
         /// </summary>
-        private long startTicks;
-        public long StartTicks
+        private TimeSpan startTime;
+        public TimeSpan StartTime
         {
-            get => Math.Min(endTicks, startTicks);
+            get => startTime;
             set
             {
-                SetProperty(ref startTicks, value);
-                OnPropertyChanged(nameof(Duration));
-                OnPropertyChanged(nameof(StartTime));
+                // Can only clamp later, after construction
+                var clamped = value;
+                if (Parent != null)
+                    clamped = TimeSpan.FromTicks(Math.Clamp(value.Ticks, 0, Parent.VideoDuration.Ticks - Duration.Ticks));
 
-                if (UseTargetSize)
-                    OnPropertyChanged(nameof(VideoBitrate));
-            }
-        }
-
-        /// <summary>
-        /// Clip end time in ticks
-        /// </summary>
-        private long endTicks;
-        public long EndTicks
-        {
-            get => Math.Max(startTicks, endTicks);
-            set
-            {
-                SetProperty(ref endTicks, value);
-                OnPropertyChanged(nameof(Duration));
+                SetProperty(ref startTime, clamped);
                 OnPropertyChanged(nameof(EndTime));
 
                 if (UseTargetSize)
@@ -154,33 +140,39 @@ namespace Clipple.ViewModel
         }
 
         /// <summary>
-        /// Clip start time
+        /// Helper property.  The time that this clip ends
         /// </summary>
-        [JsonIgnore]
-        public TimeSpan StartTime
-        {
-            get => TimeSpan.FromTicks(StartTicks);
-            set => StartTicks = value.Ticks;
-        }
-
-        /// <summary>
-        /// Clip end time
-        /// </summary>
-        [JsonIgnore]
         public TimeSpan EndTime
         {
-            get => TimeSpan.FromTicks(EndTicks);
-            set => EndTicks = value.Ticks;
+            get => StartTime + Duration;
+            set
+            {
+                Duration = value - StartTime;
+
+                OnPropertyChanged(nameof(EndTime));
+            }
         }
 
         /// <summary>
         /// Duration of the clip
         /// </summary>
-        [JsonIgnore]
+        private TimeSpan duration;
         public TimeSpan Duration
         {
-            get => TimeSpan.FromTicks(EndTicks - StartTicks);
-            set => EndTicks = StartTicks + value.Ticks;
+            get => duration;
+            set
+            {
+                // Can only clamp later, after construction
+                var clamped = value;
+                if (Parent != null)
+                    clamped = TimeSpan.FromTicks(Math.Clamp(value.Ticks, 0, Parent.VideoDuration.Ticks - StartTime.Ticks));
+
+                SetProperty(ref duration, clamped);
+                OnPropertyChanged(nameof(EndTime));
+
+                if (UseTargetSize)
+                    OnPropertyChanged(nameof(VideoBitrate));
+            }
         }
 
         /// <summary>

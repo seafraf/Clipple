@@ -58,15 +58,15 @@ namespace Clipple.View
 
         public static readonly DependencyProperty ClipStartProperty = DependencyProperty.Register(
             "ClipStart",
-            typeof(TimeSpan),
+            typeof(TimeSpan?),
             typeof(Timeline),
-            new FrameworkPropertyMetadata(defaultValue: TimeSpan.Zero, flags: FrameworkPropertyMetadataOptions.AffectsRender, OnPositionChanged));
+            new FrameworkPropertyMetadata(defaultValue: null, flags: FrameworkPropertyMetadataOptions.AffectsRender, OnPositionChanged));
 
         public static readonly DependencyProperty ClipDurationProperty = DependencyProperty.Register(
             "ClipDuration",
-            typeof(TimeSpan),
+            typeof(TimeSpan?),
             typeof(Timeline),
-            new FrameworkPropertyMetadata(defaultValue: TimeSpan.Zero, flags: FrameworkPropertyMetadataOptions.AffectsRender, OnPositionChanged));
+            new FrameworkPropertyMetadata(defaultValue: null, flags: FrameworkPropertyMetadataOptions.AffectsRender, OnPositionChanged));
 
         public static readonly DependencyProperty IsDraggingProperty = DependencyProperty.Register(
             "IsDragging",
@@ -79,41 +79,49 @@ namespace Clipple.View
             typeof(double),
             typeof(Timeline),
             new FrameworkPropertyMetadata(defaultValue: 1.0, flags: FrameworkPropertyMetadataOptions.AffectsRender, OnZoomChanged));
+
+
+        public static readonly DependencyProperty HasClipProperty = DependencyProperty.Register(
+            "HasClip",
+            typeof(bool),
+            typeof(Timeline),
+            new FrameworkPropertyMetadata(defaultValue: false, flags: FrameworkPropertyMetadataOptions.AffectsRender));
         #endregion
 
         #region Properties
         public TimeSpan Time
         {
             get => (TimeSpan)GetValue(TimeProperty);
-            set => SetValue(TimeProperty, 
-                TimeSpan.FromTicks(Math.Clamp(value.Ticks, ClipStart.Ticks, ClipStart.Ticks + ClipDuration.Ticks)));
+            set
+            {
+                if (value.Ticks < 0)
+                    return;
+
+                SetValue(TimeProperty, value);
+            }
         }
 
         public TimeSpan ClipStart
         {
-            get => (TimeSpan)GetValue(ClipStartProperty);
+            get => ((TimeSpan?)GetValue(ClipStartProperty)) ?? TimeSpan.Zero;
             set
             {
-                // Set property
-                SetValue(ClipStartProperty, 
-                    TimeSpan.FromTicks(Math.Clamp(value.Ticks, TimeSpan.Zero.Ticks, Duration.Ticks)));
+                if (value.Ticks < 0)
+                    return;
 
-                // Ensure playhead is within clip boundaries
-                Time = TimeSpan.FromTicks(Math.Clamp(Time.Ticks, value.Ticks, value.Ticks + Duration.Ticks));
+                SetValue(ClipStartProperty, value);
             }
         }
 
         public TimeSpan ClipDuration
         {
-            get => (TimeSpan)GetValue(ClipDurationProperty);
+            get => ((TimeSpan?)GetValue(ClipDurationProperty)) ?? Duration;
             set
             {
-                // Set property
-                SetValue(ClipDurationProperty,
-                    TimeSpan.FromTicks(Math.Clamp(value.Ticks, 0, Duration.Ticks - ClipStart.Ticks)));
+                if (value.Ticks < 0)
+                    return;
 
-                // Ensure playhead is within clip boundaries
-                Time = TimeSpan.FromTicks(Math.Clamp(Time.Ticks, ClipStart.Ticks, ClipStart.Ticks + value.Ticks));
+                SetValue(ClipDurationProperty, value);
             }
         }
 
@@ -135,9 +143,15 @@ namespace Clipple.View
             set => SetValue(ZoomProperty, value);
         }
 
+        public bool HasClip
+        {
+            get => (bool)GetValue(HasClipProperty);
+            set => SetValue(HasClipProperty, value);
+        }
+
         /// <summary>
         /// 12 points subtracted for margin on the waveform images
-        /// </summary>
+        ///// </summary> 
         public double TimelineWidth => ActualWidth - RootScrollable.Margin.Left - RootScrollable.Margin.Right;
 
         public ScaleTransform Transform { get; } = new ScaleTransform();
@@ -164,13 +178,36 @@ namespace Clipple.View
         public VideoPlayerViewModel Context => (VideoPlayerViewModel)DataContext;
 
         #region Methods
+        private void SetClipStartClamped(TimeSpan time)
+        {
+            ClipStart = TimeSpan.FromTicks(Math.Clamp(time.Ticks, 0, Duration.Ticks - ClipDuration.Ticks));
+            SetTimeClamped(Time);
+        }
+            
+        private void SetClipDurationClamped(TimeSpan time)
+        {
+            ClipDuration = TimeSpan.FromTicks(Math.Clamp(time.Ticks, 0, Duration.Ticks - ClipStart.Ticks));
+            SetTimeClamped(Time);
+        }
+
+        private void SetTimeClamped(TimeSpan time) =>
+            Time = TimeSpan.FromTicks(Math.Clamp(time.Ticks, ClipStart.Ticks, ClipStart.Ticks + ClipDuration.Ticks));
+
         private void UpdateMarkers()
         {
-            if (Time == TimeSpan.Zero || Duration == TimeSpan.Zero)
-                return;
+            if (Duration == TimeSpan.Zero)
+                return; 
 
             // Playhead
             double playheadProgress = Math.Min(1.0, Math.Max(0.0, Time / Duration));
+
+            // Clip start
+            double clipStartProgress = Math.Min(1.0, Math.Max(0.0, ClipStart / Duration));
+            double clipDuration = Math.Min(1.0, Math.Max(0.0, ClipDuration / Duration));
+
+            // Extra clamping.. why? because the play position given to us by MPV is only millisecond accurate and can
+            // lead to the playhead appearing outside of the clip bounds some times, after being automatically paused
+            playheadProgress = Math.Clamp(playheadProgress, clipStartProgress, clipStartProgress + clipDuration);
 
             PlayheadColumnSpacerStart.Width = new GridLength(playheadProgress, GridUnitType.Star);
             PlayheadButtonColumnSpacerStart.Width = PlayheadColumnSpacerStart.Width;
@@ -178,9 +215,6 @@ namespace Clipple.View
             PlayheadColumnSpacerEnd.Width = new GridLength(1.0 - playheadProgress, GridUnitType.Star);
             PlayheadButtonColumnSpacerEnd.Width = PlayheadColumnSpacerEnd.Width;
 
-            // Clip start
-            double clipStartProgress = Math.Min(1.0, Math.Max(0.0, ClipStart / Duration));
-            double clipDuration = Math.Min(1.0, Math.Max(0.0, ClipDuration / Duration));
 
             ClipColumnSpacerStart.Width = new GridLength(clipStartProgress, GridUnitType.Star);
             ClipColumnSpacerEnd.Width = new GridLength(Math.Clamp(1.0 - clipStartProgress - clipDuration, 0.0, 1.0), GridUnitType.Star);
@@ -253,29 +287,26 @@ namespace Clipple.View
                 {
                     case DragTarget.Playhead:
                         {
-                            Time += timeDiff;
-
+                            SetTimeClamped(Time + timeDiff);
                             DragScroll(wavePxOnTimeline * (Time / Duration));
                             break;
                         }
                     case DragTarget.ClipStart:
                         {
-                            ClipStart += timeDiff;
-
+                            SetClipStartClamped(ClipStart + timeDiff);
+                            SetClipDurationClamped(ClipDuration - timeDiff);
                             DragScroll(wavePxOnTimeline * (ClipStart / Duration));
                             break;
                         }
                     case DragTarget.ClipEnd:
                         {
-                            ClipDuration += timeDiff;
-
+                            SetClipDurationClamped(ClipDuration + timeDiff);
                             DragScroll(wavePxOnTimeline * ((ClipStart + ClipDuration) / Duration));
                             break;
                         }
                     case DragTarget.Clip:
                         {
-                            ClipStart += timeDiff;
-                            ClipDuration += timeDiff;
+                            SetClipStartClamped(ClipStart + timeDiff);
 
                             if (timeDiff < TimeSpan.Zero)
                             {

@@ -173,18 +173,18 @@ namespace Clipple.ViewModel
             set => SetProperty(ref createClipHotKey, value);
         }
 
-        private HotKey nextEdgeHotKey = new(Key.Right, ModifierKeys.Shift);
-        public HotKey NextEdgeHotKey
+        private HotKey seekStartHotKey = new(Key.Left, ModifierKeys.Shift);
+        public HotKey SeekStartHotKey
         {
-            get => nextEdgeHotKey;
-            set => SetProperty(ref nextEdgeHotKey, value);
+            get => seekStartHotKey;
+            set => SetProperty(ref seekStartHotKey, value);
         }
 
-        private HotKey previousEdgeHotKey = new(Key.Left, ModifierKeys.Shift);
-        public HotKey PreviousEdgeHotKey
+        private HotKey seekEndHotKey = new(Key.Right, ModifierKeys.Shift);
+        public HotKey SeekEndHotKey
         {
-            get => previousEdgeHotKey;
-            set => SetProperty(ref previousEdgeHotKey, value);
+            get => seekEndHotKey;
+            set => SetProperty(ref seekEndHotKey, value);
         }
 
         private HotKey saveHotKey = new(Key.S, ModifierKeys.Control);

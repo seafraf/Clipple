@@ -70,8 +70,8 @@ namespace Clipple.View
                 (vm.SettingsViewModel.NextVideoHotKey, AppCommands.NextVideoCommand),
                 (vm.SettingsViewModel.PreviousVideoHotKey, AppCommands.PreviousVideoCommand),
                 (vm.SettingsViewModel.CreateClipHotKey, AppCommands.CreateClipCommand),
-                (vm.SettingsViewModel.NextEdgeHotKey, AppCommands.NextClipEdgeCommand),
-                (vm.SettingsViewModel.PreviousEdgeHotKey, AppCommands.PreviousClipEdgeCommand),
+                (vm.SettingsViewModel.SeekStartHotKey, AppCommands.SeekStartCommand),
+                (vm.SettingsViewModel.SeekEndHotKey, AppCommands.SeekEndCommand),
                 (vm.SettingsViewModel.SaveHotKey, AppCommands.SaveCommand),
             };
         }
@@ -136,6 +136,8 @@ namespace Clipple.View
 
             if (vm.SettingsViewModel.SaveOnExit)
                 await vm.Save();
+
+            vm.VideoPlayerViewModel.MediaPlayer.Dispose();
         }
 
         private void OnStatusBarClicked(object sender, MouseButtonEventArgs e)

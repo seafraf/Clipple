@@ -1,8 +1,6 @@
 ﻿using Clipple.View;
 using Clipple.ViewModel;
 using FFmpeg.AutoGen;
-using FlyleafLib;
-using FlyleafLib.MediaPlayer;
 using MahApps.Metro.Controls.Dialogs;
 using Squirrel;
 using System;
@@ -40,11 +38,6 @@ namespace Clipple
         public static MainWindow Window => (MainWindow)Current.MainWindow;
 
         /// <summary>
-        /// A reference to the FlyLeaf video player.
-        /// </summary>
-        public static Player MediaPlayer => ViewModel.VideoPlayerViewModel.MediaPlayer;
-
-        /// <summary>
         /// The path to the FFmpeg libraries and executables.
         /// </summary>
         public static string LibPath { get; } = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Binaries", Environment.Is64BitProcess ? "64" : "32");
@@ -70,14 +63,7 @@ namespace Clipple
             try
             {
                 var stopwatch = Stopwatch.StartNew();
-                Engine.Start(new EngineConfig()
-                {
-                    FFmpegLogLevel = FFmpegLogLevel.Debug,
-                    FFmpegPath = LibPath,
-                    UIRefresh = true,
-                    UIRefreshInterval = 100,
-                    UICurTimePerSecond = false,
-                });
+                ffmpeg.RootPath = LibPath;
 
                 stopwatch.Stop();
                 Logger.Log($"Loaded FFmpeg binaries in {stopwatch.ElapsedMilliseconds}ms");
