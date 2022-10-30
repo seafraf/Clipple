@@ -1,24 +1,29 @@
-﻿<mah:MetroWindow x:Class="Clipple.View.MainWindow"
+﻿<Window x:Class="Clipple.View.MainWindow"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:mah="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
-        xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
         xmlns:views="clr-namespace:Clipple.View"
-        xmlns:vm="clr-namespace:Clipple.ViewModel"
         xmlns:local="clr-namespace:Clipple"
         xmlns:converters="clr-namespace:Clipple.Converters"
         mc:Ignorable="d"
+        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        TextElement.FontWeight="Regular"
+        TextElement.FontSize="13"
+        TextOptions.TextFormattingMode="Ideal" 
+        TextOptions.TextRenderingMode="Auto"        
+        Background="{DynamicResource MaterialDesignPaper}"
+        FontFamily="{DynamicResource MaterialDesignFont}"
         Height="900" Width="1440" AllowDrop="True" DragOver="OnDragOver" Drop="OnDrop" PreviewKeyDown="OnPreviewKeyDown" Closing="OnClosing"
                  DataContext="{StaticResource RootViewModel}" Title="{Binding Path=Title}">
-    <mah:MetroWindow.Resources>
+    <Window.Resources>
         <converters:ValueConverterGroup x:Key="ComparisonConverterVisbility" >
             <converters:ComparisonConverter />
             <BooleanToVisibilityConverter />
         </converters:ValueConverterGroup>
-    </mah:MetroWindow.Resources>
-    <mah:MetroWindow.RightWindowCommands>
+    </Window.Resources>
+    <!--<mah:MetroWindow.RightWindowCommands>
         <mah:WindowCommands >
             <StackPanel Margin="10, 0, 0, 0"  Orientation="Horizontal">
                 <iconPacks:PackIconMaterialDesign VerticalAlignment="Center" Kind="Settings" />
@@ -73,78 +78,107 @@
                 <views:Settings DataContext="{Binding Path=SettingsViewModel}" />
             </mah:Flyout>
         </mah:FlyoutsControl>
-    </mah:MetroWindow.Flyouts>
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="1*" MinWidth="600" />
-            <ColumnDefinition Width="375" MinWidth="200" />
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*" />
-            <RowDefinition Height="auto" />
-        </Grid.RowDefinitions>
-        <GridSplitter Grid.Column="0" Width="5" HorizontalAlignment="Right" VerticalAlignment="Stretch" ShowsPreview="False" />
+    </mah:MetroWindow.Flyouts>-->
+    <TabControl Style="{StaticResource MaterialDesignNavigatilRailTabControl}" materialDesign:NavigationRailAssist.ShowSelectionBackground="True">
 
-        <views:VideoPlayer x:Name="videoPlayer" DataContext="{Binding Path=VideoPlayerViewModel}" Grid.Column="0" Margin="6 6 9 6" />
+        <TabItem>
+            <TabItem.Header>
+                <StackPanel Width="auto" Height="auto">
+                    <materialDesign:PackIcon Width="24" Height="24" HorizontalAlignment="Center" Kind="Library" />
+                    <TextBlock HorizontalAlignment="Center" Text="Videos" />
+                </StackPanel>
+            </TabItem.Header>
+        </TabItem>
 
-        <Grid Grid.Column="1" Margin="6 6 6 6" >
-            <mah:MetroAnimatedSingleRowTabControl 
+        <TabItem>
+            <TabItem.Header>
+                <StackPanel Width="auto" Height="auto">
+                    <materialDesign:PackIcon Width="24" Height="24" HorizontalAlignment="Center" Kind="Video" />
+                    <TextBlock HorizontalAlignment="Center" Text="Editor" />
+                </StackPanel>
+            </TabItem.Header>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*" MinWidth="600" />
+                    <ColumnDefinition Width="375" MinWidth="200" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="auto" />
+                </Grid.RowDefinitions>
+                <GridSplitter Grid.Column="0" Width="5" HorizontalAlignment="Right" VerticalAlignment="Stretch" ShowsPreview="False" />
+
+                <views:VideoPlayer x:Name="videoPlayer" DataContext="{Binding Path=VideoPlayerViewModel}" Grid.Column="0" Margin="6 6 9 6" />
+
+                <Grid Grid.Column="1" Margin="6 6 6 6" >
+                    <TabControl 
                                               ItemsSource="{Binding SelectedVideo.Clips, Mode=TwoWay}" 
                                               SelectedItem="{Binding Path=SelectedVideo.SelectedClip, Mode=TwoWay}" 
                                               SelectedIndex="{Binding Path=SelectedVideo.SelectedClipIndex, Mode=TwoWay}">
-                <TabControl.ItemTemplate>
-                    <DataTemplate>
-                        <TextBlock Text="{Binding Title}"/>
-                    </DataTemplate>
-                </TabControl.ItemTemplate>
-                <TabControl.ContentTemplate>
-                    <DataTemplate>
-                        <views:ClipSettings DataContext="{Binding}" />
-                    </DataTemplate>
-                </TabControl.ContentTemplate>
-            </mah:MetroAnimatedSingleRowTabControl>
-        </Grid>
+                        <TabControl.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Title}"/>
+                            </DataTemplate>
+                        </TabControl.ItemTemplate>
+                        <TabControl.ContentTemplate>
+                            <DataTemplate>
+                                <views:ClipSettings DataContext="{Binding}" />
+                            </DataTemplate>
+                        </TabControl.ContentTemplate>
+                    </TabControl>
+                </Grid>
 
-        <Grid Grid.Column="1" Margin="6 6 6 6" Visibility="{Binding Path=SelectedVideo.SelectedClip, Converter={StaticResource ComparisonConverterVisbility}, ConverterParameter={x:Null}}">
-            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                <Label FontSize="24">Create new clip</Label>
-                <Button Grid.Row="1" Grid.Column="0" Width="64" Height="64" ToolTip="Add new clip"
-                        Style="{DynamicResource MahApps.Styles.Button.Circle}"
+                <Grid Grid.Column="1" Margin="6 6 6 6" Visibility="{Binding Path=SelectedVideo.SelectedClip, Converter={StaticResource ComparisonConverterVisbility}, ConverterParameter={x:Null}}">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Label FontSize="24">Create new clip</Label>
+                        <Button Grid.Row="1" Grid.Column="0" Width="64" Height="64" ToolTip="Add new clip"
                         Command="{Binding Source={x:Static local:AppCommands.CreateClipCommand}}">
-                    <iconPacks:MaterialDesign Width="20" Height="20" Kind="Add" />
-                </Button>
-            </StackPanel>
-        </Grid>
+                            <!--<iconPacks:MaterialDesign Width="20" Height="20" Kind="Add" />-->
+                        </Button>
+                    </StackPanel>
+                </Grid>
 
-        <StatusBar DataContext="{x:Static local:App.Logger}" Grid.ColumnSpan="2" Grid.Row="1" Height="24" Cursor="Hand" ToolTip="Click to view full logs" MouseDown="OnStatusBarClicked"
+                <!--<StatusBar DataContext="{x:Static local:App.Logger}" Grid.ColumnSpan="2" Grid.Row="1" Height="24" Cursor="Hand" ToolTip="Click to view full logs" MouseDown="OnStatusBarClicked"
                    Visibility="{Binding Path=HasLogs, Converter={StaticResource BooleanToVisibilityConverter}}">
-            <StatusBarItem>
-                <iconPacks:PackIconMaterialDesign VerticalAlignment="Center">
-                    <iconPacks:PackIconMaterialDesign.Style>
-                        <Style TargetType="iconPacks:PackIconMaterialDesign">
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding Path=LastLogEntry.IsError}" Value="True">
-                                    <Setter Property="Kind" Value="Error" />
-                                </DataTrigger>
-                                <DataTrigger Binding="{Binding Path=LastLogEntry.IsError}" Value="False">
-                                    <Setter Property="Kind" Value="Info" />
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </iconPacks:PackIconMaterialDesign.Style>
-                </iconPacks:PackIconMaterialDesign>
-            </StatusBarItem>
-            <StatusBarItem>
-                <TextBlock Text="{Binding Path=LastLogEntry.Time, StringFormat={}{0:hh:mm:ss}}" />
-            </StatusBarItem>
-            <StatusBarItem Content="{Binding Path=LastLogEntry.Content}" />
-            <StatusBarItem HorizontalAlignment="Right" >
-                <TextBlock>
-                    <Run Text="{Binding Path=LogEntries.Count, Mode=OneWay}" />
-                    <Run Text="log entries" />
-                </TextBlock>
-            </StatusBarItem>
-        </StatusBar>
-    </Grid>
+                    <StatusBarItem>
+                        -->
+                <!--<iconPacks:PackIconMaterialDesign VerticalAlignment="Center">
+                            <iconPacks:PackIconMaterialDesign.Style>
+                                <Style TargetType="iconPacks:PackIconMaterialDesign">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Path=LastLogEntry.IsError}" Value="True">
+                                            <Setter Property="Kind" Value="Error" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Path=LastLogEntry.IsError}" Value="False">
+                                            <Setter Property="Kind" Value="Info" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </iconPacks:PackIconMaterialDesign.Style>
+                        </iconPacks:PackIconMaterialDesign>-->
+                <!--
+                    </StatusBarItem>
+                    <StatusBarItem>
+                        <TextBlock Text="{Binding Path=LastLogEntry.Time, StringFormat={}{0:hh:mm:ss}}" />
+                    </StatusBarItem>
+                    <StatusBarItem Content="{Binding Path=LastLogEntry.Content}" />
+                    <StatusBarItem HorizontalAlignment="Right" >
+                        <TextBlock>
+                            <Run Text="{Binding Path=LogEntries.Count, Mode=OneWay}" />
+                            <Run Text="log entries" />
+                        </TextBlock>
+                    </StatusBarItem>
+                </StatusBar>-->
+            </Grid>
+        </TabItem>
 
-</mah:MetroWindow>
+        <TabItem>
+            <TabItem.Header>
+                <StackPanel Width="auto" Height="auto">
+                    <materialDesign:PackIcon Width="24" Height="24" HorizontalAlignment="Center" Kind="Settings" />
+                    <TextBlock HorizontalAlignment="Center" Text="Settings" />
+                </StackPanel>
+            </TabItem.Header>
+        </TabItem>
+    </TabControl>
+</Window>

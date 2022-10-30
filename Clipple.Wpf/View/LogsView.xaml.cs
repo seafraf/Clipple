@@ -1,5 +1,4 @@
-﻿using MahApps.Metro.Controls;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -18,7 +17,7 @@ namespace Clipple.View
     /// <summary>
     /// Interaction logic for LogsView.xaml
     /// </summary>
-    public partial class LogsView : MetroWindow
+    public partial class LogsView : Window
     {
         public LogsView()
         {

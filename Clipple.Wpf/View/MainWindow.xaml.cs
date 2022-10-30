@@ -1,6 +1,4 @@
 ﻿using Clipple.ViewModel;
-using ControlzEx.Theming;
-using MahApps.Metro.Controls;
 using Microsoft.Toolkit.Mvvm.Input;
 using System;
 using System.Collections.Generic;
@@ -15,20 +13,18 @@ namespace Clipple.View
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : MetroWindow
+    public partial class MainWindow : Window
     {
         public VideoPlayer VideoPlayer => videoPlayer;
 
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         public MainWindow()
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {
             InitializeComponent();
 
             var vm = (RootViewModel)DataContext;
 
             // Load theme
-            ThemeManager.Current.ChangeTheme(this, vm.SettingsViewModel.ThemeKey);
+            //ThemeManager.Current.ChangeTheme(this, vm.SettingsViewModel.ThemeKey);
 
             // Create key bindings now
             UpdateKeyBindings();
@@ -59,26 +55,26 @@ namespace Clipple.View
         {
             var vm = (RootViewModel)DataContext;
 
-            hotKeys = new()
-            {
-                (vm.SettingsViewModel.ControlHotKey, AppCommands.ControlCommand),
-                (vm.SettingsViewModel.PreviousFrameHotKey, AppCommands.PreviousFrameCommand),
-                (vm.SettingsViewModel.NextFrameHotKey, AppCommands.NextFrameCommand),
-                (vm.SettingsViewModel.ToggleMuteHotKey, AppCommands.ToggleMuteCommand),
-                (vm.SettingsViewModel.VolumeUpHotKey, AppCommands.VolumeUpCommand),
-                (vm.SettingsViewModel.VolumeDownHotKey, AppCommands.VolumeDownCommand),
-                (vm.SettingsViewModel.NextVideoHotKey, AppCommands.NextVideoCommand),
-                (vm.SettingsViewModel.PreviousVideoHotKey, AppCommands.PreviousVideoCommand),
-                (vm.SettingsViewModel.CreateClipHotKey, AppCommands.CreateClipCommand),
-                (vm.SettingsViewModel.SeekStartHotKey, AppCommands.SeekStartCommand),
-                (vm.SettingsViewModel.SeekEndHotKey, AppCommands.SeekEndCommand),
-                (vm.SettingsViewModel.SaveHotKey, AppCommands.SaveCommand),
-            };
+            //hotKeys = new()
+            //{
+            //    (vm.SettingsViewModel.ControlHotKey, AppCommands.ControlCommand),
+            //    (vm.SettingsViewModel.PreviousFrameHotKey, AppCommands.PreviousFrameCommand),
+            //    (vm.SettingsViewModel.NextFrameHotKey, AppCommands.NextFrameCommand),
+            //    (vm.SettingsViewModel.ToggleMuteHotKey, AppCommands.ToggleMuteCommand),
+            //    (vm.SettingsViewModel.VolumeUpHotKey, AppCommands.VolumeUpCommand),
+            //    (vm.SettingsViewModel.VolumeDownHotKey, AppCommands.VolumeDownCommand),
+            //    (vm.SettingsViewModel.NextVideoHotKey, AppCommands.NextVideoCommand),
+            //    (vm.SettingsViewModel.PreviousVideoHotKey, AppCommands.PreviousVideoCommand),
+            //    (vm.SettingsViewModel.CreateClipHotKey, AppCommands.CreateClipCommand),
+            //    (vm.SettingsViewModel.SeekStartHotKey, AppCommands.SeekStartCommand),
+            //    (vm.SettingsViewModel.SeekEndHotKey, AppCommands.SeekEndCommand),
+            //    (vm.SettingsViewModel.SaveHotKey, AppCommands.SaveCommand),
+            //};
         }
 
         #region Members
-        private List<(HotKey, RelayCommand)> hotKeys;
-        private HashSet<Flyout> openFlyouts = new();
+        //private List<(HotKey, RelayCommand)> hotKeys;
+        //private HashSet<Flyout> openFlyouts = new();
         #endregion
 
         private void OnDragOver(object sender, DragEventArgs e)
@@ -120,14 +116,14 @@ namespace Clipple.View
             FocusManager.SetIsFocusScope(this, true);
             FocusManager.SetFocusedElement(this, this);
 
-            foreach (var (key, command) in hotKeys)
-            {
-                if (key.Key == e.Key && e.KeyboardDevice.Modifiers == key.ModifierKeys)
-                {
-                    command.Execute(null);
-                    return;
-                }
-            }
+            //foreach (var (key, command) in hotKeys)
+            //{
+            //    if (key.Key == e.Key && e.KeyboardDevice.Modifiers == key.ModifierKeys)
+            //    {
+            //        command.Execute(null);
+            //        return;
+            //    }
+            //}
         }
 
         private async void OnClosing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -148,21 +144,21 @@ namespace Clipple.View
 
         private void FlyoutIsOpenChanged(object sender, RoutedEventArgs e)
         {
-            var flyout = ((Flyout)sender);
+            //var flyout = ((Flyout)sender);
 
-            if (flyout.IsOpen && !openFlyouts.Contains(flyout))
-            {
-                openFlyouts.Add(flyout);
-                App.ViewModel.VideoPlayerViewModel.OverlayContentCount++;
-            }
+            //if (flyout.IsOpen && !openFlyouts.Contains(flyout))
+            //{
+            //    openFlyouts.Add(flyout);
+            //    App.ViewModel.VideoPlayerViewModel.OverlayContentCount++;
+            //}
         }
 
         private void FlyoutClosingFinished(object sender, RoutedEventArgs e)
         {
-            var flyout = ((Flyout)sender);
+            //var flyout = ((Flyout)sender);
 
-            openFlyouts.Remove(flyout);
-            App.ViewModel.VideoPlayerViewModel.OverlayContentCount--;
+            //openFlyouts.Remove(flyout);
+            //App.ViewModel.VideoPlayerViewModel.OverlayContentCount--;
         }
     }
 }

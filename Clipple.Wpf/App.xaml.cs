@@ -1,7 +1,6 @@
 ﻿using Clipple.View;
 using Clipple.ViewModel;
 using FFmpeg.AutoGen;
-using MahApps.Metro.Controls.Dialogs;
 using Squirrel;
 using System;
 using System.Collections.Generic;

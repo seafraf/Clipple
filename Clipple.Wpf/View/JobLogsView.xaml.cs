@@ -1,6 +1,5 @@
 ﻿using Clipple.Types;
 using Clipple.ViewModel;
-using MahApps.Metro.Controls;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,7 +19,7 @@ namespace Clipple.View
     /// <summary>
     /// Interaction logic for JobLogsView.xaml
     /// </summary>
-    public partial class JobLogsView : MetroWindow
+    public partial class JobLogsView : Window
     {
         public JobLogsView(JobViewModel jobViewModel)
         {

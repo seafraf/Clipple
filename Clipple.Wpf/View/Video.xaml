@@ -4,7 +4,6 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Clipple.View"
-             xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls" 
              xmlns:viewmodel="clr-namespace:Clipple.ViewModel"
              xmlns:converters="clr-namespace:Clipple.Converters"
              mc:Ignorable="d"
@@ -20,7 +19,7 @@
                         <Setter Property="BorderBrush" Value="White"  />
                     </Trigger>
                     <Trigger Property="IsMouseOver" Value="False">
-                        <Setter Property="BorderBrush" Value="{DynamicResource MahApps.Brushes.Accent}" />
+                        <Setter Property="BorderBrush" />
                     </Trigger>
                 </Style.Triggers>
             </Style>
@@ -30,7 +29,7 @@
                 <Style TargetType="{x:Type Grid}" >
                     <Style.Triggers>
                         <DataTrigger Binding="{Binding Path=IsSelected}" Value="True">
-                            <Setter Property="Background" Value="{DynamicResource MahApps.Brushes.Accent}"  />
+                            <Setter Property="Background" />
                         </DataTrigger>
                         <DataTrigger Binding="{Binding Path=IsSelected}" Value="False">
                             <Setter Property="Background" Value="Transparent" />
@@ -92,7 +91,7 @@
                         <RowDefinition Height="auto" />
                         <RowDefinition Height="auto" />
                     </Grid.RowDefinitions>
-                    <ComboBox Cursor="Arrow" mah:TextBoxHelper.UseFloatingWatermark="True" mah:TextBoxHelper.Watermark="Post processing action" Grid.ColumnSpan="2" Margin="4" ItemsSource="{Binding Path=PostProcessingActionList}" SelectedItem="{Binding Path=PostProcessingAction}" SelectedIndex="{Binding Path=PostProcessingActionIndex}" />
+                    <ComboBox Cursor="Arrow" Grid.ColumnSpan="2" Margin="4" ItemsSource="{Binding Path=PostProcessingActionList}" SelectedItem="{Binding Path=PostProcessingAction}" SelectedIndex="{Binding Path=PostProcessingActionIndex}" />
                     <Button Cursor="Arrow" Grid.Column="0" Grid.Row="1" Margin="4" Command="{Binding Path=RemoveClipsCommand}" IsEnabled="{Binding Path=Clips.Count, Converter={StaticResource gt0}, Mode=OneWay}" >
                         <Button.Content>
                             <TextBlock>

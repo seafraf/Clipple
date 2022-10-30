@@ -1,6 +1,4 @@
-﻿using ControlzEx.Theming;
-using MahApps.Metro.Controls;
-using Microsoft.Toolkit.Mvvm.ComponentModel;
+﻿using Microsoft.Toolkit.Mvvm.ComponentModel;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -23,8 +21,8 @@ namespace Clipple.ViewModel
         #region Methods
         private void ChangeTheme(bool dark, string colourName)
         {
-            if (App.Window != null)
-                ThemeManager.Current.ChangeTheme(App.Window, ThemeKey);      
+            //if (App.Window != null)
+            //    ThemeManager.Current.ChangeTheme(App.Window, ThemeKey);      
         }
         #endregion
 
@@ -110,89 +108,89 @@ namespace Clipple.ViewModel
             }
         }
 
-        private HotKey controlHotKey = new(Key.Space);
-        public HotKey ControlHotKey
-        {
-            get => controlHotKey;
-            set => SetProperty(ref controlHotKey, value);
-        }
+        //private HotKey controlHotKey = new(Key.Space);
+        //public HotKey ControlHotKey
+        //{
+        //    get => controlHotKey;
+        //    set => SetProperty(ref controlHotKey, value);
+        //}
 
-        private HotKey nextFrameHotKey = new(Key.Right);
-        public HotKey NextFrameHotKey
-        {
-            get => nextFrameHotKey;
-            set => SetProperty(ref nextFrameHotKey, value);
-        }
+        //private HotKey nextFrameHotKey = new(Key.Right);
+        //public HotKey NextFrameHotKey
+        //{
+        //    get => nextFrameHotKey;
+        //    set => SetProperty(ref nextFrameHotKey, value);
+        //}
 
-        private HotKey previousFrameHotKey = new(Key.Left);
-        public HotKey PreviousFrameHotKey
-        {
-            get => previousFrameHotKey;
-            set => SetProperty(ref previousFrameHotKey, value);
-        }
+        //private HotKey previousFrameHotKey = new(Key.Left);
+        //public HotKey PreviousFrameHotKey
+        //{
+        //    get => previousFrameHotKey;
+        //    set => SetProperty(ref previousFrameHotKey, value);
+        //}
 
-        private HotKey toggleMuteHotKey = new(Key.M);
-        public HotKey ToggleMuteHotKey
-        {
-            get => toggleMuteHotKey;
-            set => SetProperty(ref toggleMuteHotKey, value);
-        }
+        //private HotKey toggleMuteHotKey = new(Key.M);
+        //public HotKey ToggleMuteHotKey
+        //{
+        //    get => toggleMuteHotKey;
+        //    set => SetProperty(ref toggleMuteHotKey, value);
+        //}
 
-        private HotKey volumeUpHotKey = new(Key.Up);
-        public HotKey VolumeUpHotKey
-        {
-            get => volumeUpHotKey;
-            set => SetProperty(ref volumeUpHotKey, value);
-        }
+        //private HotKey volumeUpHotKey = new(Key.Up);
+        //public HotKey VolumeUpHotKey
+        //{
+        //    get => volumeUpHotKey;
+        //    set => SetProperty(ref volumeUpHotKey, value);
+        //}
 
-        private HotKey volumeDownHotKey = new(Key.Down);
-        public HotKey VolumeDownHotKey
-        {
-            get => volumeDownHotKey;
-            set => SetProperty(ref volumeDownHotKey, value);
-        }
+        //private HotKey volumeDownHotKey = new(Key.Down);
+        //public HotKey VolumeDownHotKey
+        //{
+        //    get => volumeDownHotKey;
+        //    set => SetProperty(ref volumeDownHotKey, value);
+        //}
 
-        private HotKey nextVideoHotKey = new(Key.Right, ModifierKeys.Control);
-        public HotKey NextVideoHotKey
-        {
-            get => nextVideoHotKey;
-            set => SetProperty(ref nextVideoHotKey, value);
-        }
+        //private HotKey nextVideoHotKey = new(Key.Right, ModifierKeys.Control);
+        //public HotKey NextVideoHotKey
+        //{
+        //    get => nextVideoHotKey;
+        //    set => SetProperty(ref nextVideoHotKey, value);
+        //}
 
-        private HotKey previousVideoHotKey = new(Key.Left, ModifierKeys.Control);
-        public HotKey PreviousVideoHotKey
-        {
-            get => previousVideoHotKey;
-            set => SetProperty(ref previousVideoHotKey, value);
-        }
+        //private HotKey previousVideoHotKey = new(Key.Left, ModifierKeys.Control);
+        //public HotKey PreviousVideoHotKey
+        //{
+        //    get => previousVideoHotKey;
+        //    set => SetProperty(ref previousVideoHotKey, value);
+        //}
 
-        private HotKey createClipHotKey = new(Key.C, ModifierKeys.Shift);
-        public HotKey CreateClipHotKey
-        {
-            get => createClipHotKey;
-            set => SetProperty(ref createClipHotKey, value);
-        }
+        //private HotKey createClipHotKey = new(Key.C, ModifierKeys.Shift);
+        //public HotKey CreateClipHotKey
+        //{
+        //    get => createClipHotKey;
+        //    set => SetProperty(ref createClipHotKey, value);
+        //}
 
-        private HotKey seekStartHotKey = new(Key.Left, ModifierKeys.Shift);
-        public HotKey SeekStartHotKey
-        {
-            get => seekStartHotKey;
-            set => SetProperty(ref seekStartHotKey, value);
-        }
+        //private HotKey seekStartHotKey = new(Key.Left, ModifierKeys.Shift);
+        //public HotKey SeekStartHotKey
+        //{
+        //    get => seekStartHotKey;
+        //    set => SetProperty(ref seekStartHotKey, value);
+        //}
 
-        private HotKey seekEndHotKey = new(Key.Right, ModifierKeys.Shift);
-        public HotKey SeekEndHotKey
-        {
-            get => seekEndHotKey;
-            set => SetProperty(ref seekEndHotKey, value);
-        }
+        //private HotKey seekEndHotKey = new(Key.Right, ModifierKeys.Shift);
+        //public HotKey SeekEndHotKey
+        //{
+        //    get => seekEndHotKey;
+        //    set => SetProperty(ref seekEndHotKey, value);
+        //}
 
-        private HotKey saveHotKey = new(Key.S, ModifierKeys.Control);
-        public HotKey SaveHotKey
-        {
-            get => saveHotKey;
-            set => SetProperty(ref saveHotKey, value);
-        }
+        //private HotKey saveHotKey = new(Key.S, ModifierKeys.Control);
+        //public HotKey SaveHotKey
+        //{
+        //    get => saveHotKey;
+        //    set => SetProperty(ref saveHotKey, value);
+        //}
 
         private bool themeIsDark = true;
         public bool ThemeIsDark
@@ -223,8 +221,7 @@ namespace Clipple.ViewModel
             set => SetProperty(ref maxConcurrentJobs, value);
         }
 
-        [JsonIgnore]
-        public ReadOnlyObservableCollection<string> AvailableColours => ThemeManager.Current.ColorSchemes;
+        //public ReadOnlyObservableCollection<string> AvailableColours => ThemeManager.Current.ColorSchemes;
 
         [JsonIgnore]
         public string ThemeKey => $"{(ThemeIsDark ? "Dark" : "Light")}.{ThemeColour}";

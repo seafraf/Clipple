@@ -3,23 +3,20 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls" 
              xmlns:viewmodel="clr-namespace:Clipple.ViewModel" 
              xmlns:converters="clr-namespace:Clipple.Converters"
-             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
-             xmlns:controlez="clr-namespace:ControlzEx.Standard;assembly=ControlzEx"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800" d:DataContext="{d:DesignInstance Type=viewmodel:SettingsViewModel}" MinWidth="400">
     <StackPanel>
         <Expander Header="General" >
             <StackPanel>
                 <CheckBox Content="Create output folder if it doesn't exist" Margin="2" IsChecked="{Binding Path=CreateOutputFolder}"/>
-                <TextBox mah:TextBoxHelper.Watermark="Default clip output folder" mah:TextBoxHelper.UseFloatingWatermark="True" Margin="2" Text="{Binding Path=DefaultOutputFolder}" />
+                <TextBox Margin="2" Text="{Binding Path=DefaultOutputFolder}" />
 
                 <Separator Margin="0 8 0 8" />
 
                 <CheckBox Content="Add videos from the ingest folder automatically at startup" Margin="2" IsChecked="{Binding Path=IngestAutomatically}"/>
-                <TextBox mah:TextBoxHelper.Watermark="Clip ingest folder" mah:TextBoxHelper.UseFloatingWatermark="True" Margin="2" Text="{Binding Path=IngestFolder}" IsEnabled="{Binding Path=IngestAutomatically}" />
+                <TextBox Margin="2" Text="{Binding Path=IngestFolder}" IsEnabled="{Binding Path=IngestAutomatically}" />
 
                 <Separator Margin="0 8 0 8" />
 
@@ -33,7 +30,7 @@
             <StackPanel>
                 <CheckBox Content="Autosave" Margin="2" IsChecked="{Binding Path=AutoSave}" />
                 <CheckBox Content="Save on exit" Margin="2" IsChecked="{Binding Path=SaveOnExit}" />
-                <mah:NumericUpDown mah:TextBoxHelper.Watermark="Autosave frequency (seconds)" mah:TextBoxHelper.UseFloatingWatermark="True" Margin="2" Minimum="1" Value="{Binding Path=AutoSaveFrequency}" />
+                <!--<mah:NumericUpDown mah:TextBoxHelper.Watermark="Autosave frequency (seconds)" mah:TextBoxHelper.UseFloatingWatermark="True" Margin="2" Minimum="1" Value="{Binding Path=AutoSaveFrequency}" />-->
 
                 <Separator Margin="0 8 0 8" />
             </StackPanel>
@@ -59,7 +56,7 @@
                     <Label Content="Manual save" Margin="2" />
                 </StackPanel>
                 <StackPanel Grid.Column="1">
-                    <mah:HotKeyBox Margin="2" HotKey="{Binding Path=ControlHotKey}" />
+                    <!--<mah:HotKeyBox Margin="2" HotKey="{Binding Path=ControlHotKey}" />
                     <mah:HotKeyBox Margin="2" HotKey="{Binding Path=NextFrameHotKey}" />
                     <mah:HotKeyBox Margin="2" HotKey="{Binding Path=PreviousFrameHotKey}" />
                     <mah:HotKeyBox Margin="2" HotKey="{Binding Path=ToggleMuteHotKey}" />
@@ -70,7 +67,7 @@
                     <mah:HotKeyBox Margin="2" HotKey="{Binding Path=CreateClipHotKey}" />
                     <mah:HotKeyBox Margin="2" HotKey="{Binding Path=NextEdgeHotKey}" />
                     <mah:HotKeyBox Margin="2" HotKey="{Binding Path=PreviousEdgeHotKey}" />
-                    <mah:HotKeyBox Margin="2" HotKey="{Binding Path=SaveHotKey}" />
+                    <mah:HotKeyBox Margin="2" HotKey="{Binding Path=SaveHotKey}" />-->
                 </StackPanel>
             </Grid>
         </Expander>

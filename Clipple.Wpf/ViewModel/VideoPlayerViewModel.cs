@@ -1,7 +1,6 @@
 ﻿using Clipple.DataModel;
 using Clipple.Types;
 using Clipple.View;
-using MahApps.Metro.IconPacks;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
 using Microsoft.Toolkit.Mvvm.Input;
 using Mpv.NET.Player;

@@ -4,6 +4,7 @@
              xmlns:local="clr-namespace:Clipple" 
              xmlns:System="clr-namespace:System;assembly=netstandard" 
              xmlns:vm="clr-namespace:Clipple.ViewModel"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              StartupUri="View/MainWindow.xaml">
     <Application.Resources>
         <ResourceDictionary>
@@ -11,16 +12,9 @@
                 <ResourceDictionary>
                     <vm:RootViewModel x:Key="RootViewModel" />
                 </ResourceDictionary>
-                
-                <!-- MahApps.Metro resource dictionaries. Make sure that all file names are Case Sensitive! -->
-                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml" />
-                <!-- Theme setting -->
-                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Themes/Dark.Steel.xaml" />
-                <!-- Extra controls -->
-                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.FlatButton.xaml" />
-                <ResourceDictionary Source="Styles/RangeSlider.xaml" />
-                <ResourceDictionary Source="Styles/Slider.xaml" />
+
+                <materialDesign:BundledTheme BaseTheme="Dark" PrimaryColor="Grey" SecondaryColor="LightBlue" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

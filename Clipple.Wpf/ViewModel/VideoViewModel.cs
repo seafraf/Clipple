@@ -4,7 +4,6 @@ using Clipple.Types;
 using Clipple.Util;
 using Clipple.Util.ISOBMFF;
 using Clipple.View;
-using ControlzEx.Theming;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
 using Microsoft.Toolkit.Mvvm.Input;
 using System;

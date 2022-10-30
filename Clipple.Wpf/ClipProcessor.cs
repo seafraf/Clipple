@@ -3,7 +3,6 @@ using Clipple.Types;
 using Clipple.View;
 using Clipple.ViewModel;
 using FFmpeg.AutoGen;
-using MahApps.Metro.Controls.Dialogs;
 using Microsoft.Toolkit.Mvvm.Input;
 using System;
 using System.Collections.Generic;
@@ -25,19 +24,19 @@ namespace Clipple
                 new RelayCommand(async () =>
                 {
                     // On close
-                    await App.Window.HideMetroDialogAsync(dialog);
+                    //await App.Window.HideMetroDialogAsync(dialog);
                 }));
 
             dialog = new ClipProcessingDialog(vm);
 
-            await App.Window.ShowMetroDialogAsync(dialog);
+            //await App.Window.ShowMetroDialogAsync(dialog);
 
             // If Clipple is set to process clips automatically, start processing as soon as the dialog has opened
             if (App.ViewModel.SettingsViewModel.StartProcessingAutomatically)
                 vm.StartProcesses();
 
-            await dialog.WaitUntilUnloadedAsync();
-            await dialog.WaitForCloseAsync();
+            //await dialog.WaitUntilUnloadedAsync();
+            //await dialog.WaitForCloseAsync();
 
             App.ViewModel.VideoPlayerViewModel.OverlayContentCount--;
         }

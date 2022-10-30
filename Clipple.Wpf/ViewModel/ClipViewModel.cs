@@ -1,7 +1,6 @@
 ﻿using Clipple.PPA;
 using Clipple.Util;
 using FFmpeg.AutoGen;
-using MahApps.Metro.Controls.Dialogs;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
 using Microsoft.Toolkit.Mvvm.Input;
 using System;
@@ -44,11 +43,11 @@ namespace Clipple.ViewModel
             {
                 App.ViewModel.VideoPlayerViewModel.OverlayContentCount++;
 
-                if (await App.Window.ShowMessageAsync($"Delete {title}?",
-                    "This action cannot be undone.", MessageDialogStyle.AffirmativeAndNegative) == MessageDialogResult.Affirmative)
-                {
-                    App.ViewModel.SelectedVideo?.Clips.Remove(this);
-                }
+                //if (await App.Window.ShowMessageAsync($"Delete {title}?",
+                //    "This action cannot be undone.", MessageDialogStyle.AffirmativeAndNegative) == MessageDialogResult.Affirmative)
+                //{
+                //    App.ViewModel.SelectedVideo?.Clips.Remove(this);
+                //}
 
                 App.ViewModel.VideoPlayerViewModel.OverlayContentCount--;
             });

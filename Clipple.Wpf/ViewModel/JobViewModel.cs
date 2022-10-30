@@ -2,7 +2,6 @@
 using Clipple.Types;
 using Clipple.View;
 using Clipple.ViewModel;
-using MahApps.Metro.IconPacks;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
 using Microsoft.Toolkit.Mvvm.Input;
 using System;
@@ -64,7 +63,7 @@ namespace Clipple.ViewModel
             {
                 SetProperty(ref status, value);
 
-                OnPropertyChanged(nameof(StatusIcon));
+                //OnPropertyChanged(nameof(StatusIcon));
                 OnPropertyChanged(nameof(StatusString));
                 OnPropertyChanged(nameof(StatusColor));
                 OnPropertyChanged(nameof(ProgressIndeterminate));
@@ -75,27 +74,27 @@ namespace Clipple.ViewModel
         /// <summary>
         /// An icon denoting the status of this job
         /// </summary>
-        public PackIconMaterialDesignKind StatusIcon
-        {
-            get
-            {
-                switch (status)
-                {
-                    case ClipProcessingStatus.InQueue:
-                        return PackIconMaterialDesignKind.Queue;
-                    case ClipProcessingStatus.Processing:
-                    case ClipProcessingStatus.ProcessingFirstPass:
-                        return PackIconMaterialDesignKind.RotateRight;
-                    case ClipProcessingStatus.Finished:
-                        return PackIconMaterialDesignKind.Done;
-                    case ClipProcessingStatus.Cancelled:
-                        return PackIconMaterialDesignKind.Cancel;
-                    case ClipProcessingStatus.Failed:
-                    default:
-                        return PackIconMaterialDesignKind.Warning;
-                }
-            }
-        }
+        //public PackIconMaterialDesignKind StatusIcon
+        //{
+        //    get
+        //    {
+        //        switch (status)
+        //        {
+        //            case ClipProcessingStatus.InQueue:
+        //                return PackIconMaterialDesignKind.Queue;
+        //            case ClipProcessingStatus.Processing:
+        //            case ClipProcessingStatus.ProcessingFirstPass:
+        //                return PackIconMaterialDesignKind.RotateRight;
+        //            case ClipProcessingStatus.Finished:
+        //                return PackIconMaterialDesignKind.Done;
+        //            case ClipProcessingStatus.Cancelled:
+        //                return PackIconMaterialDesignKind.Cancel;
+        //            case ClipProcessingStatus.Failed:
+        //            default:
+        //                return PackIconMaterialDesignKind.Warning;
+        //        }
+        //    }
+        //}
 
         /// <summary>
         /// A string describing the current status of this job

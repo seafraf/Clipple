@@ -4,7 +4,6 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Clipple.View"
-             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
              xmlns:viewmodel="clr-namespace:Clipple.ViewModel" 
              xmlns:view="clr-namespace:Clipple.View"
              xmlns:converters="clr-namespace:Clipple.Converters"
@@ -48,7 +47,6 @@
                     <!-- Background colour and waveforms -->
                     <Grid Grid.Row="1" x:Name="Background" MinHeight="65" 
                           MinWidth="{Binding Source={x:Static ffmpeg:WaveformEngine.ResolutionX}}" 
-                          Background="{DynamicResource MahApps.Brushes.Accent}" 
                           LayoutTransform="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Path=Transform}">
                         <ItemsControl ItemsSource="{Binding Path=Video.AudioStreams}">
                             <ItemsControl.ItemTemplate>
@@ -90,7 +88,7 @@
                         </Grid.ColumnDefinitions>
                         <!--<Grid Grid.Column="0" Background="Red" />-->
                         <Grid Grid.Column="1" x:Name="Playhead" Background="Transparent">
-                            <Grid Background="{DynamicResource MahApps.Brushes.Text}"  />
+                            <Grid />
                         </Grid>
                     </Grid>
                 </Grid>

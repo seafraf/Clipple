@@ -1,4 +1,16 @@
-﻿<mah:BaseMetroDialog  x:Class="Clipple.View.ClipProcessingDialog"
+﻿<Window x:Class="Clipple.View.ClipProcessingDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:views="clr-namespace:Clipple.View"
+        xmlns:vm="clr-namespace:Clipple.ViewModel"
+        xmlns:local="clr-namespace:Clipple"
+        xmlns:converters="clr-namespace:Clipple.Converters"
+        mc:Ignorable="d">
+</Window>
+
+<!--<mah:BaseMetroDialog  x:Class="Clipple.View.ClipProcessingDialog"
              xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls" 
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -53,7 +65,7 @@
             <RowDefinition Height="60" />
         </Grid.RowDefinitions>
         
-        <!-- Processing / waiting -->
+        --><!-- Processing / waiting --><!--
         <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto"
                       Visibility="{Binding Path=State, Converter={StaticResource InverseComparisonConverterVisbility}, ConverterParameter={x:Static types:ClipProcessingDialogState.Review}}">
             <ItemsControl ItemsSource="{Binding Path=Jobs}" >
@@ -183,7 +195,7 @@
             </StackPanel>
         </Grid>
 
-        <!-- Review -->
+        --><!-- Review --><!--
         <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto"
             Visibility="{Binding Path=State, Converter={StaticResource ComparisonConverterVisbility}, ConverterParameter={x:Static types:ClipProcessingDialogState.Review}}">
             <StackPanel>
@@ -235,4 +247,4 @@
             </StackPanel>
         </Grid>
     </Grid>
-</mah:BaseMetroDialog>
+</mah:BaseMetroDialog>-->

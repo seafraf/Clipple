@@ -1,5 +1,4 @@
-﻿using MahApps.Metro.Controls;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -19,7 +18,7 @@ namespace Clipple.Wpf.View
     /// <summary>
     /// Interaction logic for UpdatePrompt.xaml
     /// </summary>
-    public partial class UpdateDialog : MetroWindow
+    public partial class UpdateDialog : Window
     {
         public UpdateDialog()
         {

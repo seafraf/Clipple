@@ -1,5 +1,4 @@
-﻿using MahApps.Metro.Controls;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,7 +18,7 @@ namespace Clipple.View
     /// <summary>
     /// Interaction logic for ClipPresetManager.xaml
     /// </summary>
-    public partial class ClipPresetManager : MetroWindow
+    public partial class ClipPresetManager : Window
     {
         public ClipPresetManager()
         {

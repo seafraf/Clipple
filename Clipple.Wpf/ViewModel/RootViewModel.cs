@@ -2,7 +2,6 @@
 using Clipple.Util.ISOBMFF;
 using Clipple.Wpf.View;
 using Clipple.Wpf.ViewModel;
-using MahApps.Metro.Controls.Dialogs;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
 using Microsoft.Toolkit.Mvvm.Input;
 using Squirrel;
@@ -58,23 +57,23 @@ namespace Clipple.ViewModel
                             {
                                 App.ViewModel.VideoPlayerViewModel.OverlayContentCount++;
 
-                                var progressDialog = await App.Window.ShowProgressAsync("Please wait...", "Fetching updates");
-                                await manager.DownloadReleases(updateInfo.ReleasesToApply, (progress) =>
-                                {
-                                    var downloadedBytes = (long)Math.Floor(UpdateViewModel.UpdateSize * (progress / 100.0));
+                                //var progressDialog = await App.Window.ShowProgressAsync("Please wait...", "Fetching updates");
+                                //await manager.DownloadReleases(updateInfo.ReleasesToApply, (progress) =>
+                                //{
+                                //    var downloadedBytes = (long)Math.Floor(UpdateViewModel.UpdateSize * (progress / 100.0));
 
-                                    progressDialog.SetTitle("Downloading...");
-                                    progressDialog.SetMessage($"Downloaded {Formatting.ByteCountToString(downloadedBytes)}/{UpdateViewModel.UpdateSizeString}");
-                                    progressDialog.SetProgress(progress / 200.0);
-                                });
+                                //    progressDialog.SetTitle("Downloading...");
+                                //    progressDialog.SetMessage($"Downloaded {Formatting.ByteCountToString(downloadedBytes)}/{UpdateViewModel.UpdateSizeString}");
+                                //    progressDialog.SetProgress(progress / 200.0);
+                                //});
 
-                                await manager.ApplyReleases(updateInfo, (progress) =>
-                                {
-                                    progressDialog.SetTitle("Installing...");
-                                    progressDialog.SetMessage("Installing updates");
-                                    progressDialog.SetProgress(0.5 + (progress / 200.0));
-                                });
-                                await progressDialog.CloseAsync();
+                                //await manager.ApplyReleases(updateInfo, (progress) =>
+                                //{
+                                //    progressDialog.SetTitle("Installing...");
+                                //    progressDialog.SetMessage("Installing updates");
+                                //    progressDialog.SetProgress(0.5 + (progress / 200.0));
+                                //});
+                                //await progressDialog.CloseAsync();
 
                                 // Make sure all settings are saved before exiting as the below function calls Environment.Exit
                                 await Save();

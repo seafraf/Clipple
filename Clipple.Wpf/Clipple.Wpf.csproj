@@ -40,9 +40,9 @@
   <ItemGroup>
     <PackageReference Include="Clowd.Squirrel" Version="2.9.42" />
     <PackageReference Include="FFmpeg.AutoGen" Version="5.1.1" />
-    <PackageReference Include="MahApps.Metro" Version="2.4.9" />
-    <PackageReference Include="MahApps.Metro.IconPacks.MaterialDesign" Version="4.11.0" />
+    <PackageReference Include="MaterialDesignThemes" Version="4.6.1" />
     <PackageReference Include="Microsoft.Toolkit.Mvvm" Version="7.1.2" />
+    <PackageReference Include="ShowMeTheXAML.MSBuild" Version="2.0.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -85,6 +85,10 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Styles\" />
   </ItemGroup>
 
 </Project>

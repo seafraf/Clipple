@@ -6,10 +6,8 @@
              xmlns:local="clr-namespace:Clipple"
              xmlns:views="clr-namespace:Clipple.View"
              xmlns:types="clr-namespace:Clipple.Types"
-             xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls" 
              xmlns:viewmodel="clr-namespace:Clipple.ViewModel" 
              xmlns:converters="clr-namespace:Clipple.Converters"
-             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks" 
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=viewmodel:ClipViewModel}" d:DesignWidth="350" >
     <UserControl.Resources>
@@ -23,12 +21,12 @@
 
     <StackPanel>
 
-        <mah:MetroHeader Margin="2" Header="Output"/>
+        <!--<mah:MetroHeader Margin="2" Header="Output"/>-->
         <Separator Margin="0 0 0 8" />
-        <TextBox mah:TextBoxHelper.Watermark="Clip title" mah:TextBoxHelper.UseFloatingWatermark="True" Margin="0 0 0 4" Text="{Binding Path=Title, UpdateSourceTrigger=PropertyChanged}" />
-        <TextBox mah:TextBoxHelper.Watermark="Folder" mah:TextBoxHelper.UseFloatingWatermark="True" Margin="0 0 0 4" Text="{Binding Path=Folder, UpdateSourceTrigger=PropertyChanged}" />
+        <TextBox Margin="0 0 0 4" Text="{Binding Path=Title, UpdateSourceTrigger=PropertyChanged}" />
+        <TextBox Margin="0 0 0 4" Text="{Binding Path=Folder, UpdateSourceTrigger=PropertyChanged}" />
 
-        <mah:MetroHeader Margin="2 10 0 2" Header="Clip bounds"/>
+        <!--<mah:MetroHeader Margin="2 10 0 2" Header="Clip bounds"/>-->
         <Separator Margin="0 0 0 8" />
 
         <Grid>
@@ -64,7 +62,7 @@
             <TextBox Grid.Column="1" Grid.ColumnSpan="3" Grid.Row="2" Margin="2" IsReadOnly="True" Text="{Binding Path=Duration, Mode=OneWay, StringFormat=hh\\:mm\\:ss\\.fff}" />
         </Grid>
 
-        <mah:MetroHeader Margin="2 10 0 2" Header="Preset"/>
+        <!--<mah:MetroHeader Margin="2 10 0 2" Header="Preset"/>-->
         <Separator Margin="0 0 0 8" />
 
 
@@ -73,7 +71,7 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="auto" />
             </Grid.ColumnDefinitions>
-            <ComboBox Grid.Column="0" Margin="2" mah:TextBoxHelper.UseFloatingWatermark="True" mah:TextBoxHelper.Watermark="Preset" 
+            <ComboBox Grid.Column="0" Margin="2"
                           ItemsSource="{Binding Source={x:Static local:App.ViewModel}, Path=ClipPresetsViewModel.Presets}" 
                           SelectedItem="{Binding Path=Preset, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                           SelectedIndex="{Binding Path=PresetIndex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -91,12 +89,12 @@
 
             <Button Grid.Column="1" Command="{Binding Path=OpenPresetManagerCommand}" Margin="2">
                 <StackPanel Orientation="Horizontal">
-                    <iconPacks:PackIconMaterialDesign Kind="Settings" VerticalAlignment="Center" Margin="0 0 8 0" />
+                    <!--<iconPacks:PackIconMaterialDesign Kind="Settings" VerticalAlignment="Center" Margin="0 0 8 0" />-->
                     <TextBlock Text="Edit" />
                 </StackPanel>
             </Button>
         </Grid>
-        <mah:MetroHeader Margin="2 10 0 2" Header="Output format"/>
+        <!--<mah:MetroHeader Margin="2 10 0 2" Header="Output format"/>-->
         <Separator Margin="0 0 0 8" />
 
         <ComboBox Margin="2" 
@@ -114,29 +112,29 @@
             </ComboBox.GroupStyle>
         </ComboBox>
 
-        <mah:MetroHeader Margin="2 10 0 2" Header="Other"/>
+        <!--<mah:MetroHeader Margin="2 10 0 2" Header="Other"/>-->
         <Separator Margin="0 0 0 8" />
 
         <CheckBox Content="Show in video player" IsChecked="{Binding Path=ShowInPlayer}" Margin="2" />
-        <ComboBox mah:TextBoxHelper.UseFloatingWatermark="True" mah:TextBoxHelper.Watermark="Post processing action"  Margin="2" 
+        <ComboBox Margin="2" 
                   ItemsSource="{Binding Path=PostProcessingActionList}" 
                   SelectedItem="{Binding Path=PostProcessingAction}" 
                   SelectedIndex="{Binding Path=PostProcessingActionIndex}" />
 
-        <mah:MetroHeader Margin="2 10 0 2" Header="Advanced transcoding settings"/>
+        <!--<mah:MetroHeader Margin="2 10 0 2" Header="Advanced transcoding settings"/>-->
         <Separator Margin="0 0 0 8" />
         <Expander Header="Video" IsEnabled="{Binding Path=OutputFormat.SupportsVideo}">
             <StackPanel>
-                <mah:MetroHeader Margin="2" Header="Quality"/>
+                <!--<mah:MetroHeader Margin="2" Header="Quality"/>-->
                 <Separator Margin="0 0 0 8" />
 
-                <mah:NumericUpDown Margin="2" MinWidth="150" Minimum="1" Interval="100" NumericInputMode="All" HorizontalAlignment="Stretch" StringFormat="N0"
+                <!--<mah:NumericUpDown Margin="2" MinWidth="150" Minimum="1" Interval="100" NumericInputMode="All" HorizontalAlignment="Stretch" StringFormat="N0"
                                    ToolTipService.InitialShowDelay="100" ToolTip="kilobits/second"
                                    mah:TextBoxHelper.UseFloatingWatermark="True" mah:TextBoxHelper.Watermark="Video bitrate" 
                                    Value="{Binding Path=VideoBitrate}"
-                                   IsEnabled="{Binding Path=UseTargetSize, Converter={StaticResource InverseBooleanConverter}}" />
+                                   IsEnabled="{Binding Path=UseTargetSize, Converter={StaticResource InverseBooleanConverter}}" />-->
 
-                <mah:MetroHeader Margin="2 10 0 2" Header="Resolution"/>
+                <!--<mah:MetroHeader Margin="2 10 0 2" Header="Resolution"/>-->
                 <Separator Margin="0 0 0 8" />
 
                 <CheckBox Margin="2" IsChecked="{Binding Path=UseSourceResolution}">
@@ -153,17 +151,15 @@
                     </Grid.ColumnDefinitions>
 
                     <TextBox Margin="2" Grid.Column="0" 
-                             mah:TextBoxHelper.UseFloatingWatermark="True" mah:TextBoxHelper.Watermark="Width"
                              Text="{Binding Path=TargetWidth}"
                              IsEnabled="{Binding Path=UseSourceResolution, Converter={StaticResource InverseBooleanConverter}}"/>
                     <TextBox Margin="2" Grid.Column="1" 
-                             mah:TextBoxHelper.UseFloatingWatermark="True" mah:TextBoxHelper.Watermark="Height" 
                              Text="{Binding Path=TargetHeight}"
                              IsEnabled="{Binding Path=UseSourceResolution, Converter={StaticResource InverseBooleanConverter}}"/>
                 </Grid>
 
 
-                <ComboBox Margin="2" mah:TextBoxHelper.UseFloatingWatermark="True" mah:TextBoxHelper.Watermark="Resolution preset" 
+                <ComboBox Margin="2"
                           ItemsSource="{Binding Path=ResolutionPresets}" 
                           SelectedItem="{Binding Path=ResolutionPreset}"
                           DisplayMemberPath="ResolutionString">
@@ -178,7 +174,7 @@
                     </ComboBox.GroupStyle>
                 </ComboBox>
 
-                <mah:MetroHeader Margin="2 10 0 2" Header="Crop"/>
+                <!--<mah:MetroHeader Margin="2 10 0 2" Header="Crop"/>-->
                 <Separator Margin="0 0 0 8" />
 
                 <CheckBox Margin="2" Content="Crop video" IsChecked="{Binding Path=ShouldCrop}" />
@@ -194,7 +190,7 @@
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
-                    <mah:NumericUpDown Margin="2" Grid.Row="0" Grid.Column="0" mah:TextBoxHelper.UseFloatingWatermark="True" mah:TextBoxHelper.Watermark="Crop X"
+                    <!--<mah:NumericUpDown Margin="2" Grid.Row="0" Grid.Column="0" mah:TextBoxHelper.UseFloatingWatermark="True" mah:TextBoxHelper.Watermark="Crop X"
                                        Maximum="{Binding Path=SourceWidth}"
                                        Value="{Binding Path=CropX}"
                                        IsEnabled="{Binding Path=ShouldCrop}" />
@@ -212,11 +208,11 @@
                     <mah:NumericUpDown Margin="2" Grid.Row="1" Grid.Column="1" mah:TextBoxHelper.UseFloatingWatermark="True" mah:TextBoxHelper.Watermark="Crop height" Minimum="1" 
                                        Maximum="{Binding Path=SourceWidth}"
                                        Value="{Binding Path=CropHeight}"
-                                       IsEnabled="{Binding Path=ShouldCrop}" />
+                                       IsEnabled="{Binding Path=ShouldCrop}" />-->
                 </Grid>
 
 
-                <mah:MetroHeader Margin="2 10 0 2" Header="Other"/>
+                <!--<mah:MetroHeader Margin="2 10 0 2" Header="Other"/>-->
                 <Separator Margin="0 0 0 8" />
 
                 <CheckBox Margin="2" IsChecked="{Binding Path=UseSourceFPS}">
@@ -226,11 +222,11 @@
                     </TextBlock>
                 </CheckBox>
 
-                <mah:NumericUpDown Minimum="5" Interval="5" Margin="2" mah:TextBoxHelper.UseFloatingWatermark="True" mah:TextBoxHelper.Watermark="FPS" 
+                <!--<mah:NumericUpDown Minimum="5" Interval="5" Margin="2" mah:TextBoxHelper.UseFloatingWatermark="True" mah:TextBoxHelper.Watermark="FPS" 
                                    Value="{Binding Path=TargetFPS}"
-                                   IsEnabled="{Binding Path=UseSourceFPS, Converter={StaticResource InverseBooleanConverter}}"/>
+                                   IsEnabled="{Binding Path=UseSourceFPS, Converter={StaticResource InverseBooleanConverter}}"/>-->
 
-                <ComboBox Margin="2" mah:TextBoxHelper.UseFloatingWatermark="True" mah:TextBoxHelper.Watermark="Codec" 
+                <ComboBox Margin="2"
                           ToolTipService.InitialShowDelay="100" ToolTip="Use libx264 if unsure"
                           ItemsSource="{Binding Source={x:Static types:VideoCodec.SupportedCodecs}}"
                           SelectedItem="{Binding Path=VideoCodec}" />
@@ -243,7 +239,7 @@
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel>
-                                    <mah:MetroHeader Margin="2" Header="{Binding Path=TrackName}"/>
+                                    <!--<mah:MetroHeader Margin="2" Header="{Binding Path=TrackName}"/>-->
                                     <Separator Margin="0 0 0 8" />
 
                                     <CheckBox Margin="2" IsChecked="{Binding Path=IsEnabled}" Content="Enabled" />
@@ -258,10 +254,9 @@
                                             <RowDefinition Height="auto" />
                                         </Grid.RowDefinitions>
                                         <Slider Grid.Column="0" Grid.Row="0" Minimum="0" Maximum="100" TickFrequency="5" TickPlacement="Both" IsMoveToPointEnabled="True"
-                                                Style="{DynamicResource MahApps.Styles.Slider.Flat}"
                                                 Value="{Binding Path=Volume}"/>
-                                        <mah:NumericUpDown Grid.Column="1" Grid.Row="0" Margin="2 0 2 0" Minimum="0" Maximum="100" 
-                                                           Value="{Binding Path=Volume}" />
+                                        <!--<mah:NumericUpDown Grid.Column="1" Grid.Row="0" Margin="2 0 2 0" Minimum="0" Maximum="100" 
+                                                           Value="{Binding Path=Volume}" />-->
                                     </Grid>
                                 </StackPanel>
                             </DataTemplate>
@@ -269,43 +264,43 @@
                     </ItemsControl>
                 </StackPanel>
 
-                <mah:MetroHeader  Margin="2 10 0 2" Header="Track settings"/>
+                <!--<mah:MetroHeader  Margin="2 10 0 2" Header="Track settings"/>-->
                 <Separator Margin="0 0 0 8" />
 
 
                 <CheckBox Margin="2 0 2 2" Content="Merge audio tracks?" IsChecked="{Binding Path=MergeAudio}" IsEnabled="{Binding Path=OutputFormat.SupportsVideo}" />
 
-                <mah:MetroHeader  Margin="2 10 0 2" Header="Quality"/>
+                <!--<mah:MetroHeader  Margin="2 10 0 2" Header="Quality"/>-->
                 <Separator Margin="0 0 0 8" />
 
-                <mah:NumericUpDown Margin="2" MinWidth="150" Minimum="1" Interval="10" NumericInputMode="All" HorizontalAlignment="Stretch" StringFormat="N0"
+                <!--<mah:NumericUpDown Margin="2" MinWidth="150" Minimum="1" Interval="10" NumericInputMode="All" HorizontalAlignment="Stretch" StringFormat="N0"
                                    ToolTipService.InitialShowDelay="100" ToolTip="kilobits/second"
                                    mah:TextBoxHelper.UseFloatingWatermark="True" mah:TextBoxHelper.Watermark="Audio bitrate" 
-                                   Value="{Binding Path=AudioBitrate}"/>
+                                   Value="{Binding Path=AudioBitrate}"/>-->
 
-                <mah:MetroHeader  Margin="2 10 0 2" Header="Other"/>
+                <!--<mah:MetroHeader  Margin="2 10 0 2" Header="Other"/>-->
                 <Separator Margin="0 0 0 8" />
 
-                <ComboBox Margin="2" mah:TextBoxHelper.UseFloatingWatermark="True" mah:TextBoxHelper.Watermark="Audio codec" mah:TextBoxHelper.ClearTextButton="True"
+                <!--<ComboBox Margin="2" mah:TextBoxHelper.UseFloatingWatermark="True" mah:TextBoxHelper.Watermark="Audio codec" mah:TextBoxHelper.ClearTextButton="True"
                           ToolTipService.InitialShowDelay="100" ToolTip="Use libopus if unsure"
                           ItemsSource="{Binding Source={x:Static types:AudioCodec.SupportedCodecs}}"
-                          SelectedItem="{Binding Path=AudioCodec}" />
+                          SelectedItem="{Binding Path=AudioCodec}" />-->
             </StackPanel>
         </Expander>
         <Expander Header="Encoding" Margin="0 0 0 4">
             <StackPanel>
 
-                <mah:MetroHeader Margin="2" Header="Static target size"/>
+                <!--<mah:MetroHeader Margin="2" Header="Static target size"/>-->
                 <Separator Margin="0 0 0 8" />
                 
                 <CheckBox Content="Enabled" ToolTip="x264 two pass encoding" Margin="2"
                           IsChecked="{Binding Path=UseTargetSize}" />
                 <TextBlock Margin="2" Text="Enabling a static target size will override video bitrate and enable two pass encoding (slow). Audio bitrate remains as set and video bitrate is reduced to accommodate audio." TextWrapping="Wrap"
                            Visibility="{Binding Path=UseTargetSize, Converter={StaticResource InverseVisibilityConverter}}"/>
-                <mah:NumericUpDown Margin="2" MinWidth="150" Minimum="0.1" Interval="0.1" StringFormat="N2" NumericInputMode="All" HorizontalAlignment="Stretch"
+                <!--<mah:NumericUpDown Margin="2" MinWidth="150" Minimum="0.1" Interval="0.1" StringFormat="N2" NumericInputMode="All" HorizontalAlignment="Stretch"
                                    mah:TextBoxHelper.UseFloatingWatermark="True" mah:TextBoxHelper.Watermark="Target megabytes" 
                                    Value="{Binding Path=OutputTargetSize}"
-                                   Visibility="{Binding Path=UseTargetSize, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                                   Visibility="{Binding Path=UseTargetSize, Converter={StaticResource BooleanToVisibilityConverter}}"/>-->
             </StackPanel>
         </Expander>
 
@@ -317,13 +312,13 @@
             </Grid.ColumnDefinitions>
             <Button Grid.Column="0" Margin="2" Command="{Binding Path=DeleteCommand}">
                 <StackPanel Orientation="Horizontal" >
-                    <iconPacks:PackIconMaterialDesign Kind="Delete" VerticalAlignment="Center" />
+                    <!--<iconPacks:PackIconMaterialDesign Kind="Delete" VerticalAlignment="Center" />-->
                     <TextBlock Text="Delete" />
                 </StackPanel>
             </Button>
             <Button Grid.Column="1" Margin="2" Command="{Binding Path=ProcessCommand}" IsEnabled="{Binding Path=HasErrors, Converter={StaticResource InverseBooleanConverter}}">
                 <StackPanel Orientation="Horizontal">
-                    <iconPacks:PackIconMaterialDesign Kind="PlayArrow" VerticalAlignment="Center" />
+                    <!--<iconPacks:PackIconMaterialDesign Kind="PlayArrow" VerticalAlignment="Center" />-->
                     <TextBlock Text="Process now" />
                 </StackPanel>
             </Button>

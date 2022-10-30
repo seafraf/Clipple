@@ -1,5 +1,4 @@
-﻿using MahApps.Metro.Controls.Dialogs;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -20,11 +19,11 @@ namespace Clipple.View
     /// <summary>
     /// Interaction logic for ClipProcessingDialog.xaml
     /// </summary>
-    public partial class ClipProcessingDialog : BaseMetroDialog
+    public partial class ClipProcessingDialog : Window
     {
         public ClipProcessingDialog(ViewModel.ClipProcessingDialogViewModel clipProcessingDialogViewModel)
         {
-            InitializeComponent();
+            //InitializeComponent();
             DataContext = clipProcessingDialogViewModel;
         }
 

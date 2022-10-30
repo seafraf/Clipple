@@ -1,5 +1,4 @@
-﻿<mah:MetroWindow x:Class="Clipple.View.JobLogsView"
-        xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls" 
+﻿<Window x:Class="Clipple.View.JobLogsView"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -11,4 +10,4 @@
     <Grid>
         <TextBox Margin="4" Text="{Binding Path=JobOutput, Mode=OneWay}" IsReadOnly="True"/>
     </Grid>
-</mah:MetroWindow>
+</Window>
