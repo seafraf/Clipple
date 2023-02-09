@@ -1,0 +1,15 @@
+﻿<UserControl x:Class="Clipple.AudioFilters.Volume"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Clipple.AudioFilters"
+             mc:Ignorable="d">
+    <StackPanel>
+        <TextBlock Margin="8 0 0 0">
+            <Run Text="Volume:"  />
+            <Run Text="{Binding Volume, StringFormat={}{0}%}" />
+        </TextBlock>
+        <Slider Value="{Binding Volume}" Margin="8 16 8 16" Minimum="0" Maximum="200" Interval="1" />
+    </StackPanel>
+</UserControl>

@@ -15,7 +15,7 @@ namespace Clipple.View
     /// </summary>
     public partial class MainWindow : Window
     {
-        public VideoPlayer VideoPlayer => videoPlayer;
+        public MediaEditor MediaEditor => mediaEditor;
 
         public MainWindow()
         {
@@ -30,25 +30,7 @@ namespace Clipple.View
             UpdateKeyBindings();
 
             // Update key bindings when the settings change
-            vm.SettingsViewModel.PropertyChanged += (s, e) => UpdateKeyBindings();
-
-            // Load ingest resources
-            var ingestResource = vm.SettingsViewModel.IngestAutomatically ? vm.SettingsViewModel.IngestFolder : null;
-
-            // Handle CLI input path/video
-            var args = Environment.GetCommandLineArgs();
-            if (args.Length > 1)
-                ingestResource = args[1];
-
-            if (ingestResource != null)
-            {
-                if (Directory.Exists(ingestResource))
-                {
-                    vm.AddVideosFromFolder(ingestResource);
-                }
-                else if (File.Exists(ingestResource))
-                    vm.AddVideo(ingestResource);
-            }
+            //vm.SettingsViewModel.PropertyChanged += (s, e) => UpdateKeyBindings();
         }
 
         private void UpdateKeyBindings()
@@ -63,8 +45,6 @@ namespace Clipple.View
             //    (vm.SettingsViewModel.ToggleMuteHotKey, AppCommands.ToggleMuteCommand),
             //    (vm.SettingsViewModel.VolumeUpHotKey, AppCommands.VolumeUpCommand),
             //    (vm.SettingsViewModel.VolumeDownHotKey, AppCommands.VolumeDownCommand),
-            //    (vm.SettingsViewModel.NextVideoHotKey, AppCommands.NextVideoCommand),
-            //    (vm.SettingsViewModel.PreviousVideoHotKey, AppCommands.PreviousVideoCommand),
             //    (vm.SettingsViewModel.CreateClipHotKey, AppCommands.CreateClipCommand),
             //    (vm.SettingsViewModel.SeekStartHotKey, AppCommands.SeekStartCommand),
             //    (vm.SettingsViewModel.SeekEndHotKey, AppCommands.SeekEndCommand),
@@ -77,36 +57,36 @@ namespace Clipple.View
         //private HashSet<Flyout> openFlyouts = new();
         #endregion
 
-        private void OnDragOver(object sender, DragEventArgs e)
-        {
-            if (e.Data.GetDataPresent(DataFormats.FileDrop))
-            {
-                e.Effects = DragDropEffects.Copy;
-                e.Handled = true;
-            }
-        }
+        //private void OnDragOver(object sender, DragEventArgs e)
+        //{
+        //    if (e.Data.GetDataPresent(DataFormats.FileDrop))
+        //    {
+        //        e.Effects = DragDropEffects.Copy;
+        //        e.Handled = true;
+        //    }
+        //}
 
-        private void OnDrop(object sender, DragEventArgs e)
-        {
-            if (e.Data.GetDataPresent(DataFormats.FileDrop))
-            {
-                string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+        //private void OnDrop(object sender, DragEventArgs e)
+        //{
+        //    if (e.Data.GetDataPresent(DataFormats.FileDrop))
+        //    {
+        //        string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
 
-                if (DataContext is not RootViewModel vm)
-                    return;
+        //        if (DataContext is not RootViewModel vm)
+        //            return;
 
-                var addedAny = false;
-                foreach (string file in files)
-                {
-                    if (vm.AddVideo(file))
-                        addedAny = true;
-                }    
+        //        var addedAny = false;
+        //        foreach (string file in files)
+        //        {
+        //            if (vm.AddVideo(file))
+        //                addedAny = true;
+        //        }    
 
-                // Select the new(est) video
-                if (addedAny)
-                    vm.SelectedVideo = vm.Videos[vm.Videos.Count - 1];
-            }
-        }
+        //        // Select the new(est) video
+        //        if (addedAny)
+        //            vm.SelectedVideo = vm.Videos[vm.Videos.Count - 1];
+        //    }
+        //}
 
         private void OnPreviewKeyDown(object sender, KeyEventArgs e)
         {
@@ -126,14 +106,15 @@ namespace Clipple.View
             //}
         }
 
-        private async void OnClosing(object sender, System.ComponentModel.CancelEventArgs e)
+        private void OnClosing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             var vm = (RootViewModel)DataContext;
 
-            if (vm.SettingsViewModel.SaveOnExit)
-                await vm.Save();
+            //if (vm.SettingsViewModel.SaveOnExit)
+            //    await vm.Save();
 
-            vm.VideoPlayerViewModel.MediaPlayer.Dispose();
+            vm.MediaEditor.MediaPlayer.Dispose();
+            vm.Library.SaveDirtyMedia();
         }
 
         private void OnStatusBarClicked(object sender, MouseButtonEventArgs e)
@@ -159,6 +140,14 @@ namespace Clipple.View
 
             //openFlyouts.Remove(flyout);
             //App.ViewModel.VideoPlayerViewModel.OverlayContentCount--;
+        }
+
+        private async void OnLoaded(object sender, RoutedEventArgs e)
+        {
+            var vm = (RootViewModel)DataContext;
+
+            // place this somewhere better
+            await vm.Load();
         }
     }
 }

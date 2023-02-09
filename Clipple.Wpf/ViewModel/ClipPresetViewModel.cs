@@ -1,4 +1,5 @@
-﻿using Microsoft.Toolkit.Mvvm.ComponentModel;
+﻿using LiteDB;
+using Microsoft.Toolkit.Mvvm.ComponentModel;
 using Microsoft.Toolkit.Mvvm.Input;
 using System;
 using System.Collections.Generic;
@@ -20,7 +21,7 @@ namespace Clipple.ViewModel
             bool useTargetSize = false, double? targetSize = null, 
             string? videoCodec = null, string? audioCodec = null, 
             bool shouldCrop = false, int? cropX = null, int? cropY = null, int? cropWidth = null, int? cropHeight = null,
-            OutputFormatViewModel? outputFormat = null, 
+            ContainerFormat? outputFormat = null, 
             long priority = 0)
         {
             this.name           = name;
@@ -169,7 +170,7 @@ namespace Clipple.ViewModel
         }
 
         private int videoCodecIndex = -1;
-        [JsonIgnore]
+        [BsonIgnore]
         public int VideoCodecIndex
         {
             get => videoCodecIndex;
@@ -189,7 +190,7 @@ namespace Clipple.ViewModel
         }
 
         private int audioCodecIndex = -1;
-        [JsonIgnore]
+        [BsonIgnore]
         public int AudioCodecIndex
         {
             get => audioCodecIndex;
@@ -201,15 +202,15 @@ namespace Clipple.ViewModel
             }
         }
 
-        private OutputFormatViewModel? outputFormat;
-        public OutputFormatViewModel? OutputFormat
+        private ContainerFormat? outputFormat;
+        public ContainerFormat? OutputFormat
         {
             get => outputFormat;
             set => SetProperty(ref outputFormat, value);
         }
 
         private int outputFormatIndex = -1;
-        [JsonIgnore]
+        [BsonIgnore]
         public int OutputFormatIndex
         {
             get => outputFormatIndex;
@@ -217,19 +218,19 @@ namespace Clipple.ViewModel
             {
                 SetProperty(ref outputFormatIndex, value);
 
-                OutputFormat = OutputFormatViewModel.SupportedFormats.ElementAtOrDefault(value);
+                //OutputFormat = MediaFormat.SupportedFormats.ElementAtOrDefault(value);
             }
         }
         #endregion
 
         #region Commands
-        [JsonIgnore]
+        [BsonIgnore]
         public ICommand ClearVideoCodecCommand => new RelayCommand(() => VideoCodecIndex = -1);
 
-        [JsonIgnore]
+        [BsonIgnore]
         public ICommand ClearAudioCodecCommand => new RelayCommand(() => AudioCodecIndex = -1);
 
-        [JsonIgnore]
+        [BsonIgnore]
         public ICommand ClearOutputFormatCommand => new RelayCommand(() => OutputFormatIndex = -1);
         #endregion
 
@@ -292,8 +293,8 @@ namespace Clipple.ViewModel
             if (AudioCodec != null)
                 AudioCodecIndex = Types.AudioCodec.SupportedCodecs.IndexOf(AudioCodec);
 
-            if (OutputFormat != null)
-                OutputFormatIndex = OutputFormatViewModel.SupportedFormats.IndexOf(OutputFormat);
+            // if (OutputFormat != null)
+            //     OutputFormatIndex = MediaFormat.SupportedFormats.IndexOf(OutputFormat);
         }
         #endregion
     }

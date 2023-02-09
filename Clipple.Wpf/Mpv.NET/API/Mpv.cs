@@ -271,7 +271,7 @@ namespace Mpv.NET.API
 		{
 			Guard.AgainstDisposed(disposed, nameof(Mpv));
 			Guard.AgainstNullOrEmptyOrWhiteSpaceString(name, nameof(name));
-			Guard.AgainstNullOrEmptyOrWhiteSpaceString(value, nameof(value));
+			//Guard.AgainstNullOrEmptyOrWhiteSpaceString(value, nameof(value));
 
 			var error = Functions.SetPropertyString(Handle, name, value);
 			if (error != MpvError.Success)

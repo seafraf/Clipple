@@ -5,39 +5,40 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Documents;
 
 namespace Clipple.FFMPEG
 {
     public class MediaOutput
     {
-        public MediaOutput(ClipViewModel clip, bool firstPass)
+        public MediaOutput(Media media, bool firstPass)
         {
-            this.clip = clip;
-
+            this.media  = media;
             IsFirstPass = firstPass;
         }
 
         #region Members
-        private readonly ClipViewModel clip;
+        private readonly Media media;
         #endregion
 
         #region Properties
+        private Clip Clip => media.Clip;
         public bool IsFirstPass { get; }
-        public string OutputFile => clip.FullFileName;
+        public string OutputFile => Clip.FullFileName;
 
         public string VideoFilter
         {
             get
             {
                 List<string> filterOpts = new();
-                if (clip.TargetFPS != clip.SourceFPS)
-                    filterOpts.Add($"fps={clip.TargetFPS}");
+                if (Clip.TargetFps != media.VideoFps && !Clip.UseSourceFps)
+                    filterOpts.Add($"fps={Clip.TargetFps}");
 
-                if (clip.TargetWidth != clip.SourceWidth || clip.TargetHeight != clip.SourceHeight)
-                    filterOpts.Add($"scale={clip.TargetWidth}:{clip.TargetHeight}");
+                if ((Clip.TargetWidth != media.VideoWidth || Clip.TargetHeight != media.VideoHeight) && !Clip.UseSourceResolution)
+                    filterOpts.Add($"scale={Clip.TargetWidth}:{Clip.TargetHeight}");
 
-                if (clip.ShouldCrop)
-                    filterOpts.Add($"crop={clip.CropWidth}:{clip.CropHeight}:{clip.CropX}:{clip.CropY}");
+                if (Clip.ShouldCrop)
+                    filterOpts.Add($"crop={Clip.CropWidth}:{Clip.CropHeight}:{Clip.CropX}:{Clip.CropY}");
 
                 if (filterOpts.Count > 0)
                 {
@@ -52,61 +53,70 @@ namespace Clipple.FFMPEG
         {
             get
             {
-                var enabledTracks = clip.AudioSettings.Where(x => x.IsEnabled).ToList();
+                var enabledStreams = Clip.AudioSettings.Where(x => x.IsEnabled).ToList();
 
-                if (enabledTracks.Count == 0)
+                if (enabledStreams.Count == 0)
                     return "";
 
-                if (clip.MergeAudio)
+                var stringFilters   = new List<string>();
+                var inputs          = new List<string>();
+                foreach (var stream in enabledStreams)
                 {
-                    
-                    var volumeFilters = string.Join("; ", enabledTracks.Select(x => x.ConvertMono ? 
-                        $"[0:{x.TrackID}]volume={x.VolumeDecimal.ToString("0.00", CultureInfo.InvariantCulture)}[v{x.TrackID}]; [v{x.TrackID}]pan=mono|c0=.5*c0+.5*c1[o{x.TrackID}]" :
-                        $"[0:{x.TrackID}]volume={x.VolumeDecimal.ToString("0.00", CultureInfo.InvariantCulture)}[o{x.TrackID}]"));
+                    var filters = stream.AudioFilters.Where(x => x.IsEnabled).ToList();
+                    if (filters.Count > 0)
+                    {
+                        for (int i = 0; i < filters.Count; i++)
+                            stringFilters.Add($"[{(i == 0 ? $"0:{stream.StreamIndex}" : $"f_{stream.StreamIndex}_{i - 1}")}]{filters[i].FilterString}[f_{stream.StreamIndex}_{i}]");
 
-                    var inputList     = string.Join("", enabledTracks.Select(x => $"[o{x.TrackID}]"));
+                        inputs.Add($"[f_{stream.StreamIndex}_{filters.Count - 1}]");
+                    }
+                    else
+                    {
+                        inputs.Add($"[0:{stream.StreamIndex}]");
+                    }
+                }
 
-                    var amix = $"{volumeFilters}; {inputList}amix=inputs={enabledTracks.Count}[a]";
+                var filterString = string.Join("; ", stringFilters);
+                if (Clip.MergeAudio)
+                {
+                    var inputString = string.Join("", inputs);
 
-                    return $"-filter_complex \"{amix}\" -map \"[a]\"";
+                    return $"-filter_complex \"{filterString}; {inputString}amix=inputs={inputs.Count}[mixed]\" -map \"[mixed]\"";
                 }
                 else
                 {
-                    var volumeFilters = string.Join("; ", enabledTracks.Select(x => x.ConvertMono ?
-                        $"[0:{x.TrackID}]volume={x.VolumeDecimal.ToString("0.00", CultureInfo.InvariantCulture)}[v{x.TrackID}]; [v{x.TrackID}]pan=mono|c0=.5*c0+.5*c1[o{x.TrackID}]" :
-                        $"[0:{x.TrackID}]volume={x.VolumeDecimal.ToString("0.00", CultureInfo.InvariantCulture)}[o{x.TrackID}]"));
-
-                    var mappings      = string.Join(" ", enabledTracks.Select(x => $"-map [o{x.TrackID}]"));
-
-                    return $"-filter_complex \"{volumeFilters}\" {mappings}";
+                    return $"-filter_complex \"{filterString}\" " + string.Join(" ", inputs.Select(x => $"-map {x}"));
                 }
             }
         }
 
-        public string VideoCodec => clip.VideoCodec != null ? $"-c:v {clip.VideoCodec}" : "";
-        public string AudioCodec => clip.AudioCodec != null ? $"-c:a {clip.AudioCodec}" : "";
+        public string VideoCodec => Clip.VideoCodec != null ? $"-c:v {Clip.VideoCodec.Name}" : "";
+        public string AudioCodec => Clip.AudioCodec != null ? $"-c:a {Clip.AudioCodec.Name}" : "";
 
-        public string VideoBitrate => $"-b:v {clip.VideoBitrate}K";
-        public string AudioBitrate => $"-b:a {clip.AudioBitrate}K";
-        public string Format => $"-f {clip.OutputFormat.Name}";
-        public bool TwoPassEncoding => clip.TwoPassEncoding;
+        public string VideoBitrate => $"-b:v {Clip.VideoBitrate}K";
+        public string AudioBitrate => $"-b:a {Clip.AudioBitrate}K";
+        public string Format => $"-f {Clip.ContainerFormat.Name}";
+        public bool TwoPassEncoding => Clip.TwoPassEncoding;
         #endregion
 
         public override string? ToString()
         {
             var pass = TwoPassEncoding ? $"-pass {(IsFirstPass ? '1' : '2')} -passlogfile \"{OutputFile}\" " : "";
-            if (IsFirstPass && TwoPassEncoding) 
-                return $"{VideoFilter} {VideoCodec} {VideoBitrate} {pass} -stats -an -f null NUL";
 
             string videoArgs = "-vn";
-            if (clip.OutputFormat.SupportsVideo)
+            if (Clip.ContainerFormat.SupportsVideo)
                 videoArgs = $"{VideoFilter} {VideoCodec} {VideoBitrate}";
 
             string audioArgs = "-an";
-            if (clip.OutputFormat.SupportsAudio)
+            if (Clip.ContainerFormat.SupportsAudio)
                 audioArgs = $"{AudioFilter} {AudioCodec} {AudioBitrate}";
 
-            return $"{pass} -stats {audioArgs} {videoArgs} {Format} \"{OutputFile}\"";
+            if (IsFirstPass && TwoPassEncoding)
+            {
+                return $"{pass} -stats {audioArgs} {videoArgs} -f null NUL";
+            }
+            else 
+                return $"{pass} -stats {audioArgs} {videoArgs} {Format} \"{OutputFile}\"";
         }
     }
 }

@@ -46,8 +46,7 @@ namespace Clipple.View
         {
             base.OnRender(drawingContext);
 
-            var whitePen = new Pen(Brushes.White, 1);
-            var paddedWidth = ActualWidth - 2;
+            var paddedWidth = ActualWidth - 1;
 
             // Aim to have one marker every 18 pixels, but the total lines should be a multiple of frequency
             var frequency = 10;
@@ -56,7 +55,7 @@ namespace Clipple.View
             for (var i = 0; i <= maxLines; i++)
             {
                 var lineTime = Duration * (i / maxLines);
-                var x = Math.Round(1 + i * dist);
+                var x = Math.Round(i * dist);
 
                 var isFirst = i == 0;
                 var isLast  = i == maxLines;
@@ -82,9 +81,9 @@ namespace Clipple.View
                     else
                         textPos += 2;
 
-                    var height = isLast || isFirst ? ActualHeight : ActualHeight - 12;
+                    var height = isFirst || isLast ? ActualHeight - 4 : ActualHeight - 16;
                     drawingContext.DrawRectangle(Brushes.White, null, new Rect(x, ActualHeight - height, 1, height));
-                    drawingContext.DrawText(text, new Point((int)textPos, -3));
+                    drawingContext.DrawText(text, new Point((int)textPos, 0));
                 }
                 else
                     drawingContext.DrawRectangle(Brushes.White, null, new Rect(x, ActualHeight - 4, 1, 4));

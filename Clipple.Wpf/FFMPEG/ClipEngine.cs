@@ -20,12 +20,12 @@ namespace Clipple.FFMPEG
     /// </summary>
     public class ClipEngine
     {
-        public ClipEngine(string inputPath, ClipViewModel clip, bool firstPass)
+        public ClipEngine(string inputPath, Media media, bool firstPass)
         {
             ExecutablePath = Path.Combine(App.LibPath, "ffmpeg.exe");
 
-            Input  = new MediaInput(inputPath, clip);
-            Output = new MediaOutput(clip, firstPass);
+            Input  = new MediaInput(inputPath, media);
+            Output = new MediaOutput(media, firstPass);
         }
 
         #region Properties

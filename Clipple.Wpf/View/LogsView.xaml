@@ -6,6 +6,6 @@
         xmlns:local="clr-namespace:Clipple"
         xmlns:viewmodel="clr-namespace:Clipple.ViewModel"
         mc:Ignorable="d"
-        Title="Logs" Height="450" Width="800" d:DataContext="{d:DesignInstance viewmodel:LogsViewModel}" DataContext="{x:Static local:App.Logger}">
-    <TextBox IsReadOnly="True" Margin="4" Text="{Binding Path=FullLog, Mode=OneWay}" TextWrapping="WrapWithOverflow" />
+        Title="Logs" Height="450" Width="800" d:DataContext="{d:DesignInstance viewmodel:Notifications}" DataContext="{x:Static local:App.Notifications}">
+    <!-- <TextBox IsReadOnly="True" Margin="4" Text="{Binding Path=FullLog, Mode=OneWay}" TextWrapping="WrapWithOverflow" /> -->
 </Window>

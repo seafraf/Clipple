@@ -40,7 +40,7 @@ namespace Clipple.FFMPEG
         private string OutputPath { get; }
 
         /// <summary>
-        /// The video time to take the thumbnail at
+        /// Video stream index
         /// </summary>
         private int StreamIndex { get; }
 

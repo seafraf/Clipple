@@ -6,8 +6,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:views="clr-namespace:Clipple.View"
         xmlns:local="clr-namespace:Clipple"
-        xmlns:converters="clr-namespace:Clipple.Converters"
-        mc:Ignorable="d"
+        mc:Ignorable="d" 
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
         TextElement.FontWeight="Regular"
         TextElement.FontSize="13"
@@ -15,170 +14,87 @@
         TextOptions.TextRenderingMode="Auto"        
         Background="{DynamicResource MaterialDesignPaper}"
         FontFamily="{DynamicResource MaterialDesignFont}"
-        Height="900" Width="1440" AllowDrop="True" DragOver="OnDragOver" Drop="OnDrop" PreviewKeyDown="OnPreviewKeyDown" Closing="OnClosing"
+        Height="900" Width="1440" PreviewKeyDown="OnPreviewKeyDown" Closing="OnClosing" Loaded="OnLoaded"
                  DataContext="{StaticResource RootViewModel}" Title="{Binding Path=Title}">
-    <Window.Resources>
-        <converters:ValueConverterGroup x:Key="ComparisonConverterVisbility" >
-            <converters:ComparisonConverter />
-            <BooleanToVisibilityConverter />
-        </converters:ValueConverterGroup>
-    </Window.Resources>
-    <!--<mah:MetroWindow.RightWindowCommands>
-        <mah:WindowCommands >
-            <StackPanel Margin="10, 0, 0, 0"  Orientation="Horizontal">
-                <iconPacks:PackIconMaterialDesign VerticalAlignment="Center" Kind="Settings" />
-                <Button Content="Settings" Command="{Binding Path=OpenSettingsFlyout}" />
-            </StackPanel>
-            <StackPanel Margin="10, 0, 0, 0"  Orientation="Horizontal">
-                <iconPacks:PackIconMaterialDesign VerticalAlignment="Center" Kind="PlayArrow" />
-                <Button Content="Process all clips" Command="{Binding Path=ProcessAllVideos}" IsEnabled="{Binding Path=HasClips}" />
-            </StackPanel>
-            <StackPanel Margin="10, 0, 0, 0"  Orientation="Horizontal" Visibility="{Binding Path=UpdateViewModel.UpdateAvailable, Converter={StaticResource BooleanToVisibilityConverter}}">
-                <iconPacks:PackIconMaterialDesign VerticalAlignment="Center" Kind="Update" />
-                <Button Content="Update available!" Command="{Binding Path=OpenUpdateDialog}" />
-            </StackPanel>
-        </mah:WindowCommands>
-    </mah:MetroWindow.RightWindowCommands>
+    <materialDesign:DialogHost SnackbarMessageQueue="{Binding ElementName=Snackbar, Path=MessageQueue}">
+        <Grid>
+            <materialDesign:Transitioner SelectedIndex="{Binding LoadingTransitionIndex, Mode=OneWay}">
 
-    <mah:MetroWindow.LeftWindowCommands>
-        <mah:WindowCommands>
-            <StackPanel Margin="10, 0, 0, 0"  Orientation="Horizontal">
-                <iconPacks:PackIconMaterialDesign VerticalAlignment="Center" Kind="Folder" />
-                <Button Content="Videos" Command="{Binding Path=OpenVideosFlyout}" />
-            </StackPanel>
-        </mah:WindowCommands>
-    </mah:MetroWindow.LeftWindowCommands>
+                <!-- Loading menu/splash -->
+                <materialDesign:TransitionerSlide>
+                    <materialDesign:TransitionerSlide.ForwardWipe>
 
-    <mah:MetroWindow.Flyouts>
-        <mah:FlyoutsControl>
-            <mah:Flyout Header="Videos" IsOpen="{Binding Path=IsVideosFlyoutOpen}" Position="Left" Width="auto" MinWidth="1000" IsOpenChanged="FlyoutIsOpenChanged" ClosingFinished="FlyoutClosingFinished" Theme="Adapt">
-                <ItemsControl ItemsSource="{Binding Path=Videos, Mode=TwoWay, IsAsync=True}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <VirtualizingStackPanel IsVirtualizing="True" VirtualizationMode="Recycling" />
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <views:Video DataContext="{Binding}" Margin="4 0 4 8" VirtualizingPanel.IsVirtualizing="True" />
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                    <ItemsControl.Template>
-                        <ControlTemplate TargetType="ItemsControl">
-                            <Border BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{TemplateBinding BorderBrush}" Background="{TemplateBinding Background}">
-                                <ScrollViewer CanContentScroll="True" Padding="{TemplateBinding Padding}" Focusable="False">
-                                    <ItemsPresenter />
-                                </ScrollViewer>
-                            </Border>
-                        </ControlTemplate>
-                    </ItemsControl.Template>
-                </ItemsControl>
-            </mah:Flyout>
-            <mah:Flyout Header="Settings" IsOpen="{Binding Path=IsSettingsFlyoutOpen}" Position="Right" Width="auto" IsOpenChanged="FlyoutIsOpenChanged" ClosingFinished="FlyoutClosingFinished" Theme="Adapt">
-                <views:Settings DataContext="{Binding Path=SettingsViewModel}" />
-            </mah:Flyout>
-        </mah:FlyoutsControl>
-    </mah:MetroWindow.Flyouts>-->
-    <TabControl Style="{StaticResource MaterialDesignNavigatilRailTabControl}" materialDesign:NavigationRailAssist.ShowSelectionBackground="True">
-
-        <TabItem>
-            <TabItem.Header>
-                <StackPanel Width="auto" Height="auto">
-                    <materialDesign:PackIcon Width="24" Height="24" HorizontalAlignment="Center" Kind="Library" />
-                    <TextBlock HorizontalAlignment="Center" Text="Videos" />
-                </StackPanel>
-            </TabItem.Header>
-        </TabItem>
-
-        <TabItem>
-            <TabItem.Header>
-                <StackPanel Width="auto" Height="auto">
-                    <materialDesign:PackIcon Width="24" Height="24" HorizontalAlignment="Center" Kind="Video" />
-                    <TextBlock HorizontalAlignment="Center" Text="Editor" />
-                </StackPanel>
-            </TabItem.Header>
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="1*" MinWidth="600" />
-                    <ColumnDefinition Width="375" MinWidth="200" />
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="auto" />
-                </Grid.RowDefinitions>
-                <GridSplitter Grid.Column="0" Width="5" HorizontalAlignment="Right" VerticalAlignment="Stretch" ShowsPreview="False" />
-
-                <views:VideoPlayer x:Name="videoPlayer" DataContext="{Binding Path=VideoPlayerViewModel}" Grid.Column="0" Margin="6 6 9 6" />
-
-                <Grid Grid.Column="1" Margin="6 6 6 6" >
-                    <TabControl 
-                                              ItemsSource="{Binding SelectedVideo.Clips, Mode=TwoWay}" 
-                                              SelectedItem="{Binding Path=SelectedVideo.SelectedClip, Mode=TwoWay}" 
-                                              SelectedIndex="{Binding Path=SelectedVideo.SelectedClipIndex, Mode=TwoWay}">
-                        <TabControl.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding Title}"/>
-                            </DataTemplate>
-                        </TabControl.ItemTemplate>
-                        <TabControl.ContentTemplate>
-                            <DataTemplate>
-                                <views:ClipSettings DataContext="{Binding}" />
-                            </DataTemplate>
-                        </TabControl.ContentTemplate>
-                    </TabControl>
-                </Grid>
-
-                <Grid Grid.Column="1" Margin="6 6 6 6" Visibility="{Binding Path=SelectedVideo.SelectedClip, Converter={StaticResource ComparisonConverterVisbility}, ConverterParameter={x:Null}}">
-                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <Label FontSize="24">Create new clip</Label>
-                        <Button Grid.Row="1" Grid.Column="0" Width="64" Height="64" ToolTip="Add new clip"
-                        Command="{Binding Source={x:Static local:AppCommands.CreateClipCommand}}">
-                            <!--<iconPacks:MaterialDesign Width="20" Height="20" Kind="Add" />-->
-                        </Button>
+                        <!-- Don't actually want a wipe at all -->
+                        <materialDesign:SlideWipe Duration="00:00:00"  />
+                    </materialDesign:TransitionerSlide.ForwardWipe>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="Loading" HorizontalAlignment="Center" Style="{StaticResource MaterialDesignHeadline4TextBlock}" Margin="0 0 0 12" />
+                        <ProgressBar IsIndeterminate="True"  Width="256"  />
+                        <TextBlock Text="{Binding LoadingText}" HorizontalAlignment="Center" Style="{StaticResource MaterialDesignBody2TextBlock}" Margin="0 12 0 0" />
                     </StackPanel>
-                </Grid>
+                </materialDesign:TransitionerSlide>
 
-                <!--<StatusBar DataContext="{x:Static local:App.Logger}" Grid.ColumnSpan="2" Grid.Row="1" Height="24" Cursor="Hand" ToolTip="Click to view full logs" MouseDown="OnStatusBarClicked"
-                   Visibility="{Binding Path=HasLogs, Converter={StaticResource BooleanToVisibilityConverter}}">
-                    <StatusBarItem>
-                        -->
-                <!--<iconPacks:PackIconMaterialDesign VerticalAlignment="Center">
-                            <iconPacks:PackIconMaterialDesign.Style>
-                                <Style TargetType="iconPacks:PackIconMaterialDesign">
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding Path=LastLogEntry.IsError}" Value="True">
-                                            <Setter Property="Kind" Value="Error" />
-                                        </DataTrigger>
-                                        <DataTrigger Binding="{Binding Path=LastLogEntry.IsError}" Value="False">
-                                            <Setter Property="Kind" Value="Info" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </iconPacks:PackIconMaterialDesign.Style>
-                        </iconPacks:PackIconMaterialDesign>-->
-                <!--
-                    </StatusBarItem>
-                    <StatusBarItem>
-                        <TextBlock Text="{Binding Path=LastLogEntry.Time, StringFormat={}{0:hh:mm:ss}}" />
-                    </StatusBarItem>
-                    <StatusBarItem Content="{Binding Path=LastLogEntry.Content}" />
-                    <StatusBarItem HorizontalAlignment="Right" >
-                        <TextBlock>
-                            <Run Text="{Binding Path=LogEntries.Count, Mode=OneWay}" />
-                            <Run Text="log entries" />
-                        </TextBlock>
-                    </StatusBarItem>
-                </StatusBar>-->
-            </Grid>
-        </TabItem>
+                <!-- Home -->
+                <materialDesign:TransitionerSlide OpeningEffect="{materialDesign:TransitionEffect Kind=FadeIn}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
 
-        <TabItem>
-            <TabItem.Header>
-                <StackPanel Width="auto" Height="auto">
-                    <materialDesign:PackIcon Width="24" Height="24" HorizontalAlignment="Center" Kind="Settings" />
-                    <TextBlock HorizontalAlignment="Center" Text="Settings" />
-                </StackPanel>
-            </TabItem.Header>
-        </TabItem>
-    </TabControl>
+
+                        <!-- Editor -->
+                        <Grid Grid.Column="1" Visibility="{Binding IsEditorSelected, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <views:MediaEditor x:Name="mediaEditor" DataContext="{Binding Path=MediaEditor}"/>
+                        </Grid>
+
+                        <!-- Library -->
+                        <Grid Grid.Column="1" Visibility="{Binding IsLibrarySelected, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <views:Library DataContext="{Binding Library}" />
+                        </Grid>
+
+                        <!-- Settings -->
+                        <Grid Grid.Column="1" Visibility="{Binding IsSettingsSelected, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <Label Content="Settings here lol" />
+                        </Grid>
+
+                        <!-- 
+                        The tab control here is only used for styling.  Using the TabControl's content presenter would result in recreating tabs when selected, which
+                        is very bad for the performance of these tabs. 
+                    -->
+                        <TabControl Grid.Column="0" materialDesign:NavigationRailAssist.ShowSelectionBackground="True" TabStripPlacement="Left"
+                            Style="{StaticResource MaterialDesignNavigatilRailTabControl}">
+                            <TabItem IsSelected="{Binding IsEditorSelected}">
+                                <TabItem.Header>
+                                    <StackPanel Width="auto" Height="auto">
+                                        <materialDesign:PackIcon Width="24" Height="24" HorizontalAlignment="Center" Kind="MovieEdit" />
+                                        <TextBlock HorizontalAlignment="Center" Text="Editor" />
+                                    </StackPanel>
+                                </TabItem.Header>
+                            </TabItem>
+
+                            <TabItem IsSelected="{Binding IsLibrarySelected}">
+                                <TabItem.Header>
+                                    <StackPanel Width="auto" Height="auto">
+                                        <materialDesign:PackIcon Width="24" Height="24" HorizontalAlignment="Center" Kind="Library" />
+                                        <TextBlock HorizontalAlignment="Center" Text="Library" />
+                                    </StackPanel>
+                                </TabItem.Header>
+                            </TabItem>
+
+                            <TabItem IsSelected="{Binding IsSettingsSelected}">
+                                <TabItem.Header>
+                                    <StackPanel Width="auto" Height="auto">
+                                        <materialDesign:PackIcon Width="24" Height="24" HorizontalAlignment="Center" Kind="Settings" />
+                                        <TextBlock HorizontalAlignment="Center" Text="Settings" />
+                                    </StackPanel>
+                                </TabItem.Header>
+                            </TabItem>
+                        </TabControl>
+                    </Grid>
+                </materialDesign:TransitionerSlide>
+            </materialDesign:Transitioner>
+            <materialDesign:Snackbar x:Name="Snackbar" MessageQueue="{Binding MessageQueue, Source={x:Static local:App.Notifications}}" Margin="0 0 0 16" />
+        </Grid>
+    </materialDesign:DialogHost>
 </Window>

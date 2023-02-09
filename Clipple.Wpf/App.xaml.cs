@@ -22,14 +22,14 @@ namespace Clipple
     public partial class App : Application
     {
         /// <summary>
-        /// A reference to the root view model.
+        /// A reference to the root VM
         /// </summary>
         public static RootViewModel ViewModel => (RootViewModel)Current.Resources[nameof(RootViewModel)];
 
         /// <summary>
-        /// Reference to the logger
+        /// Reference to the notifications VM
         /// </summary>
-        public static LogsViewModel Logger { get; } = new();
+        public static Notifications Notifications { get; } = new();
 
         /// <summary>
         /// A reference to the main window instance.
@@ -47,31 +47,7 @@ namespace Clipple
         {
             DispatcherUnhandledException += OnDispatcherUnhandledException;
 
-            // This timer is started when the settings load in the RootViewModel
-            AutoSaveTimer.Elapsed += (s, e) =>
-            {
-                Dispatcher.Invoke(async () =>
-                {
-                    if (ViewModel.SettingsViewModel.AutoSave)
-                        await ViewModel.Save();
-                });
-            };
-
-            // Load FFmpeg libraries now so that we can display an error and shut down if they fail to load.  
-            // FFmpeg libraries are required to preview video and process clips.
-            try
-            {
-                var stopwatch = Stopwatch.StartNew();
-                ffmpeg.RootPath = LibPath;
-
-                stopwatch.Stop();
-                Logger.Log($"Loaded FFmpeg binaries in {stopwatch.ElapsedMilliseconds}ms");
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Failed to load dependencies", ex.Message);
-                Shutdown(1);
-            }
+            ffmpeg.RootPath = LibPath;
         }
 
         /// <summary>
@@ -80,7 +56,7 @@ namespace Clipple
         /// </summary>
         private void OnDispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
         {
-            App.Logger.LogError("Unhandled exception", e.Exception);
+            Notifications.NotifyException("Unexpected error", e.Exception);
             e.Handled = true;
         }
 

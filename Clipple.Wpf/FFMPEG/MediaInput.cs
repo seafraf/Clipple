@@ -9,20 +9,22 @@ namespace Clipple.FFMPEG
 {
     public class MediaInput
     {
-        public MediaInput(string inputFile, ClipViewModel clip)
+        public MediaInput(string inputFile, Media media)
         {
             InputFile = inputFile;
-            this.clip = clip;
+            this.media = media;
         }
 
         #region Members
-        private readonly ClipViewModel clip;
+        private readonly Media media;
         #endregion
 
         #region Properties
         public string InputFile { get; }
-        public TimeSpan StartTime => clip.StartTime;
-        public TimeSpan Duration => clip.Duration;
+        private Clip Clip => media.Clip;
+
+        public TimeSpan StartTime => Clip.StartTime;
+        public TimeSpan Duration => Clip.Duration;
         #endregion
 
         public override string? ToString()

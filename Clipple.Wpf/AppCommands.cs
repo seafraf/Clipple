@@ -16,7 +16,7 @@ namespace Clipple
         /// </summary>
         public static RelayCommand NextFrameCommand => new(() =>
         {
-            App.ViewModel.VideoPlayerViewModel.ShowFrameNext();
+            App.ViewModel.MediaEditor.ShowFrameNext();
         });
 
         /// <summary>
@@ -24,7 +24,7 @@ namespace Clipple
         /// </summary>
         public static RelayCommand PreviousFrameCommand => new(() =>
         {
-            App.ViewModel.VideoPlayerViewModel.ShowFramePrev();
+            App.ViewModel.MediaEditor.ShowFramePrev();
         });
 
         /// <summary>
@@ -32,11 +32,11 @@ namespace Clipple
         /// </summary>
         public static RelayCommand ControlCommand => new(() =>
         {
-            App.ViewModel.VideoPlayerViewModel.TogglePlayPause();
+            App.ViewModel.MediaEditor.TogglePlayPause();
         });
 
         /// <summary>
-        /// Mutes or unmutes the video player
+        /// Mutes or unmutes the media player
         /// </summary>
         public static RelayCommand ToggleMuteCommand => new(() =>
         {
@@ -44,7 +44,7 @@ namespace Clipple
         });
 
         /// <summary>
-        /// Incrases the video player's volume by 5%, if not maxed out
+        /// Incrases the media player's volume by 5%, if not maxed out
         /// </summary>
         public static RelayCommand VolumeUpCommand => new(() =>
         {
@@ -52,7 +52,7 @@ namespace Clipple
         });
 
         /// <summary>
-        /// Decreases the video player's volume by 5%, if not at 0%
+        /// Decreases the media player's volume by 5%, if not at 0%
         /// </summary>
         public static RelayCommand VolumeDownCommand => new(() =>
         {
@@ -60,51 +60,19 @@ namespace Clipple
         });
 
         /// <summary>
-        /// Loads the next video in the video list
-        /// </summary>
-        public static RelayCommand NextVideoCommand => new(() =>
-        {
-            App.ViewModel.NextVideo();
-        });
-
-        /// <summary>
-        /// Loads the previous video in the video list
-        /// </summary>
-        public static RelayCommand PreviousVideoCommand => new(() =>
-        {
-            App.ViewModel.PreviousVideo();
-        });
-
-        /// <summary>
-        /// Creates a clip at the current position in the play head, if media is loaded
-        /// </summary>
-        public static RelayCommand CreateClipCommand => new(() =>
-        {
-            App.ViewModel.VideoPlayerViewModel.CreateClip();
-        });
-
-        /// <summary>
-        /// Goes to the end of the video or clip
+        /// Goes to the end of the media or clip
         /// </summary>
         public static RelayCommand SeekStartCommand => new(() =>
         {
-            App.ViewModel.VideoPlayerViewModel.SeekStart();
+            App.ViewModel.MediaEditor.SeekStart();
         });
 
         /// <summary>
-        /// Goes to the start of the video or clip
+        /// Goes to the start of the media or clip
         /// </summary>
         public static RelayCommand SeekEndCommand => new(() =>
         {
-            App.ViewModel.VideoPlayerViewModel.SeekEnd();
-        });
-
-        /// <summary>
-        /// Saves the current video list and clip settings
-        /// </summary>
-        public static RelayCommand SaveCommand => new(async () =>
-        {
-            await App.ViewModel.Save();
+            App.ViewModel.MediaEditor.SeekEnd();
         });
     }
 }

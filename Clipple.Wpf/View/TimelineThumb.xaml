@@ -1,0 +1,31 @@
+﻿<UserControl x:Class="Clipple.View.TimelineThumb"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:local="clr-namespace:Clipple.View"
+             xmlns:colors="clr-namespace:MaterialDesignColors;assembly=MaterialDesignColors"
+             mc:Ignorable="d" 
+             d:DesignHeight="32" d:DesignWidth="32">
+    <Grid Margin="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Path=GridMargin}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Path=TimelineMarkerSize}" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Opacity="0" x:Name="TimelineMarkerCover"
+              Background="{DynamicResource PrimaryHueDarkBrush}"/>
+        <Grid Grid.Row="1" Opacity="1" 
+               Background="{DynamicResource PrimaryHueDarkBrush}"/>
+
+        <Button Grid.Row="1" Cursor="ScrollWE" Opacity="1" x:Name="ThumbButton"
+                VerticalAlignment="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Path=ButtonAlignment}"
+                Margin="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Path=ButtonMargin}"
+                Style="{StaticResource MaterialDesignFloatingActionDarkButton}"
+                Width="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Path=Size}" 
+                Height="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Path=Size}">
+            <materialDesign:PackIcon Kind="DragVertical" Height="24" Width="24" />
+        </Button>
+    </Grid>
+</UserControl>

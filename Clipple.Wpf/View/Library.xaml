@@ -1,0 +1,379 @@
+﻿<UserControl x:Class="Clipple.View.Library"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:types="clr-namespace:Clipple.Types"
+             xmlns:viewmodel="clr-namespace:Clipple.ViewModel"
+             xmlns:view="clr-namespace:Clipple.View"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:converters="clr-namespace:Clipple.Converters"
+             mc:Ignorable="d" 
+             d:DataContext="{d:DesignInstance Type=viewmodel:Library}"
+             d:DesignHeight="1000" d:DesignWidth="1900" AllowDrop="True" DragEnter="OnDragEnter" Drop="OnDrop" Background="Transparent">
+    <UserControl.Resources>
+        <converters:EditClassesConverter x:Key="EditClassesConverter" />
+    </UserControl.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="0.8*" />
+            <ColumnDefinition Width="4" />
+            <ColumnDefinition Width="0.2*" MinWidth="320" />
+        </Grid.ColumnDefinitions>
+
+        <materialDesign:Card>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0" Background="{DynamicResource PrimaryHueDarkBrush}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Orientation="Horizontal">
+                        <StackPanel>
+                            <TextBox Width="300"  Margin="4"  materialDesign:TextFieldAssist.HasClearButton="True" materialDesign:HintAssist.HelperText="{Binding SearchHelp}"
+                                     Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" KeyDown="OnSearchKeyDown">
+                                <materialDesign:HintAssist.Hint>
+                                    <StackPanel Orientation="Horizontal">
+                                        <materialDesign:PackIcon Kind="Search" />
+                                        <TextBlock Text="Search" />
+                                    </StackPanel>
+                                </materialDesign:HintAssist.Hint>
+                                <TextBox.Resources>
+                                    <!-- This colour is used by the clear button -->
+                                    <!-- ReSharper disable once Xaml.RedundantResource -->
+                                    <SolidColorBrush x:Key="MaterialDesignToolForeground" Color="#DDFFFFFF" />
+                                </TextBox.Resources>
+                            </TextBox>
+                        </StackPanel>
+
+                        <materialDesign:Badged VerticalAlignment="Center" BadgeColorZoneMode="Dark">
+                            <materialDesign:Badged.Style>
+                                <Style TargetType="materialDesign:Badged">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding ActiveFilterCount}" Value="{StaticResource IntZero}">
+                                            <Setter Property="Badge" Value="" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                    <Style.Setters>
+                                        <Setter Property="Badge" Value="{Binding ActiveFilterCount}" />
+                                    </Style.Setters>
+                                </Style>
+                            </materialDesign:Badged.Style>
+                            <materialDesign:PopupBox ToolTip="Filter media" StaysOpen="True" Closed="OnFiltersClosed">
+                                <materialDesign:PopupBox.ToggleContent>
+                                    <materialDesign:PackIcon Kind="FilterList" Width="24" Height="24" Foreground="{StaticResource MaterialDesignDarkForeground}" />
+                                </materialDesign:PopupBox.ToggleContent>
+                                <view:LibraryFilters />
+                            </materialDesign:PopupBox>
+                        </materialDesign:Badged>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2" Orientation="Horizontal">
+                        <Button ToolTip="Open in editor"
+                                Style="{StaticResource MaterialDesignIconForegroundButton}"
+                                Command="{Binding OpenInEditorCommand}">
+                            <Button.IsEnabled>
+                                <MultiBinding Converter="{StaticResource BooleanAllConverter}">
+                                    <Binding ElementName="LibraryDataGrid" Path="SelectedItems.Count" Converter="{StaticResource ComparisonConverter}" ConverterParameter="{StaticResource IntOne}" />
+                                    <Binding Path="SelectedMedia.FileInfo.Exists" />
+                                </MultiBinding>
+                            </Button.IsEnabled>
+                            <materialDesign:PackIcon Kind="MovieEdit" />
+                        </Button>
+
+                        <Button ToolTip="Open in Windows Explorer"
+                                Style="{StaticResource MaterialDesignIconForegroundButton}"
+                                Command="{Binding OpenInExplorerCommand}">
+                            <Button.IsEnabled>
+                                <MultiBinding Converter="{StaticResource BooleanAllConverter}">
+                                    <Binding ElementName="LibraryDataGrid" Path="SelectedItems.Count" Converter="{StaticResource ComparisonConverter}" ConverterParameter="{StaticResource IntOne}" />
+                                    <Binding Path="SelectedMedia.FileInfo.Exists" />
+                                </MultiBinding>
+                            </Button.IsEnabled>
+                            <materialDesign:PackIcon Kind="Folder" />
+                        </Button>
+
+                        <Button ToolTip="Delete"
+                                Style="{StaticResource MaterialDesignIconForegroundButton}"
+                                Command="{Binding OpenDeleteDialogCommand}"
+                                CommandParameter="{Binding ElementName=LibraryDataGrid, Path=SelectedItems}"
+                                IsEnabled="{Binding ElementName=LibraryDataGrid, Path=SelectedItems.Count, Converter={StaticResource InverseComparisonConverter}, ConverterParameter={StaticResource IntZero}}">
+                            <materialDesign:PackIcon Kind="Delete" />
+                        </Button>
+                    </StackPanel>
+                </Grid>
+
+                <ListView x:Name="LibraryDataGrid" Grid.Row="1" SelectionMode="Extended"
+                          VirtualizingPanel.IsVirtualizing="True"
+                          VirtualizingPanel.ScrollUnit="Pixel"
+                          VirtualizingPanel.VirtualizationMode="Recycling"
+                          MouseDoubleClick="OnDoubleClick"
+                          ItemsSource="{Binding Media, IsAsync=True}"
+                          SelectedItem="{Binding SelectedMedia}">
+                    <ListView.ContextMenu>
+                        <ContextMenu DataContext="{Binding Path=PlacementTarget.(ListView.DataContext), RelativeSource={RelativeSource Self}}" d:DataContext="{d:DesignInstance viewmodel:Library}">
+
+                            <!-- Open in editor -->
+                            <MenuItem Header="Edit"
+                                      Icon="{materialDesign:PackIcon Kind=MovieEdit}" 
+                                      Command="{Binding OpenInEditorCommand}">
+                                <MenuItem.IsEnabled>
+                                    <MultiBinding Converter="{StaticResource BooleanAllConverter}">
+                                        <Binding RelativeSource="{RelativeSource AncestorType={x:Type ContextMenu}}" Path="PlacementTarget.(ListView.SelectedItems).Count" Converter="{StaticResource ComparisonConverter}" ConverterParameter="{StaticResource IntOne}" />
+                                        <Binding Path="SelectedMedia.FileInfo.Exists" />
+                                    </MultiBinding>
+                                </MenuItem.IsEnabled>
+                            </MenuItem>
+
+                            <!-- Open in explorer -->
+                            <MenuItem Header="Open in explorer"
+                                      Icon="{materialDesign:PackIcon Kind=Folder}" 
+                                      Command="{Binding Path=OpenInExplorerCommand}">
+                                <MenuItem.IsEnabled>
+                                    <MultiBinding Converter="{StaticResource BooleanAllConverter}">
+                                        <Binding RelativeSource="{RelativeSource AncestorType={x:Type ContextMenu}}" Path="PlacementTarget.(ListView.SelectedItems).Count" Converter="{StaticResource ComparisonConverter}" ConverterParameter="{StaticResource IntOne}" />
+                                        <Binding Path="SelectedMedia.FileInfo.Exists" />
+                                    </MultiBinding>
+                                </MenuItem.IsEnabled>
+                            </MenuItem>
+                            <Separator />
+
+                            <!-- Mass edit tags -->
+                            <MenuItem Header="Edit tags"
+                                      Icon="{materialDesign:PackIcon Kind=Tag}" 
+                                      IsEnabled="{Binding Path=PlacementTarget.(ListView.SelectedItems).Count, Converter={StaticResource InverseComparisonConverter}, ConverterParameter={StaticResource IntZero}, RelativeSource={RelativeSource AncestorType={x:Type ContextMenu}}}"
+                                      Command="{Binding Source={x:Static viewmodel:Library.OpenEditTagsCommand}}"
+                                      CommandParameter="{Binding Path=PlacementTarget.(ListView.SelectedItems), RelativeSource={RelativeSource AncestorType={x:Type ContextMenu}}}" />
+
+                            <!-- Mass edit classes -->
+                            <MenuItem Header="Edit classes" ItemsSource="{Binding Source={x:Static types:MediaClass.MediaClasses}}"
+                                      Icon="{materialDesign:PackIcon Kind=Edit}"
+                                      IsEnabled="{Binding Path=PlacementTarget.(ListView.SelectedItems).Count, Converter={StaticResource InverseComparisonConverter}, ConverterParameter={StaticResource IntZero}, RelativeSource={RelativeSource AncestorType={x:Type ContextMenu}}}">
+                                <MenuItem.ItemContainerStyle>
+                                    <Style TargetType="{x:Type MenuItem}" BasedOn="{StaticResource MaterialDesignMenuItem}">
+                                        <Setter Property="Header" Value="{Binding Name}" />
+                                        <Setter Property="Command" Value="{Binding Source={x:Static viewmodel:Library.EditClassesCommand}}"/>
+                                        <Setter Property="CommandParameter">
+                                            <Setter.Value>
+                                                <MultiBinding Converter="{StaticResource EditClassesConverter}">
+                                                    <Binding />
+                                                    <Binding Path="PlacementTarget.(ListView.SelectedItems)" RelativeSource="{RelativeSource AncestorType={x:Type ContextMenu}}" />
+                                                </MultiBinding>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </MenuItem.ItemContainerStyle>
+                            </MenuItem>
+
+                            <Separator />
+
+                            <!-- Delete selected tags -->
+                            <MenuItem Header="Delete"
+                                      Icon="{materialDesign:PackIcon Kind=Delete}"
+                                      IsEnabled="{Binding Path=PlacementTarget.(ListView.SelectedItems).Count, Converter={StaticResource InverseComparisonConverter}, ConverterParameter={StaticResource IntZero}, RelativeSource={RelativeSource AncestorType={x:Type ContextMenu}}}" 
+                                      Command="{Binding Source={x:Static viewmodel:Library.OpenDeleteDialogCommand}}"
+                                      CommandParameter="{Binding Path=PlacementTarget.(ListView.SelectedItems), RelativeSource={RelativeSource AncestorType={x:Type ContextMenu}}}"/>
+                        </ContextMenu>
+                    </ListView.ContextMenu>
+                    <ListView.View>
+                        <GridView d:DataContext="{d:DesignInstance viewmodel:Media}">
+                            <GridViewColumn Header="File">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding FilePath}" Style="{StaticResource MaterialDesignBody2TextBlock}" VerticalAlignment="Center" />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Header="Duration">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Duration, StringFormat=mm\\:ss\\.ff}" Style="{StaticResource MaterialDesignBody2TextBlock}" VerticalAlignment="Center" />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Header="Class">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <ComboBox DisplayMemberPath="Name" 
+                                                  SelectedItem="{Binding Class, UpdateSourceTrigger=PropertyChanged}" 
+                                                  SelectedIndex="{Binding ClassIndex, UpdateSourceTrigger=PropertyChanged}" 
+                                                  ItemsSource="{x:Static types:MediaClass.MediaClasses}"
+                                                  IsEnabled="{Binding FileInfo.Exists}" />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Header="Description">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" MinWidth="64" IsEnabled="{Binding FileInfo.Exists}" />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Header="Tags">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <ItemsControl ItemsSource="{Binding Tags}">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <StackPanel Orientation="Horizontal" />
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <materialDesign:Chip IsEnabled="False" Height="24" Margin="0">
+                                                        <TextBlock>
+                                                                <Run Text="{Binding Name, StringFormat='{}{0}:'}" />
+                                                                <Run Text="{Binding Value}" />
+                                                        </TextBlock>
+                                                    </materialDesign:Chip>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+            </Grid>
+        </materialDesign:Card>
+
+        <GridSplitter Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Stretch" Width="4" Background="Transparent" />
+
+        <materialDesign:Card Grid.Column="2" materialDesign:ElevationAssist.Elevation="Dp6" materialDesign:ShadowAssist.ShadowEdges="Left">
+            <Grid>
+                <Grid>
+                    <Grid.Visibility>
+                        <MultiBinding Converter="{StaticResource BooleanAllVisibilityConverter}">
+                            <Binding Path="SelectedMedia" Converter="{StaticResource InverseComparisonConverter}" ConverterParameter="{x:Null}" />
+                            <Binding Path="SelectedMedia.FileInfo.Exists"  />
+                        </MultiBinding>
+                    </Grid.Visibility>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <materialDesign:Card Grid.Row="0" Margin="8" materialDesign:ElevationAssist.Elevation="Dp4">
+                        <MediaElement Source="{Binding SelectedMedia.FilePath}" LoadedBehavior="Pause" />
+                    </materialDesign:Card>
+
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="4 4 4 4">
+                        <StackPanel>
+                            <StackPanel.Resources>
+                                <Style TargetType="TextBox" BasedOn="{StaticResource MaterialDesignTextBox}">
+                                    <Setter Property="FontSize" Value="14" />
+                                    <Setter Property="IsReadOnly" Value="True" />
+                                    <Setter Property="materialDesign:HintAssist.IsFloating" Value="True" />
+                                </Style>
+                            </StackPanel.Resources>
+
+                            <Expander Header="Media" IsExpanded="True">
+                                <StackPanel Margin="8 0 8 8">
+                                    <TextBox Text="{Binding SelectedMedia.FilePath, Mode=OneWay}" materialDesign:HintAssist.Hint="File path" />
+                                    <TextBox Text="{Binding SelectedMedia.FileSize, Mode=OneWay}" materialDesign:HintAssist.Hint="File size" />
+                                    <TextBox Text="{Binding SelectedMedia.Duration, StringFormat=mm\\:ss\\.ff, Mode=OneWay}" materialDesign:HintAssist.Hint="Duration" />
+                                    <TextBox Text="{Binding SelectedMedia.Description, UpdateSourceTrigger=PropertyChanged}" materialDesign:HintAssist.Hint="Description" IsReadOnly="False" />
+                                    <ComboBox DisplayMemberPath="Name" materialDesign:HintAssist.Hint="Class" materialDesign:HintAssist.IsFloating="True" 
+                                          SelectedItem="{Binding SelectedMedia.Class}" 
+                                          SelectedIndex="{Binding SelectedMedia.ClassIndex}" 
+                                          ItemsSource="{x:Static types:MediaClass.MediaClasses}" />
+                                </StackPanel>
+                            </Expander>
+
+                            <Expander Header="Video" Visibility="{Binding SelectedMedia.HasVideo, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <StackPanel Margin="8 0 8 8">
+                                    <TextBox Text="{Binding SelectedMedia.VideoResolution, Mode=OneWay}" materialDesign:HintAssist.Hint="Resolution" />
+                                    <TextBox Text="{Binding SelectedMedia.VideoFps, Mode=OneWay}" materialDesign:HintAssist.Hint="FPS" />
+                                    <TextBox Text="{Binding SelectedMedia.VideoCodecName, Mode=OneWay}" materialDesign:HintAssist.Hint="Codec" />
+                                </StackPanel>
+                            </Expander>
+
+                            <Expander Header="Audio" Visibility="{Binding SelectedMedia.HasAudio, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <ItemsControl Margin="8 0 8 8" ItemsSource="{Binding SelectedMedia.AudioStreams}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel>
+                                                <TextBox Text="{Binding CodecName, Mode=OneWay}">
+                                                    <materialDesign:HintAssist.Hint>
+                                                        <TextBlock>
+                                                        <Run Text="Codec for" />
+                                                        <Run Text="{Binding Name}" />
+                                                        </TextBlock>
+                                                    </materialDesign:HintAssist.Hint>
+                                                </TextBox>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Expander>
+
+                            <Expander Header="Tags" IsExpanded="True">
+                                <StackPanel>
+                                    <DataGrid AutoGenerateColumns="False" EnableRowVirtualization="True" SelectionMode="Single" SelectionUnit="FullRow" CanUserAddRows="False" CanUserDeleteRows="False"
+                                          Visibility="{Binding SelectedMedia.Tags.Count, Converter={StaticResource InverseComparisonVisibilityConverter}, ConverterParameter={StaticResource IntZero}}"
+                                          ItemsSource="{Binding SelectedMedia.Tags, Mode=OneWay}">
+                                        <DataGrid.Columns>
+                                            <DataGridTemplateColumn Header="Name" Width="auto">
+                                                <DataGridTemplateColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <ComboBox IsEditable="True" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" ItemsSource="{Binding NameSuggestions}" />
+                                                    </DataTemplate>
+                                                </DataGridTemplateColumn.CellTemplate>
+                                            </DataGridTemplateColumn>
+
+                                            <DataGridTemplateColumn Header="Value" Width="*">
+                                                <DataGridTemplateColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <ComboBox IsEditable="True" Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}" ItemsSource="{Binding ValueSuggestions}" />
+                                                    </DataTemplate>
+                                                </DataGridTemplateColumn.CellTemplate>
+                                            </DataGridTemplateColumn>
+
+                                            <DataGridTemplateColumn CanUserResize="False" CanUserReorder="False">
+                                                <DataGridTemplateColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <Button Width="24" Height="24" Padding="0" 
+                                                            Style="{StaticResource MaterialDesignIconForegroundButton}"
+                                                            Command="{Binding DeleteCommand}"
+                                                            CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.SelectedMedia}">
+                                                            <materialDesign:PackIcon Kind="Close" Width="20" Height="20" Margin="0" Padding="0" />
+                                                        </Button>
+                                                    </DataTemplate>
+                                                </DataGridTemplateColumn.CellTemplate>
+                                            </DataGridTemplateColumn>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+
+                                    <Button Margin="4" Content="Add tag"
+                                        Style="{StaticResource MaterialDesignRaisedDarkButton}"
+                                        Command="{Binding SelectedMedia.AddTagCommand}" />
+                                </StackPanel>
+                            </Expander>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+                <Grid>
+                    <Grid.Visibility>
+                        <MultiBinding Converter="{StaticResource BooleanAllVisibilityConverter}">
+                            <Binding Path="SelectedMedia" Converter="{StaticResource InverseComparisonConverter}" ConverterParameter="{x:Null}" />
+                            <Binding Path="SelectedMedia.FileInfo.Exists" Converter="{StaticResource InverseBooleanConverter}"  />
+                        </MultiBinding>
+                    </Grid.Visibility>
+                    <StackPanel Margin="16">
+                        <materialDesign:PackIcon Width="64" Height="64" Kind="Error" HorizontalAlignment="Center" />
+                        <TextBlock Text="The selected media does not exist!" HorizontalAlignment="Center" TextWrapping="Wrap" 
+                                   Style="{StaticResource MaterialDesignBody1TextBlock}" />
+                    </StackPanel>
+                </Grid>
+            </Grid>
+        </materialDesign:Card>
+    </Grid>
+</UserControl>

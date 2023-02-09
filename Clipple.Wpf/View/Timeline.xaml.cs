@@ -3,6 +3,7 @@ using Clipple.ViewModel;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
@@ -38,7 +39,6 @@ namespace Clipple.View
         {
             InitializeComponent();
         }
-
         #region Members
         private Point lastDragPoint;
         #endregion
@@ -80,9 +80,8 @@ namespace Clipple.View
             typeof(Timeline),
             new FrameworkPropertyMetadata(defaultValue: 1.0, flags: FrameworkPropertyMetadataOptions.AffectsRender, OnZoomChanged));
 
-
-        public static readonly DependencyProperty HasClipProperty = DependencyProperty.Register(
-            "HasClip",
+        public static readonly DependencyProperty ShowAudioStreamNamesPropertry = DependencyProperty.Register(
+            "ShowAudioStreamNames",
             typeof(bool),
             typeof(Timeline),
             new FrameworkPropertyMetadata(defaultValue: false, flags: FrameworkPropertyMetadataOptions.AffectsRender));
@@ -143,10 +142,10 @@ namespace Clipple.View
             set => SetValue(ZoomProperty, value);
         }
 
-        public bool HasClip
+        public bool ShowAudioStreamNames
         {
-            get => (bool)GetValue(HasClipProperty);
-            set => SetValue(HasClipProperty, value);
+            get => (bool)GetValue(ShowAudioStreamNamesPropertry);
+            set => SetValue(ShowAudioStreamNamesPropertry, value);
         }
 
         /// <summary>
@@ -175,7 +174,7 @@ namespace Clipple.View
         }
         #endregion
 
-        public VideoPlayerViewModel Context => (VideoPlayerViewModel)DataContext;
+        public ViewModel.MediaEditor Context => (ViewModel.MediaEditor)DataContext;
 
         #region Methods
         private void SetClipStartClamped(TimeSpan time)
@@ -238,22 +237,30 @@ namespace Clipple.View
             ScrollViewer.ScrollToHorizontalOffset(ScrollViewer.HorizontalOffset + diffWidth * prevRatio);
         }
 
-        private void DragStart(UIElement element, MouseButtonEventArgs e)
+        private void DragStart(UIElement element, MouseButtonEventArgs e, DragTarget dragTarget)
         {
             e.Handled     = true;
             IsDragging    = true;
             lastDragPoint = e.GetPosition(this);
 
             element.CaptureMouse();
+
+            PlayheadThumb.NotifyDragStart(dragTarget == DragTarget.Playhead);
+            ClipThumbLeft.NotifyDragStart(dragTarget == DragTarget.ClipStart);
+            ClipThumbRight.NotifyDragStart(dragTarget == DragTarget.ClipEnd);
         }
 
-        private void DragStop(UIElement element, MouseButtonEventArgs e)
+        private void DragStop(UIElement element, MouseButtonEventArgs e, DragTarget dragTarget)
         {
             e.Handled  = true;
             IsDragging = false;
             element.ReleaseMouseCapture();
 
             UpdateMarkers();
+
+            PlayheadThumb.NotifyDragEnd(dragTarget == DragTarget.Playhead);
+            ClipThumbLeft.NotifyDragEnd(dragTarget == DragTarget.ClipStart);
+            ClipThumbRight.NotifyDragEnd(dragTarget == DragTarget.ClipEnd);
         }
 
         private void DragScroll(double offset)
@@ -270,7 +277,7 @@ namespace Clipple.View
             if (IsDragging)
             {
                 e.Handled = true;
-                var pos   = e.GetPosition(this);
+                var pos = e.GetPosition(this);
                 var diffX = pos.X - lastDragPoint.X;
                 var diffY = pos.Y - lastDragPoint.Y;
 
@@ -278,10 +285,10 @@ namespace Clipple.View
 
 
                 var wavePxOnTimeline = WaveformEngine.ResolutionX * Transform.ScaleX;
-                var sens             = 1.0 - (-diffY / (App.Window.VideoPlayer.ActualHeight / 3.0));
-                var ticksPerPixel    = Duration.Ticks / wavePxOnTimeline;
-                var timePerPixel     = TimeSpan.FromTicks((long)ticksPerPixel);
-                var timeDiff         = (diffX * timePerPixel) * Math.Clamp(sens, 0.01, 1);
+                var sens = 1.0 - (-diffY / (App.Window.MediaEditor.ActualHeight / 3.0));
+                var ticksPerPixel = Duration.Ticks / wavePxOnTimeline;
+                var timePerPixel = TimeSpan.FromTicks((long)ticksPerPixel);
+                var timeDiff = (diffX * timePerPixel) * Math.Clamp(sens, 0.01, 1);
 
                 switch (dragTarget)
                 {
@@ -312,7 +319,7 @@ namespace Clipple.View
                             {
                                 DragScroll(wavePxOnTimeline * (ClipStart / Duration));
                             }
-                            else 
+                            else
                                 DragScroll(wavePxOnTimeline * ((ClipStart + ClipDuration) / Duration));
 
                             break;
@@ -323,20 +330,20 @@ namespace Clipple.View
         #endregion
 
         #region Events
-        private void ClipStart_MouseDown(object sender, MouseButtonEventArgs e) => DragStart((UIElement)sender, e);
-        private void ClipStart_MouseUp(object sender, MouseButtonEventArgs e) => DragStop((UIElement)sender, e);
+        private void ClipStart_MouseDown(object sender, MouseButtonEventArgs e) => DragStart((UIElement)sender, e, DragTarget.ClipStart);
+        private void ClipStart_MouseUp(object sender, MouseButtonEventArgs e) => DragStop((UIElement)sender, e, DragTarget.ClipStart);
         private void ClipStart_MouseMove(object sender, MouseEventArgs e) => DragTick(e, DragTarget.ClipStart);
 
-        private void ClipEnd_MouseDown(object sender, MouseButtonEventArgs e) => DragStart((UIElement)sender, e);
-        private void ClipEnd_MouseUp(object sender, MouseButtonEventArgs e) => DragStop((UIElement)sender, e);
+        private void ClipEnd_MouseDown(object sender, MouseButtonEventArgs e) => DragStart((UIElement)sender, e, DragTarget.ClipEnd);
+        private void ClipEnd_MouseUp(object sender, MouseButtonEventArgs e) => DragStop((UIElement)sender, e, DragTarget.ClipEnd);
         private void ClipEnd_MouseMove(object sender, MouseEventArgs e) => DragTick(e, DragTarget.ClipEnd);
 
-        private void Clip_MouseDown(object sender, MouseButtonEventArgs e) => DragStart((UIElement)sender, e);
-        private void Clip_MouseUp(object sender, MouseButtonEventArgs e) => DragStop((UIElement)sender, e);
+        private void Clip_MouseDown(object sender, MouseButtonEventArgs e) => DragStart((UIElement)sender, e, DragTarget.Clip);
+        private void Clip_MouseUp(object sender, MouseButtonEventArgs e) => DragStop((UIElement)sender, e, DragTarget.Clip);
         private void Clip_MouseMove(object sender, MouseEventArgs e) => DragTick(e, DragTarget.Clip);
 
-        private void Playhead_MouseDown(object sender, MouseButtonEventArgs e) => DragStart((UIElement)sender, e);
-        private void Playhead_MouseUp(object sender, MouseButtonEventArgs e) => DragStop((UIElement)sender, e);
+        private void Playhead_MouseDown(object sender, MouseButtonEventArgs e) => DragStart((UIElement)sender, e, DragTarget.Playhead);
+        private void Playhead_MouseUp(object sender, MouseButtonEventArgs e) => DragStop((UIElement)sender, e, DragTarget.Playhead);
         private void Playhead_MouseMove(object sender, MouseEventArgs e) => DragTick(e, DragTarget.Playhead);
 
         private void OnSizeChanged(object sender, SizeChangedEventArgs e) => UpdateZoom();

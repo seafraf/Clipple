@@ -1,4 +1,5 @@
-﻿using Microsoft.Toolkit.Mvvm.ComponentModel;
+﻿using LiteDB;
+using Microsoft.Toolkit.Mvvm.ComponentModel;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -16,7 +17,7 @@ using System.Xml.Serialization;
 
 namespace Clipple.ViewModel
 {
-    public class SettingsViewModel : ObservableObject
+    public class Settings : ObservableObject
     {
         #region Methods
         private void ChangeTheme(bool dark, string colourName)
@@ -223,7 +224,7 @@ namespace Clipple.ViewModel
 
         //public ReadOnlyObservableCollection<string> AvailableColours => ThemeManager.Current.ColorSchemes;
 
-        [JsonIgnore]
+        [BsonIgnore]
         public string ThemeKey => $"{(ThemeIsDark ? "Dark" : "Light")}.{ThemeColour}";
         #endregion
     }

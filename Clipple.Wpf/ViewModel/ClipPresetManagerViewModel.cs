@@ -11,14 +11,14 @@ namespace Clipple.ViewModel
 {
     public class ClipPresetManagerViewModel : ObservableObject
     {
-        public ClipPresetManagerViewModel(ClipViewModel clipViewModel)
+        public ClipPresetManagerViewModel(Clip clipViewModel)
         {
             ClipViewModel = clipViewModel;
         }
 
         #region Properties
 
-        public ClipViewModel ClipViewModel { get; }
+        public Clip ClipViewModel { get; }
 
         /// <summary>
         /// The selected preset
@@ -49,25 +49,25 @@ namespace Clipple.ViewModel
         #region Methods
         private void DeleteSelected()
         {
-            if (SelectedPreset != null)
-                App.ViewModel.ClipPresetsViewModel.Presets.Remove(SelectedPreset);
+            //if (SelectedPreset != null)
+            //    App.ViewModel.ClipPresetsViewModel.Presets.Remove(SelectedPreset);
         }
 
         private void RestoreDefaults()
         {
-            App.ViewModel.ClipPresetsViewModel.Restore();
+            //App.ViewModel.ClipPresetsViewModel.Restore();
         }
 
         private void CreateNew()
         {
-            App.ViewModel.ClipPresetsViewModel.Presets.Add(new ClipPresetViewModel("New preset", "User presets",
-                ClipViewModel.UseTargetSize ? null : ClipViewModel.VideoBitrate, ClipViewModel.AudioBitrate,
-                ClipViewModel.UseSourceResolution ? null : ClipViewModel.TargetWidth, ClipViewModel.UseSourceResolution ? null : ClipViewModel.TargetHeight,
-                ClipViewModel.UseSourceFPS ? null : ClipViewModel.TargetFPS,
-                ClipViewModel.UseTargetSize, ClipViewModel.UseTargetSize ? ClipViewModel.OutputTargetSize : null,
-                ClipViewModel.VideoCodec, ClipViewModel.AudioCodec,
-                ClipViewModel.ShouldCrop, ClipViewModel.CropX, ClipViewModel.CropY, ClipViewModel.CropWidth, ClipViewModel.CropHeight,
-                ClipViewModel.OutputFormat, DateTime.Now.Ticks));
+            //App.ViewModel.ClipPresetsViewModel.Presets.Add(new ClipPresetViewModel("New preset", "User presets",
+            //    ClipViewModel.UseTargetSize ? null : ClipViewModel.VideoBitrate, ClipViewModel.AudioBitrate,
+            //    ClipViewModel.UseSourceResolution ? null : ClipViewModel.TargetWidth, ClipViewModel.UseSourceResolution ? null : ClipViewModel.TargetHeight,
+            //    ClipViewModel.UseSourceFps ? null : ClipViewModel.TargetFps,
+            //    ClipViewModel.UseTargetSize, ClipViewModel.UseTargetSize ? ClipViewModel.OutputTargetSize : null,
+            //    ClipViewModel.VideoCodec, ClipViewModel.AudioCodec,
+            //    ClipViewModel.ShouldCrop, ClipViewModel.CropX, ClipViewModel.CropY, ClipViewModel.CropWidth, ClipViewModel.CropHeight,
+            //    ClipViewModel.OutputFormat, DateTime.Now.Ticks));
         }
         #endregion
     }

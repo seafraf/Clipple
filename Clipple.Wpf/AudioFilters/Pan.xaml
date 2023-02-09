@@ -1,0 +1,46 @@
+﻿<UserControl x:Class="Clipple.AudioFilters.Pan"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Clipple.AudioFilters"
+             mc:Ignorable="d" >
+    <Grid Margin="4">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="auto" />
+        </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+
+        <ComboBox Grid.Row="0" Grid.ColumnSpan="2" materialDesign:HintAssist.Hint="Preset" Margin="0 0 0 4"
+                  Style="{StaticResource MaterialDesignFilledComboBox}"
+                  ItemsSource="{Binding PresetOptions}"
+                  SelectedItem="{Binding Path=Preset, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                  SelectedIndex="{Binding Path=PresetIndex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+            <ComboBox.GroupStyle>
+                <GroupStyle>
+                    <GroupStyle.HeaderTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Name}"/>
+                        </DataTemplate>
+                    </GroupStyle.HeaderTemplate>
+                </GroupStyle>
+            </ComboBox.GroupStyle>
+        </ComboBox>
+
+        <TextBox Grid.Row="1" Grid.Column="0" Margin="0 0 2 0" materialDesign:HintAssist.Hint="Channel mapping" 
+                 Style="{StaticResource MaterialDesignFilledTextBox}" 
+                 Text="{Binding ChannelMapping, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
+
+        <ComboBox Grid.Row="1" Grid.Column="1" Margin="2 0 0 0 " materialDesign:HintAssist.Hint="Channel layout" 
+                  Style="{StaticResource MaterialDesignFilledComboBox}"
+                  SelectedItem="{Binding ChannelLayout}"
+                  ItemsSource="{Binding ChannelLayoutOptions}">
+        </ComboBox>
+    </Grid>
+</UserControl>

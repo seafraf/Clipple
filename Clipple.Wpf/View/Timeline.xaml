@@ -6,17 +6,14 @@
              xmlns:local="clr-namespace:Clipple.View"
              xmlns:viewmodel="clr-namespace:Clipple.ViewModel" 
              xmlns:view="clr-namespace:Clipple.View"
-             xmlns:converters="clr-namespace:Clipple.Converters"
+             xmlns:System="clr-namespace:System;assembly=mscorlib"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:ffmpeg="clr-namespace:Clipple.FFMPEG"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800"
-             d:DataContext="{d:DesignInstance Type=viewmodel:VideoPlayerViewModel}">
+             d:DataContext="{d:DesignInstance Type=viewmodel:MediaEditor}">
     <UserControl.Resources>
-        <converters:ValueConverterGroup x:Key="InverseComparisonConverterVisbility" >
-            <converters:ComparisonConverter />
-            <converters:InverseBooleanConverter />
-            <BooleanToVisibilityConverter />
-        </converters:ValueConverterGroup>
+        <System:Double x:Key="MarkerSize">32</System:Double>
     </UserControl.Resources>
     <Grid x:Name="Root" SizeChanged="OnSizeChanged">
         <Grid.RowDefinitions>
@@ -24,72 +21,89 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <ScrollViewer x:Name="ScrollViewer" Grid.Row="1" MinHeight="64" HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Hidden" HorizontalAlignment="Stretch">
-            <Grid Margin="0 0 0 12">
-                <Grid x:Name="RootScrollable" Opacity="1">
+        <ScrollViewer x:Name="ScrollViewer" Grid.Row="1" MinHeight="64" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Hidden" HorizontalAlignment="Stretch">
+            <Grid >
+                <Grid x:Name="RootScrollable" Opacity="1" Margin="20 0 20 20">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="20" />
+                        <RowDefinition Height="{Binding Source={StaticResource MarkerSize}}" />
                         <RowDefinition Height="auto" />
                     </Grid.RowDefinitions>
 
-                    <!-- Playhead helper -->
+                    <!-- Timestamp markers -->
                     <Grid Grid.Row="0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="1*" x:Name="PlayheadButtonColumnSpacerStart" />
                             <ColumnDefinition Width="1"/>
                             <ColumnDefinition Width="0*" x:Name="PlayheadButtonColumnSpacerEnd" />
                         </Grid.ColumnDefinitions>
-                        <view:TimelineMarker Duration="{Binding Path=VideoDuration}" Grid.Column="0" Grid.ColumnSpan="3" />
-                        <Path Grid.Column="1" x:Name="PlayheadButton" Fill="White" StrokeThickness="0" Data="M 7 13 L 7 23 L 6 23 L 6 13 L 0 9 L 0 0 L 13 0 L 13 9 Z" Margin="-6 0 -7 0" RenderOptions.EdgeMode="Aliased" Cursor="ScrollWE" MouseDown="Playhead_MouseDown" MouseUp="Playhead_MouseUp" MouseMove="Playhead_MouseMove" />
+                        <view:TimelineMarker Duration="{Binding Path=Duration}" Grid.Column="0" Grid.ColumnSpan="3" />
                     </Grid>
-
 
                     <!-- Background colour and waveforms -->
                     <Grid Grid.Row="1" x:Name="Background" MinHeight="65" 
                           MinWidth="{Binding Source={x:Static ffmpeg:WaveformEngine.ResolutionX}}" 
                           LayoutTransform="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Path=Transform}">
-                        <ItemsControl ItemsSource="{Binding Path=Video.AudioStreams}">
+                        <ItemsControl ItemsSource="{Binding Path=Media.AudioStreams}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Grid>
-                                        <Image Height="64" Stretch="Fill" RenderOptions.BitmapScalingMode="Fant" 
+                                    <Border BorderThickness="0 1 0 0" BorderBrush="White">
+                                        <Image Height="64" Stretch="Fill" RenderOptions.BitmapScalingMode="Fant"
                                                Source="{Binding Path=Waveform}"
                                                Visibility="{Binding Path=IsEnabled, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                                    </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Grid>
+
+                    <!-- Waveform names -->
+                    <Grid Grid.Row="1" MinHeight="65" Visibility="{Binding Path=ShowAudioStreamNames, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <ItemsControl ItemsSource="{Binding Path=Media.AudioStreams}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border>
+                                        <TextBlock Text="{Binding Path=Name}" Height="64" TextAlignment="Center" Style="{StaticResource MaterialDesignHeadline5TextBlock}" Foreground="{DynamicResource PrimaryHueDarkBrush }" />
+                                    </Border>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                     </Grid>
 
                     <!-- Clip bounds -->
-                    <Grid Grid.Row="1" Visibility="{Binding Path=Video.SelectedClip, Converter={StaticResource InverseComparisonConverterVisbility}, ConverterParameter={x:Null}}">
+                    <Grid Grid.Row="1">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="0.9*" x:Name="ClipColumnSpacerStart" />
-                            <ColumnDefinition Width="60" x:Name="ClipColumnSize"/>
-                            <ColumnDefinition Width="0.1*" x:Name="ClipColumnSpacerEnd" />
+                            <ColumnDefinition Width="1" x:Name="ClipColumnSpacerStart" />
+                            <ColumnDefinition Width="*" x:Name="ClipColumnSize"/>
+                            <ColumnDefinition Width="1" x:Name="ClipColumnSpacerEnd" />
                         </Grid.ColumnDefinitions>
 
-                        <Grid Grid.Column="0" Background="Transparent" Opacity="0.35"   />
-                        <Grid Grid.Column="2" Background="Transparent" Opacity="0.35"   />
-                        <Grid Grid.Column="1" x:Name="ClipSegment" Background="White" Opacity="0.3" Cursor="Hand" MouseDown="Clip_MouseDown" MouseUp="Clip_MouseUp" MouseMove="Clip_MouseMove">
+                        <Grid Grid.Column="1" x:Name="ClipSegment" Background="White" Opacity="0.3" Cursor="Hand" MouseDown="Clip_MouseDown" MouseUp="Clip_MouseUp" MouseMove="Clip_MouseMove" />
 
-                            <Grid Background="Transparent" Cursor="SizeWE" Width="6" Margin="-6 0 0 0" HorizontalAlignment="Left" MouseDown="ClipStart_MouseDown" MouseUp="ClipStart_MouseUp" MouseMove="ClipStart_MouseMove" />
-                            <Grid Background="Transparent" Cursor="SizeWE" Width="6" Margin="0 0 -6 0" HorizontalAlignment="Right" MouseDown="ClipEnd_MouseDown" MouseUp="ClipEnd_MouseUp" MouseMove="ClipEnd_MouseMove" />
-                        </Grid>
+                        <view:TimelineThumb x:Name="ClipThumbLeft" Width="1" Grid.Column="0" HorizontalAlignment="Right" ButtonAlignment="Top"
+                                            TimelineMarkerSize="{StaticResource MarkerSize}"
+                                            PreviewMouseDown="ClipStart_MouseDown" 
+                                            PreviewMouseUp="ClipStart_MouseUp" 
+                                            PreviewMouseMove="ClipStart_MouseMove" />
 
+                        <view:TimelineThumb x:Name="ClipThumbRight" Width="1" Grid.Column="2" HorizontalAlignment="Left" ButtonAlignment="Bottom"
+                                            TimelineMarkerSize="{StaticResource MarkerSize}"
+                                            PreviewMouseDown="ClipEnd_MouseDown" 
+                                            PreviewMouseUp="ClipEnd_MouseUp" 
+                                            PreviewMouseMove="ClipEnd_MouseMove" />
                     </Grid>
 
                     <!-- Playhead -->
                     <Grid Grid.Row="1">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="1*" x:Name="PlayheadColumnSpacerStart" />
-                            <ColumnDefinition Width="1"/>
+                            <ColumnDefinition Width="1" />
                             <ColumnDefinition Width="0*" x:Name="PlayheadColumnSpacerEnd" />
                         </Grid.ColumnDefinitions>
-                        <!--<Grid Grid.Column="0" Background="Red" />-->
-                        <Grid Grid.Column="1" x:Name="Playhead" Background="Transparent">
-                            <Grid />
-                        </Grid>
+                        <view:TimelineThumb x:Name="PlayheadThumb" Grid.Column="1" ButtonAlignment="Center"
+                                            TimelineMarkerSize="{StaticResource MarkerSize}"
+                                            PreviewMouseDown="Playhead_MouseDown" 
+                                            PreviewMouseUp="Playhead_MouseUp" 
+                                            PreviewMouseMove="Playhead_MouseMove" />
                     </Grid>
                 </Grid>
             </Grid>
