@@ -73,7 +73,7 @@ namespace Clipple.FFMPEG
         public async Task<int> Run()
         {
             var argumentStr = $"-y -i \"{InputPath}\" -filter_complex \"[0:a:{StreamIndex}]aformat=channel_layouts=mono,compand,showwavespic=s={ResolutionX}x{ResolutionY}:" +
-                $"colors=#{Color.R:X2}{Color.G:X2}{Color.B:X2}{Color.A:X2}\" -frames:v 1 {OutputPath}";
+                $"colors=#{Color.R:X2}{Color.G:X2}{Color.B:X2}{Color.A:X2}\" -frames:v 1 \"{OutputPath}\"";
             Output.AppendLine($"ffmpeg.exe {argumentStr}");
 
             var process = new Process()
