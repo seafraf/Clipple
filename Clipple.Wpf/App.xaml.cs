@@ -13,6 +13,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using System.Timers;
 using System.Windows;
+using LiteDB;
 
 namespace Clipple
 {
@@ -47,7 +48,8 @@ namespace Clipple
         {
             DispatcherUnhandledException += OnDispatcherUnhandledException;
 
-            ffmpeg.RootPath = LibPath;
+            ffmpeg.RootPath                     = LibPath;
+            BsonMapper.Global.EmptyStringToNull = false;
         }
 
         /// <summary>
