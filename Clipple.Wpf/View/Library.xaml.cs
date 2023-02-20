@@ -73,5 +73,13 @@ namespace Clipple.View
             if (vm.SelectedMedia?.FileInfo.Exists == true)
                 vm.OpenInEditorCommand.Execute(null);
         }
+
+        private void OnKeyDown(object sender, KeyEventArgs e)
+        {
+            if (DataContext is not ViewModel.Library vm || e.Key != Key.Delete)
+                return;
+            
+            ViewModel.Library.OpenDeleteDialogCommand.Execute(((ListView)sender).SelectedItems);
+        }
     }
 }

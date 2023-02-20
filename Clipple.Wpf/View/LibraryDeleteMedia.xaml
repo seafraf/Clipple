@@ -26,25 +26,31 @@
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
-
-            <CheckBox Content="Keep files on disk" IsChecked="{Binding KeepFiles}" Margin="0 16 0 0"  />
-            <StackPanel Orientation="Vertical" Margin="0 16 0 0" Visibility="{Binding KeepFiles, Converter={StaticResource InverseBoolToVisConverter}}">
+            
+            <StackPanel Orientation="Vertical" Margin="0 16 0 0" Visibility="{Binding DeleteFiles, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <materialDesign:PackIcon Kind="Warning" Width="24" Height="24" HorizontalAlignment="Center" />
                 <TextBlock Text="This action will permanently delete the selected files from the file system" Margin="4" Style="{StaticResource MaterialDesignBody1TextBlock}"/>
             </StackPanel>
         </StackPanel>
         
-        <Grid Grid.Row="1" Margin="8">
+        <Grid Grid.Row="1" Margin="8 0 8 8">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="auto" />
                 <ColumnDefinition Width="auto" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="auto" />
+                <ColumnDefinition Width="auto" />
             </Grid.ColumnDefinitions>
 
-            <Button Content="Delete" Grid.Column="0" Command="{Binding DeleteCommand}" Style="{StaticResource MaterialDesignFlatLightButton}" />
-            <Button Content="Cancel" Grid.Column="3" Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}" Style="{StaticResource MaterialDesignRaisedDarkButton}" />
+            <CheckBox Content="Delete files from disk" materialDesign:CheckBoxAssist.CheckBoxSize="20" Margin="8 0 0 0"
+                      IsChecked="{Binding DeleteFiles}"/>
+            
+            <Button Content="Cancel" Grid.Column="2" 
+                    Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}" 
+                    Style="{StaticResource MaterialDesignFlatLightButton}" />
+            
+            <Button Content="Delete" Grid.Column="3"
+                    Command="{Binding DeleteCommand}" 
+                    Style="{StaticResource MaterialDesignFlatButton}" Foreground="Red"  />
         </Grid>
-        
     </Grid>
 </UserControl>
