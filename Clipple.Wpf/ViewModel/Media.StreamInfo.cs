@@ -55,17 +55,16 @@ public partial class Media
             if (!HasVideo && !HasAudio)
                 throw new FormatException("Media doesn't contain audio or video");
 
-            string[]? formatNames = Marshal.PtrToStringAnsi((nint)formatContext->iformat->name)?.Split(",");
+            var formatNames = Marshal.PtrToStringAnsi((nint)formatContext->iformat->name)?.Split(",");
             if (formatNames == null || !formatNames.Any(x => App.ViewModel.ContainerFormatCollection.SupportedFormatNames.Contains(x)))
                 throw new NotSupportedException($"{fileInfo.FullName} is not in a supported format");
+            
+            Duration = TimeSpan.FromSeconds((double)formatContext->duration / ffmpeg.AV_TIME_BASE);
 
             var audioStreams = new List<AudioStreamSettings>();
             for (var i = 0; i < formatContext->nb_streams; i++)
             {
                 var stream = formatContext->streams[i];
-
-                // Duration should come from the longest stream
-                Duration = TimeSpan.FromSeconds(Math.Max(stream->duration * ffmpeg.av_q2d(stream->time_base), Duration.TotalSeconds));
 
                 if (i == bestVideoStreamIndex)
                 {
@@ -158,12 +157,11 @@ public partial class Media
     }
 
     /// <summary>
-    ///     True if all fields populated by GetStreamInfo have been populated.
-    ///     This can be false between Clipple versions that used older video view models, this will also always be
-    ///     true when a video is imported for the first time
+    /// This property is used to control whether or not GetMediaInfo has been called for this media yet.
+    /// Easiest way to check is by checking the duration, other properties filled by GetMediaInfo are optional
     /// </summary>
     [BsonIgnore]
-    public bool HasMediaInfo => VideoWidth != -1 && VideoHeight != -1 && VideoFps != -1 && Duration != TimeSpan.Zero && AudioStreams != null;
+    private bool HasMediaInfo => Duration != TimeSpan.Zero;
 
-    #endregion
+#endregion
 }

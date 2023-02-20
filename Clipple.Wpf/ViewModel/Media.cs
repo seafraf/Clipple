@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -22,8 +23,10 @@ public partial class Media : ObservableObject
     [BsonCtor]
     public Media(string filePath)
     {
-        fileInfo = new FileInfo(filePath);
+        fileInfo = new(filePath);
         FilePath = filePath;
+
+        Clips = new();
     }
 
     /// <summary>
@@ -35,7 +38,7 @@ public partial class Media : ObservableObject
             GetMediaInfo();
 
         // Initialise/construct clip
-        Clip ??= new Clip(this);
+        Clip ??= new(this);
         Clip.Initialise();
 
         // Initialise filters
@@ -72,7 +75,8 @@ public partial class Media : ObservableObject
         if (dirInfo.Exists)
             dirInfo.Delete(true);
     }
-    #region Methods
+
+#region Methods
 
     private void CopyAudioStreamFilters(int audioStreamIndex, bool toMedia)
     {
@@ -87,7 +91,7 @@ public partial class Media : ObservableObject
 
         for (int i = 0; i < source.AudioFilters.Count; i++)
         {
-            var sourceFilter = source.AudioFilters[i];
+            var sourceFilter      = source.AudioFilters[i];
             var destinationFilter = destination.AudioFilters[i];
 
             sourceFilter?.CopyFrom(destinationFilter);
@@ -111,18 +115,20 @@ public partial class Media : ObservableObject
     {
         CopyAudioStreamFilters(audioStreamIndex, true);
     }
-    #endregion
+#endregion
 
-    #region Members
+#region Members
 
-    private FileInfo    fileInfo;
-    private Clip?       clip;
-    private string?     description;
-    private int         classIndex  = 1; // raw by default
-    private MediaClass? @class;
-    #endregion
+    private FileInfo                       fileInfo;
+    private Clip?                          clip;
+    private string?                        description;
+    private int                            classIndex = 1; // raw by default
+    private MediaClass?                    @class;
+    private ObjectId?                      parentId;
 
-    #region Properties
+#endregion
+
+#region Properties
 
     /// <summary>
     ///     A reference to the media's file info. This can be used to determine the path, file size, etc
@@ -196,23 +202,37 @@ public partial class Media : ObservableObject
     ///     ID for this media, used in the database.  This is a unique ID.
     /// </summary>
     [BsonId]
-    public ObjectId ID { get; set; } = ObjectId.NewObjectId();
+    public ObjectId Id { get; set; } = ObjectId.NewObjectId();
+
+    /// <summary>
+    /// The ID of the media that produced this media.  This is not set for media that is imported.
+    /// </summary>
+    public ObjectId? ParentId
+    {
+        get => parentId;
+        set => SetProperty(ref parentId, value);
+    }
+
+    /// <summary>
+    /// Clips that this media has produced.
+    /// </summary>
+    public ObservableCollection<ObjectId> Clips { get; private set; }
 
     /// <summary>
     ///     Path used for caching data related to this media
     /// </summary>
     [BsonIgnore]
     private string CachePath => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "Clipple", "cache", ID.ToString());
+        "Clipple", "cache", Id.ToString());
 
     #endregion
 
 
     #region Commands
     [BsonIgnore]
-    public ICommand StartExportCommand => new RelayCommand(async () =>
+    public ICommand StartExportCommand => new RelayCommand(() =>
     {
-        await DialogHost.Show(new View.ExportingClip()
+        DialogHost.Show(new View.ExportingClip()
         {
             DataContext = new ExportingClip(this)
         }, "ExportClip");

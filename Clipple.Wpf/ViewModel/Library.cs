@@ -20,6 +20,8 @@ using FFmpeg.AutoGen;
 using static Clipple.ViewModel.LibraryEditTagsTask;
 using MaterialDesignColors.Recommended;
 using System.Data;
+using System.Windows.Documents;
+using System.Windows.Threading;
 
 namespace Clipple.ViewModel
 {
@@ -35,8 +37,8 @@ namespace Clipple.ViewModel
             var collection = Database.GetCollection<Media>();
             collection.EnsureIndex(x => x.FilePath, true);
 
-            MediaSource = new ObservableCollection<Media>();
-            Media = new ListCollectionView(MediaSource)
+            MediaSource = new();
+            Media = new(MediaSource)
                     {
                         Filter = MediaFilter
                     };
@@ -77,7 +79,42 @@ namespace Clipple.ViewModel
         public Media? SelectedMedia
         {
             get => selectedMedia;
-            set => SetProperty(ref selectedMedia, value);
+            set
+            {
+                SetProperty(ref selectedMedia, value);
+                OnPropertyChanged(nameof(SelectedMediaParentPath));
+                OnPropertyChanged(nameof(SelectedMediaClipPaths));
+            }
+        }
+
+        /// <summary>
+        /// The selected media's parent media's path.  This a helper property mapping the selected media's
+        /// parent ID to path, which is displayed under the "Parent path" field for the selected media.
+        /// </summary>
+        public string? SelectedMediaParentPath =>
+            SelectedMedia is not { ParentId: { } id }
+                ? null
+                : Database.GetCollection<Media>().Query()
+                          .Where(x => x.Id == id)
+                          .Select(x => x.FilePath)
+                          .FirstOrDefault();
+
+        /// <summary>
+        /// The selected media's clips as a list of their paths.  This is a helper property mapping the selected media's
+        /// list of produced clips to the path of those clips
+        /// </summary>
+        public List<string> SelectedMediaClipPaths
+        {
+            get
+            {
+                if (SelectedMedia is not { } media)
+                    return new();
+
+                return Database.GetCollection<Media>().Query()
+                               .Where(x => media.Clips.Contains(x.Id))
+                               .Select(x => x.FilePath)
+                               .ToList();
+            }
         }
 
         /// <summary>
@@ -211,7 +248,7 @@ namespace Clipple.ViewModel
                 catch (Exception e)
                 {
                     // Media that fails to load should be removed from the library
-                    Database.GetCollection<Media>().Delete(media.ID);
+                    Database.GetCollection<Media>().Delete(media.Id);
 
                     errors.Add(e);
                 }
@@ -239,6 +276,10 @@ namespace Clipple.ViewModel
             if (mediaObj is not Media media)
                 return;
             
+            // Possible change to the list of clips that the selected media has 
+            if (media == SelectedMedia)
+                OnPropertyChanged(nameof(SelectedMediaClipPaths));
+
             dirtyMedia.Remove(media);
             Database.GetCollection<Media>().Update(media);
         }
@@ -251,8 +292,6 @@ namespace Clipple.ViewModel
         /// - Remove the media from the database
         /// - Remove the media from any collection in the library that might have it
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private void OnMediaRequestDelete(object? mediaObj, bool deleteFile)
         {
             if (mediaObj is not Media media) 
@@ -269,22 +308,38 @@ namespace Clipple.ViewModel
                 File.Delete(media.FilePath);
 
             // Remove from the database
-            Database.GetCollection<Media>().Delete(media.ID);
+            Database.GetCollection<Media>().Delete(media.Id);
 
             // Remove from every collection that might have it so that it gets GC'd
             Media.Remove(media);
             Media.CommitEdit();
             dirtyMedia.Remove(media);
+
+            if (SelectedMedia is not { } selected) 
+                return;
+
+            // If the selected media's parent was deleted, the property needs to update 
+            if (selected.ParentId == media.Id)
+                OnPropertyChanged(nameof(SelectedMediaParentPath));
+            
+            // And if the media was one of the selected media's produced clips, that list needs to update too
+            if (selected.Clips.Contains(media.Id))
+                OnPropertyChanged(nameof(SelectedMediaClipPaths));
         }
 
         /// <summary>
         /// Add a media file to the library.
         /// </summary>
         /// <param name="file">The file path</param>
-        private async Task AddMediaInternal(string file)
+        /// <param name="parentId">The ID of the media that this media was created from. Pass null if this was not
+        /// created by media in the library</param>
+        private async Task<Media> AddMediaInternal(string file, ObjectId? parentId)
         {
             // Create and initialise
-            var media = new Media(file);
+            var media = new Media(file)
+            {
+                ParentId = parentId
+            };
             media.Initialise();
 
             // Add listeners
@@ -292,14 +347,19 @@ namespace Clipple.ViewModel
             media.MediaDirty            += OnMediaDirty;
             media.MediaRequestDelete    += OnMediaRequestDelete;
             await media.BuildOrCacheResources();
-
-            // Add to UI
+            
             Media.AddNewItem(media);
             Media.CommitNew();
 
             // Add to database
             var collection = Database.GetCollection<Media>();
             collection.Insert(media);
+            
+            // Is the parent the selected media?  Update their clips if so
+            if (SelectedMedia != null && SelectedMedia.Id == parentId)
+                OnPropertyChanged(nameof(SelectedMediaClipPaths));
+
+            return media;
         }
 
 
@@ -307,23 +367,28 @@ namespace Clipple.ViewModel
         /// Adds a single media file to the library
         /// </summary>
         /// <param name="file">The file to add</param>
+        /// <param name="parentId">The ID of the media that this media was created from. Pass null if this was not
+        /// created by media in the library</param>
         /// <returns>Task</returns>
-        public async Task AddMedia(string file)
+        public async Task<Media?> AddMedia(string file, ObjectId? parentId = null)
         {
             if (Database.GetCollection<Media>().Exists(x => x.FilePath.Equals(file, StringComparison.OrdinalIgnoreCase)))
             {
-                App.Notifications.NotifyWarning($"{file} is already imported");
-                return;
+                App.Notifications.NotifyWarning($"{file} is already in the library");
+                return null;
             }
 
             try
             {
-                await AddMediaInternal(file);
-                App.Notifications.NotifyInfo($"Added {file}!");
+                var media = await AddMediaInternal(file, parentId);
+                App.Notifications.NotifyInfo($"Added \"{file}\" to the library!");
+
+                return media;
             }
             catch (Exception e)
             {
                 App.Notifications.NotifyException($"Failed to add {file}", e);
+                return null;
             }
         }
 
@@ -331,6 +396,7 @@ namespace Clipple.ViewModel
         /// Adds a group of media, e.g from a folder
         /// </summary>
         /// <param name="files">The files to add</param>
+        /// <param name="source">A name describing the source of the files</param>
         /// <returns>Where the files came from</returns>
         public async Task AddMedias(string[] files, string source)
         {
@@ -349,7 +415,7 @@ namespace Clipple.ViewModel
                     if (Database.GetCollection<Media>().Exists(x => x.FilePath.Equals(file, StringComparison.OrdinalIgnoreCase)))
                         throw new DuplicateNameException($"{file} already exists");
 
-                    await AddMediaInternal(file);
+                    await AddMediaInternal(file, null);
                 }
                 catch (Exception e)
                 {
@@ -443,18 +509,6 @@ namespace Clipple.ViewModel
             App.ViewModel.IsEditorSelected  = true;
         });
 
-        public ICommand OpenInExplorerCommand => new RelayCommand(() =>
-        {
-            if (SelectedMedia == null || SelectedMedia.Uri == null)
-                return;
-
-            Process.Start(new ProcessStartInfo("explorer.exe")
-                          {
-                              UseShellExecute = true,
-                              Arguments       = $"/select,\"{SelectedMedia.Uri.AbsoluteUri}\""
-                          });
-        });
-        
         public static ICommand OpenDeleteDialogCommand { get; } = new RelayCommand<IList>(list =>
         {
             if (list == null)
@@ -487,9 +541,30 @@ namespace Clipple.ViewModel
                 x.ClassIndex = MediaClass.MediaClasses.IndexOf(task.Class);
             });
         });
+        
+        public ICommand SelectByPathCommand => new RelayCommand<string>(path =>
+        {
+            foreach (var media in MediaSource)
+            {
+                if (media.FilePath == path)
+                {
+                    SelectedMedia = media;
+                    return;
+                }
+            }
+        });
+
+        public ICommand OpenInExplorerCommand => new RelayCommand<string>((path) =>
+        {
+            Process.Start(new ProcessStartInfo("explorer.exe")
+            {
+                UseShellExecute = true,
+                Arguments       = $"/select,\"{path}\""
+            });
+        });
         #endregion
 
-        #region Filter tag commands
+#region Filter tag commands
         public ICommand AddFilterTagCommand => new RelayCommand(() =>
         {
             var name = App.ViewModel.TagSuggestionRegistry.ActiveTagNames.LastOrDefault();
@@ -510,7 +585,7 @@ namespace Clipple.ViewModel
         });
 
         public ICommand ClearFilterTagsCommand => new RelayCommand(FilterTags.Clear);
-        #endregion
+#endregion
 
         #region Filter class commands
         public ICommand AddFilterClassCommand => new RelayCommand(() =>
@@ -564,6 +639,6 @@ namespace Clipple.ViewModel
             FilterClasses.Clear();
             FilterFormats.Clear();
         });
-        #endregion
+#endregion
     }
 }

@@ -14,13 +14,21 @@
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
-
+        
         <StackPanel Grid.Row="0">
-            <StackPanel Orientation="Horizontal">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto" />
+                    <ColumnDefinition Width="auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="auto" />
+                </Grid.ColumnDefinitions>
+                
                 <materialDesign:PackIcon Kind="Tick" Width="48" Height="48" Margin="0 0 16 0" 
-                                         Foreground="{DynamicResource PrimaryHueLightBrush}" 
-                                         Visibility="{Binding Status, Converter={StaticResource ComparisonConverter}, ConverterParameter={x:Static types:ClipExportingStatus.Finished}}"/>
-                <TextBlock VerticalAlignment="Center">
+                         Foreground="{DynamicResource PrimaryHueLightBrush}" 
+                         Visibility="{Binding Status, Converter={StaticResource ComparisonConverter}, ConverterParameter={x:Static types:ClipExportingStatus.Finished}}"/>
+                
+                <TextBlock Grid.Column="1" VerticalAlignment="Center">
                     <TextBlock.Style>
                         <Style TargetType="TextBlock" BasedOn="{StaticResource MaterialDesignHeadline5TextBlock}">
                             <Setter Property="TextBlock.Text" Value="Exporting clip" />
@@ -38,7 +46,12 @@
                         </Style>
                     </TextBlock.Style>
                 </TextBlock>
-            </StackPanel>
+                
+                <Button Grid.Column="3" Width="48" Height="48" HorizontalAlignment="Right"
+                        Style="{StaticResource MaterialDesignIconButton}"
+                        Command="{Binding CloseCommand}"
+                        Content="{materialDesign:PackIcon Kind=Close, Size=32}" />
+            </Grid>
 
             <TextBlock Margin="0 0 0 16">
                 <TextBlock.Style>
@@ -106,7 +119,7 @@
 
             <Button Content="Close" Margin="0 8 8 0" Grid.Column="1"
                     Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}" 
-                    Style="{StaticResource MaterialDesignRaisedDarkButton}"/>
+                    Style="{StaticResource MaterialDesignFlatButton}"/>
         </Grid>
 
         <!-- Processing -->
@@ -131,30 +144,31 @@
             </Grid.Style>
 
             <Button Content="Cancel" Margin="0 8 8 0" Grid.Column="1"
-                    Command="{Binding CancelCommand}" 
-                    Style="{StaticResource MaterialDesignRaisedDarkButton}"/>
+                    Command="{Binding CloseCommand}" 
+                    Style="{StaticResource MaterialDesignFlatButton}"/>
         </Grid>
 
         <!-- Finished, success -->
         <Grid Grid.Row="1" Visibility="{Binding Status, Converter={StaticResource ComparisonVisibilityConverter}, ConverterParameter={x:Static types:ClipExportingStatus.Finished}}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="auto" />
-                <ColumnDefinition Width="auto" />
                 <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="auto" />
+                <ColumnDefinition Width="auto" />
                 <ColumnDefinition Width="auto" />
             </Grid.ColumnDefinitions>
 
-            <Button Content="Add to library" Margin="0 8 8 0" Grid.Column="0"
-                    Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}" 
-                    Style="{StaticResource MaterialDesignRaisedDarkButton}"/>
-
-            <Button Content="Open in explorer" Margin="0 8 8 0" Grid.Column="1"
-                    Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}" 
-                    Style="{StaticResource MaterialDesignRaisedDarkButton}"/>
-
-            <Button Content="Close" Margin="0 8 8 0" Grid.Column="3"
-                    Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}" 
-                    Style="{StaticResource MaterialDesignRaisedDarkButton}"/>
+            <materialDesign:PopupBox Grid.Column="0" Margin="16" >
+                <TextBlock Text="Coming soon" />
+            </materialDesign:PopupBox>
+            
+            <Button Content="Open in explorer" Margin="0 8 8 0" Grid.Column="3"
+                    Command="{Binding OpenInExplorer}" 
+                    Style="{StaticResource MaterialDesignFlatButton}"/>
+            
+            <Button Content="Open in library" Margin="0 8 8 0" Grid.Column="4"
+                    Command="{Binding OpenInLibrary}" 
+                    Style="{StaticResource MaterialDesignFlatButton}"/>
         </Grid>
     </Grid>
 </UserControl>

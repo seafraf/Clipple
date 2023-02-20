@@ -39,16 +39,16 @@ public class LibraryDeleteTask : ObservableObject
     }
 
     #region Members
-    private bool keepFiles = true;
+    private bool deleteFiles;
     #endregion
 
     #region Properties
     public ObservableCollection<SelectableMedia> SelectedMedia { get; } = new();
 
-    public bool KeepFiles
+    public bool DeleteFiles
     {
-        get => keepFiles;
-        set => SetProperty(ref keepFiles, value);
+        get => deleteFiles;
+        set => SetProperty(ref deleteFiles, value);
     }
     #endregion
 
@@ -56,7 +56,7 @@ public class LibraryDeleteTask : ObservableObject
     public ICommand DeleteCommand => new RelayCommand(() =>
     {
         foreach (var wrapper in SelectedMedia)
-            wrapper.Media.RequestDelete(!KeepFiles);
+            wrapper.Media.RequestDelete(DeleteFiles);
 
         DialogHost.Close(null);
     }); 

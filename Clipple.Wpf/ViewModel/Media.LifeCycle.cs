@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -55,6 +56,7 @@ public partial class Media
         PropertyChanged += OnMediaPropertyChanged;
         Clip.PropertyChanged += OnClipPropertyChanged;
         Tags.CollectionChanged += OnTagsChanged;
+        Clips.CollectionChanged += OnClipsChanged;
         
         foreach (var stream in AudioStreams)
             stream.PropertyChanged += OnAudioStreamPropertyChanged;
@@ -118,6 +120,8 @@ public partial class Media
 
         RequestUpdate();
     }
-    #endregion
+
+    private void OnClipsChanged(object? sender, NotifyCollectionChangedEventArgs e) => RequestUpdate();
+#endregion
 }
 
