@@ -4,53 +4,11 @@ namespace Clipple.ViewModel;
 
 public partial class Clip
 {
-    #region Members
+#region Members
+    private int presetIndex = -1;
+#endregion
 
-    private ClipPresetViewModel? preset;
-    private int                  presetIndex = -1;
-
-    #endregion
-
-    #region Properties
-
-    /// <summary>
-    ///     Current transcoding preset
-    /// </summary>
-    [BsonIgnore]
-    public ClipPresetViewModel? Preset
-    {
-        get => preset;
-        set
-        {
-            if (value != null)
-            {
-                VideoBitrate     = value.VideoBitrate ?? videoBitrate;
-                TargetWidth      = value.TargetWidth ?? targetWidth;
-                TargetHeight     = value.TargetHeight ?? targetHeight;
-                TargetFps        = value.FPS ?? targetFps;
-                //VideoCodec       = value.VideoCodec ?? videoCodec;
-                //AudioCodec       = value.AudioCodec ?? audioCodec;
-                AudioBitrate     = value.AudioBitrate ?? audioBitrate;
-                UseTargetSize    = value.UseTargetSize;
-                OutputTargetSize = value.TargetSize ?? outputTargetSize;
-                ShouldCrop       = value.ShouldCrop;
-                CropX            = value.CropX ?? cropX;
-                CropY            = value.CropY ?? cropY;
-                CropWidth        = value.CropWidth ?? cropWidth;
-                CropHeight       = value.CropHeight ?? cropHeight;
-
-                if (value.OutputFormat != null)
-                {
-                    ContainerFormat      = value.OutputFormat;
-                    //OutputFormatIndex = MediaFormat.SupportedFormats.IndexOf(value.OutputFormat);
-                }
-            }
-
-            SetProperty(ref preset, value);
-            OnPropertyChanged();
-        }
-    }
-
+#region Properties
     /// <summary>
     ///     Index of transcoding preset, for serialization
     /// </summary>
@@ -59,6 +17,44 @@ public partial class Clip
         get => presetIndex;
         set => SetProperty(ref presetIndex, value);
     }
+#endregion
+    
+    #region Methods
+    public void ApplyPreset(Media media, ClipPreset preset, bool setIndex = false)
+    {
+        VideoBitrate     = preset.VideoBitrate ?? DefaultVideoBitrate;
+        AudioBitrate     = preset.AudioBitrate ?? DefaultAudioBitrate;
+        OutputTargetSize = preset.TargetSize ?? DefaultOutputTargetSize;
+        
+        TargetWidth          = preset.TargetWidth ?? media.VideoWidth ?? -1;
+        TargetHeight         = preset.TargetHeight ?? media.VideoHeight ?? -1;
+        if (preset.TargetWidth != null || preset.TargetHeight != null)
+            UseSourceResolution = false;
+        
+        TargetFps            = preset.Fps ?? media.VideoFps ?? -1;
+        if (preset.Fps != null)
+            UseSourceFps = false;
+        
+        CropWidth            = preset.CropWidth ?? media.VideoWidth ?? -1;
+        CropHeight           = preset.CropHeight ?? media.VideoHeight ?? -1;
+        
+        ContainerFormatIndex = preset.ContainerFormatIndex;
+        VideoCodecIndex      = preset.VideoCodecIndex ?? -1;
+        AudioCodecIndex      = preset.AudioCodecIndex ?? -1;
+        
+        UseTargetSize = preset.UseTargetSize ?? default;
+        ShouldCrop    = preset.ShouldCrop ?? default;
+        CropX         = preset.CropX ?? default;
+        CropY         = preset.CropY ?? default;
 
-    #endregion
+        if (preset.Extension is { } ext)
+        {
+            ExtensionIndex = ContainerFormat.Extensions.IndexOf(ext);
+            Extension      = ExtensionIndex == -1 ? ContainerFormat.Extension : ext;
+        }
+
+        if (setIndex)
+            PresetIndex = App.ViewModel.ClipPresetCollection.Presets.IndexOf(preset);
+    }
+#endregion
 }

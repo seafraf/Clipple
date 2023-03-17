@@ -103,14 +103,16 @@ public class MediaEditor : ObservableObject
         get => media;
         set
         {
+            if (value != null)
+                App.ViewModel.AppState.EditorMediaId = value.Id;
+            
             // Unload old video
             if (media != null)
             {
                 SetStreamEvents(false);
                 Unload();
             }
-
-
+            
             SetProperty(ref media, value);
 
             OnPropertyChanged(nameof(Volume));

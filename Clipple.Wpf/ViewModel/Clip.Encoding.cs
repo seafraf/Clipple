@@ -8,18 +8,22 @@ namespace Clipple.ViewModel;
 
 public partial class Clip
 {
+    #region Constants
+    private const double DefaultOutputTargetSize = 100;
+    #endregion
+    
     #region Members
 
     private AudioVideoCodec? audioCodec;
     private AudioVideoCodec? videoCodec;
-    private int audioCodecIndex = 0;
-    private int videoCodecIndex = 0;
-    private bool   useTargetSize;
-    private double outputTargetSize = 100;
-    private ContainerFormat containerFormat;
-    private int containerFormatIndex = 0;
-    private string extension;
-    private int extensionIndex;
+    private int              audioCodecIndex;
+    private int              videoCodecIndex;
+    private bool             useTargetSize;
+    private double           outputTargetSize = DefaultOutputTargetSize;
+    private ContainerFormat  containerFormat;
+    private int              containerFormatIndex;
+    private string           extension;
+    private int              extensionIndex;
 
     #endregion
 
@@ -28,18 +32,18 @@ public partial class Clip
     {
         var audioIndex = AudioCodecIndex;
         var videoIndex = VideoCodecIndex;
-        var extensionIndex = 0;
+        var extIndex   = ExtensionIndex;
 
         ContainerFormat = App.ViewModel.ContainerFormatCollection.SupportedFormats.ElementAtOrDefault(containerFormatIndex) ??
             App.ViewModel.ContainerFormatCollection.SupportedFormats.First();
 
         AudioCodecIndex = audioIndex;
         VideoCodecIndex = videoIndex;
-        ExtensionIndex = extensionIndex;
+        ExtensionIndex = extIndex;
 
         AudioCodec = ContainerFormat.AudioCodecs.ElementAtOrDefault(audioIndex);
         VideoCodec = ContainerFormat.VideoCodecs.ElementAtOrDefault(videoIndex);
-        Extension = ContainerFormat.Extensions.ElementAtOrDefault(extensionIndex) ?? ContainerFormat.Extension;
+        Extension = ContainerFormat.Extensions.ElementAtOrDefault(extIndex) ?? ContainerFormat.Extension;
     }
     #endregion
 
@@ -54,7 +58,7 @@ public partial class Clip
     }
 
     /// <summary>
-    ///     Currently selected contanier format
+    ///     Currently selected container format
     /// </summary>
     [BsonIgnore]
     public ContainerFormat ContainerFormat
@@ -136,7 +140,11 @@ public partial class Clip
     public string Extension
     {
         get => extension;
-        set => SetProperty(ref extension, value);
+        set
+        {
+            SetProperty(ref extension, value);
+            NotifyOutputChanged();
+        }
     }
 
     /// <summary>

@@ -1,24 +1,9 @@
 ﻿using Clipple.FFMPEG;
-using Clipple.ViewModel;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.ComponentModel.Design;
-using System.Diagnostics;
-using System.Linq;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Animation;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace Clipple.View
 {
@@ -39,55 +24,63 @@ namespace Clipple.View
         {
             InitializeComponent();
         }
-        #region Members
+
+#region Members
         private Point lastDragPoint;
-        #endregion
+#endregion
 
-        #region Dependency Properties
-        public static readonly DependencyProperty TimeProperty = DependencyProperty.Register(
-            "Time",
-            typeof(TimeSpan),
-            typeof(Timeline),
-            new FrameworkPropertyMetadata(defaultValue: TimeSpan.Zero, flags: FrameworkPropertyMetadataOptions.AffectsRender, OnPositionChanged));
+#region Dependency Properties
+        public static readonly DependencyProperty TimeProperty =
+            DependencyProperty.Register(
+                                        "Time",
+                                        typeof(TimeSpan),
+                                        typeof(Timeline),
+                                        new FrameworkPropertyMetadata(defaultValue: TimeSpan.Zero, flags: FrameworkPropertyMetadataOptions.AffectsRender, OnPositionChanged));
 
-        public static readonly DependencyProperty DurationProperty = DependencyProperty.Register(
-            "Duration",
-            typeof(TimeSpan),
-            typeof(Timeline),
-            new FrameworkPropertyMetadata(defaultValue: TimeSpan.Zero, flags: FrameworkPropertyMetadataOptions.AffectsRender, OnPositionChanged));
+        public static readonly DependencyProperty DurationProperty =
+            DependencyProperty.Register(
+                                        "Duration",
+                                        typeof(TimeSpan),
+                                        typeof(Timeline),
+                                        new FrameworkPropertyMetadata(defaultValue: TimeSpan.Zero, flags: FrameworkPropertyMetadataOptions.AffectsRender, OnPositionChanged));
 
-        public static readonly DependencyProperty ClipStartProperty = DependencyProperty.Register(
-            "ClipStart",
-            typeof(TimeSpan?),
-            typeof(Timeline),
-            new FrameworkPropertyMetadata(defaultValue: null, flags: FrameworkPropertyMetadataOptions.AffectsRender, OnPositionChanged));
+        public static readonly DependencyProperty ClipStartProperty =
+            DependencyProperty.Register(
+                                        "ClipStart",
+                                        typeof(TimeSpan?),
+                                        typeof(Timeline),
+                                        new FrameworkPropertyMetadata(defaultValue: null, flags: FrameworkPropertyMetadataOptions.AffectsRender, OnPositionChanged));
 
-        public static readonly DependencyProperty ClipDurationProperty = DependencyProperty.Register(
-            "ClipDuration",
-            typeof(TimeSpan?),
-            typeof(Timeline),
-            new FrameworkPropertyMetadata(defaultValue: null, flags: FrameworkPropertyMetadataOptions.AffectsRender, OnPositionChanged));
+        public static readonly DependencyProperty ClipDurationProperty =
+            DependencyProperty.Register(
+                                        "ClipDuration",
+                                        typeof(TimeSpan?),
+                                        typeof(Timeline),
+                                        new FrameworkPropertyMetadata(defaultValue: null, flags: FrameworkPropertyMetadataOptions.AffectsRender, OnPositionChanged));
 
-        public static readonly DependencyProperty IsDraggingProperty = DependencyProperty.Register(
-            "IsDragging",
-            typeof(bool),
-            typeof(Timeline),
-            new FrameworkPropertyMetadata(defaultValue: false));
+        public static readonly DependencyProperty IsDraggingProperty =
+            DependencyProperty.Register(
+                                        "IsDragging",
+                                        typeof(bool),
+                                        typeof(Timeline),
+                                        new FrameworkPropertyMetadata(defaultValue: false));
 
-        public static readonly DependencyProperty ZoomProperty = DependencyProperty.Register(
-            "Zoom",
-            typeof(double),
-            typeof(Timeline),
-            new FrameworkPropertyMetadata(defaultValue: 1.0, flags: FrameworkPropertyMetadataOptions.AffectsRender, OnZoomChanged));
+        public static readonly DependencyProperty ZoomProperty =
+            DependencyProperty.Register(
+                                        "Zoom",
+                                        typeof(double),
+                                        typeof(Timeline),
+                                        new FrameworkPropertyMetadata(defaultValue: 1.0, flags: FrameworkPropertyMetadataOptions.AffectsRender, OnZoomChanged));
 
-        public static readonly DependencyProperty ShowAudioStreamNamesPropertry = DependencyProperty.Register(
-            "ShowAudioStreamNames",
-            typeof(bool),
-            typeof(Timeline),
-            new FrameworkPropertyMetadata(defaultValue: false, flags: FrameworkPropertyMetadataOptions.AffectsRender));
-        #endregion
+        public static readonly DependencyProperty ShowAudioStreamNamesProperty =
+            DependencyProperty.Register(
+                                        "ShowAudioStreamNames",
+                                        typeof(bool),
+                                        typeof(Timeline),
+                                        new FrameworkPropertyMetadata(defaultValue: false, flags: FrameworkPropertyMetadataOptions.AffectsRender));
+#endregion
 
-        #region Properties
+#region Properties
         public TimeSpan Time
         {
             get => (TimeSpan)GetValue(TimeProperty);
@@ -144,8 +137,8 @@ namespace Clipple.View
 
         public bool ShowAudioStreamNames
         {
-            get => (bool)GetValue(ShowAudioStreamNamesPropertry);
-            set => SetValue(ShowAudioStreamNamesPropertry, value);
+            get => (bool)GetValue(ShowAudioStreamNamesProperty);
+            set => SetValue(ShowAudioStreamNamesProperty, value);
         }
 
         /// <summary>
@@ -154,9 +147,9 @@ namespace Clipple.View
         public double TimelineWidth => ActualWidth - RootScrollable.Margin.Left - RootScrollable.Margin.Right;
 
         public ScaleTransform Transform { get; } = new ScaleTransform();
-        #endregion
+#endregion
 
-        #region Property callbacks
+#region Property callbacks
         private static void OnZoomChanged(DependencyObject timelineObj, DependencyPropertyChangedEventArgs args)
         {
             if (timelineObj is not Timeline timeline)
@@ -172,17 +165,17 @@ namespace Clipple.View
 
             timeline.UpdateMarkers();
         }
-        #endregion
+#endregion
 
         public ViewModel.MediaEditor Context => (ViewModel.MediaEditor)DataContext;
 
-        #region Methods
+#region Methods
         private void SetClipStartClamped(TimeSpan time)
         {
             ClipStart = TimeSpan.FromTicks(Math.Clamp(time.Ticks, 0, Duration.Ticks - ClipDuration.Ticks));
             SetTimeClamped(Time);
         }
-            
+
         private void SetClipDurationClamped(TimeSpan time)
         {
             ClipDuration = TimeSpan.FromTicks(Math.Clamp(time.Ticks, 0, Duration.Ticks - ClipStart.Ticks));
@@ -195,30 +188,31 @@ namespace Clipple.View
         private void UpdateMarkers()
         {
             if (Duration == TimeSpan.Zero)
-                return; 
+                return;
 
             // Playhead
             double playheadProgress = Math.Min(1.0, Math.Max(0.0, Time / Duration));
 
             // Clip start
             double clipStartProgress = Math.Min(1.0, Math.Max(0.0, ClipStart / Duration));
-            double clipDuration = Math.Min(1.0, Math.Max(0.0, ClipDuration / Duration));
+            double clipDuration      = Math.Min(1.0, Math.Max(0.0, ClipDuration / Duration));
 
             // Extra clamping.. why? because the play position given to us by MPV is only millisecond accurate and can
             // lead to the playhead appearing outside of the clip bounds some times, after being automatically paused
             playheadProgress = Math.Clamp(playheadProgress, clipStartProgress, clipStartProgress + clipDuration);
 
-            PlayheadColumnSpacerStart.Width = new GridLength(playheadProgress, GridUnitType.Star);
+            PlayheadColumnSpacerStart.Width       = new GridLength(playheadProgress, GridUnitType.Star);
             PlayheadButtonColumnSpacerStart.Width = PlayheadColumnSpacerStart.Width;
 
-            PlayheadColumnSpacerEnd.Width = new GridLength(1.0 - playheadProgress, GridUnitType.Star);
+            PlayheadColumnSpacerEnd.Width       = new GridLength(1.0 - playheadProgress, GridUnitType.Star);
             PlayheadButtonColumnSpacerEnd.Width = PlayheadColumnSpacerEnd.Width;
 
 
             ClipColumnSpacerStart.Width = new GridLength(clipStartProgress, GridUnitType.Star);
-            ClipColumnSpacerEnd.Width = new GridLength(Math.Clamp(1.0 - clipStartProgress - clipDuration, 0.0, 1.0), GridUnitType.Star);
-            ClipColumnSize.Width = new GridLength(clipDuration, GridUnitType.Star);
+            ClipColumnSpacerEnd.Width   = new GridLength(Math.Clamp(1.0 - clipStartProgress - clipDuration, 0.0, 1.0), GridUnitType.Star);
+            ClipColumnSize.Width        = new GridLength(clipDuration, GridUnitType.Star);
         }
+
         private void UpdateZoom()
         {
             var prevWidth = ScrollViewer.ScrollableWidth;
@@ -277,7 +271,7 @@ namespace Clipple.View
             if (IsDragging)
             {
                 e.Handled = true;
-                var pos = e.GetPosition(this);
+                var pos   = e.GetPosition(this);
                 var diffX = pos.X - lastDragPoint.X;
                 var diffY = pos.Y - lastDragPoint.Y;
 
@@ -285,68 +279,70 @@ namespace Clipple.View
 
 
                 var wavePxOnTimeline = WaveformEngine.ResolutionX * Transform.ScaleX;
-                var sens = 1.0 - (-diffY / (App.Window.MediaEditor.ActualHeight / 3.0));
-                var ticksPerPixel = Duration.Ticks / wavePxOnTimeline;
-                var timePerPixel = TimeSpan.FromTicks((long)ticksPerPixel);
-                var timeDiff = (diffX * timePerPixel) * Math.Clamp(sens, 0.01, 1);
+                var sens             = 1.0 - (-diffY / (App.Window.MediaEditor.ActualHeight / 3.0));
+                var ticksPerPixel    = Duration.Ticks / wavePxOnTimeline;
+                var timePerPixel     = TimeSpan.FromTicks((long)ticksPerPixel);
+                var timeDiff         = (diffX * timePerPixel) * Math.Clamp(sens, 0.01, 1);
 
                 switch (dragTarget)
                 {
                     case DragTarget.Playhead:
-                        {
-                            SetTimeClamped(Time + timeDiff);
-                            DragScroll(wavePxOnTimeline * (Time / Duration));
-                            break;
-                        }
+                    {
+                        SetTimeClamped(Time + timeDiff);
+                        DragScroll(wavePxOnTimeline * (Time / Duration));
+                        break;
+                    }
                     case DragTarget.ClipStart:
-                        {
-                            SetClipStartClamped(ClipStart + timeDiff);
-                            SetClipDurationClamped(ClipDuration - timeDiff);
-                            DragScroll(wavePxOnTimeline * (ClipStart / Duration));
-                            break;
-                        }
+                    {
+                        var effectiveDiff = TimeSpan.FromTicks(Math.Max(timeDiff.Ticks, -ClipStart.Ticks));
+                        
+                        SetClipDurationClamped(ClipDuration - effectiveDiff);
+                        SetClipStartClamped(ClipStart + effectiveDiff);
+                        DragScroll(wavePxOnTimeline * (ClipStart / Duration));
+                        break;
+                    }
                     case DragTarget.ClipEnd:
-                        {
-                            SetClipDurationClamped(ClipDuration + timeDiff);
-                            DragScroll(wavePxOnTimeline * ((ClipStart + ClipDuration) / Duration));
-                            break;
-                        }
+                    {
+                        SetClipDurationClamped(ClipDuration + timeDiff);
+                        DragScroll(wavePxOnTimeline * ((ClipStart + ClipDuration) / Duration));
+                        break;
+                    }
                     case DragTarget.Clip:
+                    {
+                        SetClipStartClamped(ClipStart + timeDiff);
+
+                        if (timeDiff < TimeSpan.Zero)
                         {
-                            SetClipStartClamped(ClipStart + timeDiff);
-
-                            if (timeDiff < TimeSpan.Zero)
-                            {
-                                DragScroll(wavePxOnTimeline * (ClipStart / Duration));
-                            }
-                            else
-                                DragScroll(wavePxOnTimeline * ((ClipStart + ClipDuration) / Duration));
-
-                            break;
+                            DragScroll(wavePxOnTimeline * (ClipStart / Duration));
                         }
+                        else
+                            DragScroll(wavePxOnTimeline * ((ClipStart + ClipDuration) / Duration));
+
+                        break;
+                    }
                 }
             }
         }
-        #endregion
+#endregion
 
-        #region Events
+#region Events
         private void ClipStart_MouseDown(object sender, MouseButtonEventArgs e) => DragStart((UIElement)sender, e, DragTarget.ClipStart);
-        private void ClipStart_MouseUp(object sender, MouseButtonEventArgs e) => DragStop((UIElement)sender, e, DragTarget.ClipStart);
-        private void ClipStart_MouseMove(object sender, MouseEventArgs e) => DragTick(e, DragTarget.ClipStart);
+        private void ClipStart_MouseUp(object sender, MouseButtonEventArgs e)   => DragStop((UIElement)sender, e, DragTarget.ClipStart);
+        private void ClipStart_MouseMove(object sender, MouseEventArgs e)       => DragTick(e, DragTarget.ClipStart);
 
         private void ClipEnd_MouseDown(object sender, MouseButtonEventArgs e) => DragStart((UIElement)sender, e, DragTarget.ClipEnd);
-        private void ClipEnd_MouseUp(object sender, MouseButtonEventArgs e) => DragStop((UIElement)sender, e, DragTarget.ClipEnd);
-        private void ClipEnd_MouseMove(object sender, MouseEventArgs e) => DragTick(e, DragTarget.ClipEnd);
+        private void ClipEnd_MouseUp(object sender, MouseButtonEventArgs e)   => DragStop((UIElement)sender, e, DragTarget.ClipEnd);
+        private void ClipEnd_MouseMove(object sender, MouseEventArgs e)       => DragTick(e, DragTarget.ClipEnd);
 
         private void Clip_MouseDown(object sender, MouseButtonEventArgs e) => DragStart((UIElement)sender, e, DragTarget.Clip);
-        private void Clip_MouseUp(object sender, MouseButtonEventArgs e) => DragStop((UIElement)sender, e, DragTarget.Clip);
-        private void Clip_MouseMove(object sender, MouseEventArgs e) => DragTick(e, DragTarget.Clip);
+        private void Clip_MouseUp(object sender, MouseButtonEventArgs e)   => DragStop((UIElement)sender, e, DragTarget.Clip);
+        private void Clip_MouseMove(object sender, MouseEventArgs e)       => DragTick(e, DragTarget.Clip);
 
         private void Playhead_MouseDown(object sender, MouseButtonEventArgs e) => DragStart((UIElement)sender, e, DragTarget.Playhead);
-        private void Playhead_MouseUp(object sender, MouseButtonEventArgs e) => DragStop((UIElement)sender, e, DragTarget.Playhead);
-        private void Playhead_MouseMove(object sender, MouseEventArgs e) => DragTick(e, DragTarget.Playhead);
+        private void Playhead_MouseUp(object sender, MouseButtonEventArgs e)   => DragStop((UIElement)sender, e, DragTarget.Playhead);
+        private void Playhead_MouseMove(object sender, MouseEventArgs e)       => DragTick(e, DragTarget.Playhead);
 
         private void OnSizeChanged(object sender, SizeChangedEventArgs e) => UpdateZoom();
-        #endregion
+#endregion
     }
 }

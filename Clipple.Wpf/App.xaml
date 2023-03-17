@@ -12,7 +12,7 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary>
                     <!-- View models -->
-                    <vm:RootViewModel x:Key="RootViewModel" />
+                    <vm:Root x:Key="Root" />
 
                     <!-- Converters -->
                     <converters:InverseBooleanConverter x:Key="InverseBooleanConverter" />
@@ -50,6 +50,7 @@
 
                 <materialDesign:BundledTheme BaseTheme="Dark" PrimaryColor="Blue" SecondaryColor="Green" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Snackbar.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

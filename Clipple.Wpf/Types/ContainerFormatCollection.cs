@@ -81,8 +81,8 @@ public class ContainerFormatCollection
             if (muxer == null)
                 continue;
 
-            muxer.Names.UnionWith(demuxer.Names);
-            muxer.Extensions.UnionWith(demuxer.Extensions);
+            muxer.Names.AddRange(demuxer.Names);
+            muxer.Extensions.AddRange(demuxer.Extensions);
 
             joined.Add(muxer);
         }

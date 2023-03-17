@@ -25,7 +25,7 @@ namespace Clipple
         /// <summary>
         /// A reference to the root VM
         /// </summary>
-        public static RootViewModel ViewModel => (RootViewModel)Current.Resources[nameof(RootViewModel)];
+        public static Root ViewModel => (Root)Current.Resources[nameof(Root)];
 
         /// <summary>
         /// Reference to the notifications VM
@@ -41,8 +41,6 @@ namespace Clipple
         /// The path to the FFmpeg libraries and executables.
         /// </summary>
         public static string LibPath { get; } = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Binaries", Environment.Is64BitProcess ? "64" : "32");
-
-        public static Timer AutoSaveTimer { get; } = new Timer();
 
         public App()
         {
@@ -81,7 +79,7 @@ namespace Clipple
 
         private static void OnAppRun(SemanticVersion version, IAppTools tools, bool firstRun)
         {
-            ViewModel.UpdateViewModel.CurrentVersion = version ?? new SemanticVersion("1.0.0-VS-debug");
+            //ViewModel.UpdateViewModel.CurrentVersion = version ?? new SemanticVersion("1.0.0-VS-debug");
 
             tools.SetProcessAppUserModelId();
 

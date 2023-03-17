@@ -81,10 +81,6 @@ public partial class Media
 
             AudioStreams = audioStreams.ToArray();
         }
-        catch (Exception)
-        {
-            throw;
-        }
         finally
         {
             if (formatContext != null)

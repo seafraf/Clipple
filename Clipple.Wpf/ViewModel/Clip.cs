@@ -5,15 +5,10 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Windows.Automation.Peers;
-using System.Windows.Forms;
-using System.Windows.Input;
-using Clipple.View;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using LiteDB;
-using MaterialDesignThemes.Wpf;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
-using Microsoft.Toolkit.Mvvm.Input;
-
 namespace Clipple.ViewModel;
 
 public partial class Clip : ObservableObject, INotifyDataErrorInfo
@@ -30,7 +25,6 @@ public partial class Clip : ObservableObject, INotifyDataErrorInfo
 
         // Events
         AudioSettings.CollectionChanged += OnAudioSettingsChanged;
-        PropertyChanged                 += OnPropertyChanged;
     }
 
     public Clip(Media media) :
@@ -46,26 +40,57 @@ public partial class Clip : ObservableObject, INotifyDataErrorInfo
         CropWidth  = media.VideoWidth ?? -1;
         CropHeight = media.VideoHeight ?? -1;
 
-        // Select default output format
-        ContainerFormatIndex = 6; // mp4
-
-        if (media.AudioStreams == null)
-            return;
+        FileName = media.Id.ToString();
 
         foreach (var audioStream in media.AudioStreams)
-            AudioSettings.Add(new AudioStreamSettings(audioStream.Name, audioStream.StreamIndex, audioStream.AudioStreamIndex, audioStream.CodecID));
+            AudioSettings.Add(new(audioStream.Name, audioStream.StreamIndex, audioStream.AudioStreamIndex, audioStream.CodecID));
     }
 
     #region Methods
-    public void Initialise()
+    public void Initialise(Media media)
     {
         InitialiseEncoder();
 
-        foreach (var audioSettings in AudioSettings)
+        foreach (var audio in AudioSettings)
         {
-            foreach (var filter in audioSettings.AudioFilters)
+            foreach (var filter in audio.AudioFilters)
                 filter.Initialise();
         }
+
+        if (PresetIndex != -1)
+            return;
+                
+        // Find best default preset for video and audio clips
+        var cpc = App.ViewModel.ClipPresetCollection;
+        if (media.HasVideo)
+        {
+            // Find closest preset vertical resolution
+            var videoPresets = new[]
+            {
+                (cpc.Preset2160, 2160),
+                (cpc.Preset1440, 1440),
+                (cpc.Preset1080, 1080),
+                (cpc.Preset720, 720),
+            };
+
+            foreach (var (preset, resolution) in videoPresets)
+            {
+                if (preset == null || !(media.VideoHeight >= resolution)) 
+                    continue;
+                
+                ApplyPreset(media, preset, true);
+                break;
+            }
+        }
+        else if (media.HasAudio && cpc.PresetAudio is { } preset)
+            ApplyPreset(media, preset, true);
+    }
+
+    public void NotifyOutputChanged()
+    {
+        OnPropertyChanged(nameof(FullFileName));
+        OnPropertyChanged(nameof(Uri));
+        OnPropertyChanged(nameof(FileNameExists));
     }
     #endregion
 
@@ -135,6 +160,7 @@ public partial class Clip : ObservableObject, INotifyDataErrorInfo
         set
         {
             SetProperty(ref fileName, value);
+            NotifyOutputChanged();
         }
     }
 
@@ -142,19 +168,19 @@ public partial class Clip : ObservableObject, INotifyDataErrorInfo
     ///     Returns a the full file name including extension for this clip
     /// </summary>
     [BsonIgnore]
-    public string FullFileName
-    {
-        get
-        {
-            return $"{Path.Combine(App.ViewModel.Settings.DefaultOutputFolder, FileName)}.{Extension}";
-        }
-    }
+    public string FullFileName => $"{Path.Combine(App.ViewModel.Settings.DefaultOutputFolder, FileName)}.{Extension}";
 
     /// <summary>
     ///     Full file name
     /// </summary>
     [BsonIgnore]
     public Uri Uri => new(FullFileName);
+
+    /// <summary>
+    /// Whether or not FullFileName points to a file that exists
+    /// </summary>
+    [BsonIgnore]
+    public bool FileNameExists => File.Exists(FullFileName);
     #endregion
 
     #region INotifyDataErrorInfo implementation
@@ -230,14 +256,5 @@ public partial class Clip : ObservableObject, INotifyDataErrorInfo
             ((AudioStreamSettings)audioSetting).PropertyChanged += OnAudioSettingPropertyChanged;
         }
     }
-
-    private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        // If any of the properties set by transcoding presets change, unselect the transcoding preset
-        // to indicate the current settings don't reflect the previously selected preset any more
-        if (e.PropertyName is "VideoBitrate" or "TargetWidth" or "TargetHeight" or "TargetFPS" or "VideoCodec" or "AudioBitrate" or "AudioBitrate" or "UseTargetSize" or "OutputTargetSize")
-            Preset = null;
-    }
-
-    #endregion
+#endregion
 }

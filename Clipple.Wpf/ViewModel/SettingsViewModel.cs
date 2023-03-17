@@ -98,17 +98,6 @@ namespace Clipple.ViewModel
             set => SetProperty(ref saveOnExit, value);
         }
 
-        private int autoSaveFrequency = 60;
-        public int AutoSaveFrequency
-        {
-            get => autoSaveFrequency;
-            set
-            {
-                SetProperty(ref autoSaveFrequency, value);
-                App.AutoSaveTimer.Interval = value * 1000;
-            }
-        }
-
         //private HotKey controlHotKey = new(Key.Space);
         //public HotKey ControlHotKey
         //{

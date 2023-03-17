@@ -154,7 +154,7 @@ public class ExportingClip : ObservableObject
         if (media.Clip is not { } clip)
             return;
 
-        outputMedia = await App.ViewModel.Library.AddMedia(clip.FullFileName, media.Id);
+        outputMedia = await App.ViewModel.Library.AddMedia(clip.FullFileName, media.Id, true);
         if (outputMedia is { } libraryMedia)
         {
             libraryMedia.Class      = MediaClass.Clip;

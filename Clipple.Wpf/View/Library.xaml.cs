@@ -29,24 +29,25 @@ namespace Clipple.View
 
         private async void OnDrop(object sender, DragEventArgs e)
         {
-            if (e.Data.GetDataPresent(DataFormats.FileDrop))
-            {
-                var files = (string[])e.Data.GetData(DataFormats.FileDrop);
+            if (!e.Data.GetDataPresent(DataFormats.FileDrop)) 
+                return;
 
-                if (DataContext is not ViewModel.Library vm)
-                    return;
+            if (e.Data.GetData(DataFormats.FileDrop) is not string[] files)
+                return;
+            
+            if (DataContext is not ViewModel.Library vm)
+                return;
 
-                await vm.AddMedias(files, "drag and drop");
-            }
+            await vm.AddMedias(files, "drag and drop");
         }
 
         private void OnDragEnter(object sender, DragEventArgs e)
         {
-            if (e.Data.GetDataPresent(DataFormats.FileDrop))
-            {
-                e.Effects = DragDropEffects.Copy;
-                e.Handled = true;
-            }
+            if (!e.Data.GetDataPresent(DataFormats.FileDrop)) 
+                return;
+            
+            e.Effects = DragDropEffects.Copy;
+            e.Handled = true;
         }
 
         private void OnSearchKeyDown(object sender, KeyEventArgs e)

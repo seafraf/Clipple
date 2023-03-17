@@ -1,18 +1,18 @@
 ﻿<UserControl x:Class="Clipple.View.MediaEditor"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:viewmodel="clr-namespace:Clipple.ViewModel"
              xmlns:view="clr-namespace:Clipple.View"
              xmlns:types="clr-namespace:Clipple.Types"
-             xmlns:local="clr-namespace:Clipple" 
+             xmlns:local="clr-namespace:Clipple"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-             xmlns:wf="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"  
+             xmlns:wf="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
              d:DataContext="{d:DesignInstance Type=viewmodel:MediaEditor}"
-             mc:Ignorable="d" 
-             d:DesignHeight="1080" d:DesignWidth="1920" 
-             Loaded="OnLoaded" PreviewMouseWheel="OnMouseWheel">
+             mc:Ignorable="d"
+             d:DesignHeight="1080" d:DesignWidth="1920"
+             Loaded="OnLoaded" PreviewMouseWheel="OnMouseWheel" AllowDrop="True" DragEnter="OnDragEnter" Drop="OnDrop" Background="Transparent">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
@@ -20,18 +20,21 @@
         </Grid.RowDefinitions>
 
         <ToolBarTray Grid.Row="0">
-
-            <ToolBar Grid.Column="0" Style="{StaticResource MaterialDesignToolBar}" ClipToBounds="False" Band="2" BandIndex="2">
-                <Button Margin="10" ToolTip="Export clip" Cursor="Hand" 
+            <ToolBar Style="{StaticResource MaterialDesignToolBar}" ClipToBounds="False" Band="2"
+                     BandIndex="2"
+                     IsEnabled="{Binding Media, Converter={StaticResource InverseComparisonConverter}, ConverterParameter={x:Null}}">
+                <Button Margin="10" ToolTip="Export clip" Cursor="Hand"
                         Style="{StaticResource MaterialDesignFloatingActionMiniDarkButton}"
-                        Content="{materialDesign:PackIcon Kind=MoviePlay}" 
-                        Command="{Binding OpenExportDialogCommand}"/>
-                <Separator  />
+                        Content="{materialDesign:PackIcon Kind=MoviePlay}"
+                        Command="{Binding OpenExportDialogCommand}" />
+                <Separator />
 
                 <!-- Audio settings menu -->
-                <materialDesign:PopupBox PlacementMode="BottomAndAlignCentres" ToolTip="Audio settings" StaysOpen="True">
+                <materialDesign:PopupBox PlacementMode="BottomAndAlignCentres" ToolTip="Audio settings"
+                                         StaysOpen="True">
                     <materialDesign:PopupBox.ToggleContent>
-                        <materialDesign:PackIcon Kind="VolumeMedium" Width="24" Height="24" Foreground="{StaticResource MaterialDesignDarkForeground}" Margin="4" />
+                        <materialDesign:PackIcon Kind="VolumeMedium" Width="24" Height="24"
+                                                 Foreground="{StaticResource MaterialDesignDarkForeground}" Margin="4" />
                     </materialDesign:PopupBox.ToggleContent>
                     <StackPanel Margin="10" Width="350">
                         <Label Content="Master volume" />
@@ -41,9 +44,12 @@
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <StackPanel Margin="0 8 0 0">
-                                        <CheckBox Content="{Binding Name}" IsChecked="{Binding IsEnabled}" Margin="0 0 0 2" materialDesign:CheckBoxAssist.CheckBoxSize="24" />
-                                        <Expander Header="Filters" materialDesign:ExpanderAssist.HorizontalHeaderPadding="8 8 4 4" IsEnabled="{Binding IsEnabled}" >
-                                            <view:AudioFilters DataContext="{Binding}"  />
+                                        <CheckBox Content="{Binding Name}" IsChecked="{Binding IsEnabled}"
+                                                  Margin="0 0 0 2" materialDesign:CheckBoxAssist.CheckBoxSize="24" />
+                                        <Expander Header="Filters"
+                                                  materialDesign:ExpanderAssist.HorizontalHeaderPadding="8 8 4 4"
+                                                  IsEnabled="{Binding IsEnabled}">
+                                            <view:AudioFilters DataContext="{Binding}" />
                                         </Expander>
                                     </StackPanel>
                                 </DataTemplate>
@@ -53,9 +59,11 @@
                 </materialDesign:PopupBox>
 
                 <!-- Timeline settings menu -->
-                <materialDesign:PopupBox PlacementMode="BottomAndAlignCentres" ToolTip="Timeline settings" StaysOpen="True">
+                <materialDesign:PopupBox PlacementMode="BottomAndAlignCentres" ToolTip="Timeline settings"
+                                         StaysOpen="True">
                     <materialDesign:PopupBox.ToggleContent>
-                        <materialDesign:PackIcon Kind="Tune" Width="24" Height="24" Foreground="{StaticResource MaterialDesignDarkForeground}" Margin="6" />
+                        <materialDesign:PackIcon Kind="Tune" Width="24" Height="24"
+                                                 Foreground="{StaticResource MaterialDesignDarkForeground}" Margin="6" />
                     </materialDesign:PopupBox.ToggleContent>
                     <StackPanel Margin="10" Width="250">
                         <Label Content="Timeline zoom" />
@@ -65,13 +73,15 @@
                         <ItemsControl ItemsSource="{Binding Path=Media.AudioStreams}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <CheckBox materialDesign:CheckBoxAssist.CheckBoxSize="24" IsChecked="{Binding Path=IsEnabled}" Content="{Binding Path=Name}" />
+                                    <CheckBox materialDesign:CheckBoxAssist.CheckBoxSize="24"
+                                              IsChecked="{Binding Path=IsEnabled}" Content="{Binding Path=Name}" />
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
 
                         <Label Content="Annotations" Margin="0 10 0 0" />
-                        <CheckBox materialDesign:CheckBoxAssist.CheckBoxSize="24" IsChecked="{Binding Path=ShowAudioStreamNames}" Content="Show audio stream names" />
+                        <CheckBox materialDesign:CheckBoxAssist.CheckBoxSize="24"
+                                  IsChecked="{Binding Path=ShowAudioStreamNames}" Content="Show audio stream names" />
                     </StackPanel>
                 </materialDesign:PopupBox>
 
@@ -80,33 +90,47 @@
         </ToolBarTray>
 
         <Grid Grid.Row="1">
-            <Grid Visibility="{Binding Path=State, Converter={StaticResource ComparisonVisibilityConverter}, ConverterParameter={x:Static types:MediaPlayerState.Waiting}}">
+            <Grid
+                Visibility="{Binding Path=State, Converter={StaticResource ComparisonVisibilityConverter}, ConverterParameter={x:Static types:MediaPlayerState.Waiting}}">
                 <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                     <!--<iconPacks:PackIconMaterialDesign Width="100" Height="100" Kind="Info" HorizontalAlignment="Center" Margin="0 0 0 10"  />-->
-                    <Label Content="fix me" FontSize="24" HorizontalAlignment="Center" Margin="0 0 0 10"/>
+                    <Label Content="No media loaded" FontSize="24" HorizontalAlignment="Center" Margin="0 0 0 10" />
+                    <Label Content="Drag and drop media or open media from the Library tab" FontSize="18"
+                           HorizontalAlignment="Center" Margin="0 0 0 10" />
                 </StackPanel>
             </Grid>
-            <Grid Visibility="{Binding Path=State, Converter={StaticResource ComparisonVisibilityConverter}, ConverterParameter={x:Static types:MediaPlayerState.Error}}">
+            <Grid
+                Visibility="{Binding Path=State, Converter={StaticResource ComparisonVisibilityConverter}, ConverterParameter={x:Static types:MediaPlayerState.Error}}">
                 <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                     <!--<iconPacks:PackIconMaterialDesign Width="100" Height="100" Kind="Warning" HorizontalAlignment="Center"  />-->
                     <Label Content="The media could not be loaded" FontSize="24" HorizontalAlignment="Center" />
-                    <Label Content="{Binding Path=Media.FileInfo.FullName}" ContentStringFormat="The media could not be loaded" />
+                    <Label Content="{Binding Path=Media.FileInfo.FullName}"
+                           ContentStringFormat="The media could not be loaded" />
                 </StackPanel>
             </Grid>
-            <Grid Visibility="{Binding Path=State, Converter={StaticResource ComparisonVisibilityConverter}, ConverterParameter={x:Static types:MediaPlayerState.Loading}}">
+            <Grid
+                Visibility="{Binding Path=State, Converter={StaticResource ComparisonVisibilityConverter}, ConverterParameter={x:Static types:MediaPlayerState.Loading}}">
                 <!--<mah:ProgressRing />-->
             </Grid>
-            <Grid Visibility="{Binding Path=State, Converter={StaticResource ComparisonVisibilityConverter}, ConverterParameter={x:Static types:MediaPlayerState.Ready}}">
+            <Grid
+                Visibility="{Binding Path=State, Converter={StaticResource ComparisonVisibilityConverter}, ConverterParameter={x:Static types:MediaPlayerState.Ready}}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*" />
                     <RowDefinition Height="auto" />
                     <RowDefinition Height="auto" />
                 </Grid.RowDefinitions>
 
-                <WindowsFormsHost>
-                    <wf:Panel x:Name="playerHost" />
+                <WindowsFormsHost Grid.Row="0" Visibility="{Binding Media.HasVideo, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <wf:Panel x:Name="PlayerHost" />
                 </WindowsFormsHost>
                 
+                <Grid Grid.Row="0" Visibility="{Binding Media.HasVideo, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <materialDesign:PackIcon Kind="VideoBoxOff" Width="64" Height="64" HorizontalAlignment="Center" />
+                        <Label Content="No video available" FontSize="24" HorizontalAlignment="Center" Margin="0 0 0 10" />
+                    </StackPanel>
+                </Grid>
+
                 <Grid Grid.Row="1" VerticalAlignment="Bottom">
                     <materialDesign:Card Margin="4 4 4 0">
                         <Grid Grid.Row="0" Grid.ColumnSpan="2" Margin="4">
@@ -124,25 +148,28 @@
                             <!-- Video times -->
                             <Grid Grid.Column="0" VerticalAlignment="Center" Margin="10 0 0 0">
                                 <TextBlock Style="{StaticResource MaterialDesignButtonTextBlock}">
-                                <Run ToolTip="Media current time" ToolTipService.Placement="MousePoint" ToolTipService.InitialShowDelay="100"  
-                                        Text="{Binding CurrentTime, UpdateSourceTrigger=PropertyChanged, Mode=OneWay, StringFormat=mm\\:ss\\.ff}"/>
-                                <Run Text="/" />
-                                <Run ToolTip="Media duration" ToolTipService.Placement="MousePoint" ToolTipService.InitialShowDelay="100"  
-                                        Text="{Binding Duration, Mode=OneWay, StringFormat=mm\\:ss\\.ff}"/>
+                                    <Run ToolTip="Media current time" ToolTipService.Placement="MousePoint"
+                                         ToolTipService.InitialShowDelay="100"
+                                         Text="{Binding CurrentTime, UpdateSourceTrigger=PropertyChanged, Mode=OneWay, StringFormat=mm\\:ss\\.ff}" />
+                                    <Run Text="/" />
+                                    <Run ToolTip="Media duration" ToolTipService.Placement="MousePoint"
+                                         ToolTipService.InitialShowDelay="100"
+                                         Text="{Binding Duration, Mode=OneWay, StringFormat=mm\\:ss\\.ff}" />
                                 </TextBlock>
                             </Grid>
 
                             <!-- Player controls (play, pause, etc) -->
                             <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
-                                <Button Width="32" Height="32" ToolTip="Previous frame" Margin="0 0 4 0" 
-                            Style="{StaticResource MaterialDesignIconButton}"
-                            Command="{Binding Source={x:Static local:AppCommands.PreviousFrameCommand}}" >
+                                <Button Width="32" Height="32" ToolTip="Previous frame" Margin="0 0 4 0"
+                                        Style="{StaticResource MaterialDesignIconButton}"
+                                        Command="{Binding Source={x:Static local:AppCommands.PreviousFrameCommand}}">
                                     <materialDesign:PackIcon Kind="StepBackward" Width="28" Height="28" />
                                 </Button>
                                 <Button Width="32" Height="32" ToolTip="Play" Margin="0 0 4 0"
-                            Style="{StaticResource MaterialDesignIconButton}"
-                            Command="{Binding Source={x:Static local:AppCommands.ControlCommand}}">
-                                    <materialDesign:PackIcon Width="28" Height="28" materialDesign:ElevationAssist.Elevation="Dp8">
+                                        Style="{StaticResource MaterialDesignIconButton}"
+                                        Command="{Binding Source={x:Static local:AppCommands.ControlCommand}}">
+                                    <materialDesign:PackIcon Width="28" Height="28"
+                                                             materialDesign:ElevationAssist.Elevation="Dp8">
                                         <materialDesign:PackIcon.Style>
                                             <Style TargetType="materialDesign:PackIcon">
                                                 <Style.Triggers>
@@ -157,21 +184,24 @@
                                         </materialDesign:PackIcon.Style>
                                     </materialDesign:PackIcon>
                                 </Button>
-                                <Button  Width="32" Height="32" ToolTip="Next frame" Margin="0 0 0 0" 
-                                Style="{StaticResource MaterialDesignIconButton}"
-                                Command="{Binding Source={x:Static local:AppCommands.NextFrameCommand}}">
+                                <Button Width="32" Height="32" ToolTip="Next frame" Margin="0 0 0 0"
+                                        Style="{StaticResource MaterialDesignIconButton}"
+                                        Command="{Binding Source={x:Static local:AppCommands.NextFrameCommand}}">
                                     <materialDesign:PackIcon Kind="StepForward" Width="28" Height="28" />
                                 </Button>
                             </StackPanel>
 
                             <!-- Clip times -->
-                            <Grid Grid.Column="2" VerticalAlignment="Center" Margin="0 0 10 0" HorizontalAlignment="Right">
+                            <Grid Grid.Row="0" Grid.Column="2" VerticalAlignment="Center" Margin="0 0 10 0"
+                                  HorizontalAlignment="Right">
                                 <TextBlock Style="{StaticResource MaterialDesignButtonTextBlock}">
-                                <Run ToolTip="Clip start time" ToolTipService.Placement="MousePoint" ToolTipService.InitialShowDelay="100"  
-                                        Text="{Binding Media.Clip.StartTime, Mode=OneWay, StringFormat=mm\\:ss\\.ff}"/>
-                                <Run Text="+" />
-                                <Run ToolTip="Clip duration" ToolTipService.Placement="MousePoint" ToolTipService.InitialShowDelay="100"  
-                                        Text="{Binding Media.Clip.Duration, Mode=OneWay, StringFormat=mm\\:ss\\.ff}"/>
+                                    <Run ToolTip="Clip start time" ToolTipService.Placement="MousePoint"
+                                         ToolTipService.InitialShowDelay="100"
+                                         Text="{Binding Media.Clip.StartTime, Mode=OneWay, StringFormat=mm\\:ss\\.ff}" />
+                                    <Run Text="+" />
+                                    <Run ToolTip="Clip duration" ToolTipService.Placement="MousePoint"
+                                         ToolTipService.InitialShowDelay="100"
+                                         Text="{Binding Media.Clip.Duration, Mode=OneWay, StringFormat=mm\\:ss\\.ff}" />
                                 </TextBlock>
                             </Grid>
                         </Grid>
@@ -181,13 +211,13 @@
 
                 <materialDesign:Card Grid.Row="2" Margin="4">
                     <view:Timeline
-                            Time="{Binding Path=CurrentTime, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
-                            ClipStart="{Binding Path=Media.Clip.StartTime, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                            ClipDuration="{Binding Path=Media.Clip.Duration, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                            Duration="{Binding Path=Duration}" 
-                            IsDragging="{Binding Path=IsTimelineBusy, UpdateSourceTrigger=PropertyChanged, Mode=OneWayToSource}"
-                            Zoom="{Binding Path=Zoom, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                            ShowAudioStreamNames="{Binding ShowAudioStreamNames, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
+                        Time="{Binding Path=CurrentTime, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                        ClipStart="{Binding Path=Media.Clip.StartTime, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                        ClipDuration="{Binding Path=Media.Clip.Duration, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                        Duration="{Binding Path=Duration}"
+                        IsDragging="{Binding Path=IsTimelineBusy, UpdateSourceTrigger=PropertyChanged, Mode=OneWayToSource}"
+                        Zoom="{Binding Path=Zoom, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                        ShowAudioStreamNames="{Binding ShowAudioStreamNames, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
                 </materialDesign:Card>
             </Grid>
         </Grid>

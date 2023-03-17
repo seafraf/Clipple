@@ -21,7 +21,7 @@ namespace Clipple.View
         {
             InitializeComponent();
 
-            var vm = (RootViewModel)DataContext;
+            var vm = (Root)DataContext;
 
             // Load theme
             //ThemeManager.Current.ChangeTheme(this, vm.SettingsViewModel.ThemeKey);
@@ -35,7 +35,7 @@ namespace Clipple.View
 
         private void UpdateKeyBindings()
         {
-            var vm = (RootViewModel)DataContext;
+            var vm = (Root)DataContext;
 
             //hotKeys = new()
             //{
@@ -108,7 +108,7 @@ namespace Clipple.View
 
         private void OnClosing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            var vm = (RootViewModel)DataContext;
+            var vm = (Root)DataContext;
 
             //if (vm.SettingsViewModel.SaveOnExit)
             //    await vm.Save();
@@ -144,7 +144,7 @@ namespace Clipple.View
 
         private async void OnLoaded(object sender, RoutedEventArgs e)
         {
-            var vm = (RootViewModel)DataContext;
+            var vm = (Root)DataContext;
 
             // place this somewhere better
             await vm.Load();

@@ -50,7 +50,7 @@
             
             <Button Content="Delete" Grid.Column="3"
                     Command="{Binding DeleteCommand}" 
-                    Style="{StaticResource MaterialDesignFlatButton}" Foreground="Red"  />
+                    Style="{StaticResource MaterialDesignFlatButton}"  />
         </Grid>
     </Grid>
 </UserControl>

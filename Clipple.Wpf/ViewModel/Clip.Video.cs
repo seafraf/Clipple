@@ -9,7 +9,7 @@ namespace Clipple.ViewModel;
 
 public partial class Clip
 {
-    #region Methods
+#region Methods
 
     private void InitialiseVideoViews()
     {
@@ -18,10 +18,14 @@ public partial class Clip
     }
 
     #endregion
-
+    
+#region Constants
+    private const long DefaultVideoBitrate = 60000;
+#endregion
+    
     #region Members
 
-    private long              videoBitrate = 150000;
+    private long              videoBitrate = DefaultVideoBitrate;
     private int               targetFps;
     private int               targetWidth;
     private int               targetHeight;
@@ -53,7 +57,7 @@ public partial class Clip
 
             // Subtract audio from total bitrate, as that audio bitrate won't be changed when UseTargetSize is true
             // This has to be done for each enabled audio channel
-            var enabledTracks = AudioSettings.Where(x => x.IsEnabled).Count();
+            var enabledTracks = AudioSettings.Count(x => x.IsEnabled);
 
             // Merging audio tracks means there is only one.. unless no audio tracks are enabled, in which case there is zero
             maxTotalBitrate -= AudioBitrate * Math.Min(enabledTracks, MergeAudio ? 1 : enabledTracks);
@@ -238,6 +242,5 @@ public partial class Clip
             OnPropertyChanged(nameof(TargetHeight));
         }
     }
-
-    #endregion
+#endregion
 }

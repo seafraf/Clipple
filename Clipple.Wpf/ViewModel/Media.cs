@@ -39,7 +39,7 @@ public partial class Media : ObservableObject
 
         // Initialise/construct clip
         Clip ??= new(this);
-        Clip.Initialise();
+        Clip.Initialise(this);
 
         // Initialise filters
         foreach (var audioStream in AudioStreams)

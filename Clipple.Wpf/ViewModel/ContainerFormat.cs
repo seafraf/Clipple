@@ -20,8 +20,8 @@ namespace Clipple.ViewModel
         {
             this.displayName = displayName;
 
-            this.names.UnionWith(names);
-            this.extensions.UnionWith(extensions);
+            this.names      = names.Distinct().ToList();
+            this.extensions = extensions.Distinct().ToList();
 
             foreach (var codec in supportedCodecs)
             {
@@ -35,9 +35,9 @@ namespace Clipple.ViewModel
         #region Members
         private string displayName;
 
-        private HashSet<string> names = new();
+        private List<string> names;
 
-        private HashSet<string> extensions = new();
+        private List<string> extensions;
 
         private List<AudioVideoCodec> audioCodecs = new();
 
@@ -58,7 +58,7 @@ namespace Clipple.ViewModel
         /// All names given by FFMPEG for this container format.  Most container formats have only one name,
         /// no container formats have no names.
         /// </summary>
-        public HashSet<string> Names
+        public List<string> Names
         {
             get => names;
             set => SetProperty(ref names, value);
@@ -68,7 +68,7 @@ namespace Clipple.ViewModel
         /// All names given by FFMPEG for this container format.  Most container formats have only one extension,
         /// no container formats have no extensions.
         /// </summary>
-        public HashSet<string> Extensions
+        public List<string> Extensions
         {
             get => extensions;
             set => SetProperty(ref extensions, value);
