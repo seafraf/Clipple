@@ -23,7 +23,7 @@ public partial class Clip
 
     #region Methods
 
-    public void ApplyPreset(Media media, ClipPreset preset, bool setIndex = false)
+    public void ApplyPreset(Media media, ClipPreset preset, bool first = false)
     {
         VideoBitrate     = preset.VideoBitrate ?? DefaultVideoBitrate;
         AudioBitrate     = preset.AudioBitrate ?? DefaultAudioBitrate;
@@ -56,8 +56,11 @@ public partial class Clip
             Extension      = ExtensionIndex == -1 ? ContainerFormat.Extension : ext;
         }
 
-        if (setIndex)
-            PresetIndex = App.ViewModel.ClipPresetCollection.Presets.IndexOf(preset);
+        if (!first) 
+            return;
+        
+        PresetIndex = App.ViewModel.ClipPresetCollection.Presets.IndexOf(preset);
+        InitialiseEncoder();
     }
 
     #endregion
