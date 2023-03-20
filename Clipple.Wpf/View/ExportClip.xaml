@@ -315,7 +315,7 @@
                 </Expander>
             </StackPanel>
 
-            <Grid Grid.Row="1">
+            <Grid Grid.Row="1" x:Name="TextStyleAnchor">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="auto" />
@@ -325,26 +325,28 @@
                 <Button Content="Cancel" Margin="0 8 8 0" Grid.Column="1"
                         Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}"
                         Style="{StaticResource MaterialDesignFlatButton}" />
-
-                <materialDesign:Badged Margin="0 8 8 0" Grid.Column="2"
-                                       BadgePlacementMode="TopRight"
-                                       ToolTipService.InitialShowDelay="50"
-                                       BadgeColorZoneMode="Inverted">
-                    <Button Content="Export"
-                            Command="{Binding Path=StartExportCommand}"
-                            Style="{StaticResource MaterialDesignFlatButton}" />
-                    <materialDesign:Badged.Style>
-                        <Style TargetType="materialDesign:Badged">
+            
+                <Button Margin="0 8 8 0" Grid.Column="2" Command="{Binding Path=StartExportCommand}">
+                    <Button.Style> 
+                        <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignFlatButton}">
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding Clip.FileNameExists}" Value="True">
-                                    <Setter Property="Badge" Value="{materialDesign:PackIcon ExclamationBold}" />
+                                    <Setter Property="Content">
+                                        <Setter.Value>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="Export" VerticalAlignment="Center" />
+                                                <materialDesign:PackIcon Kind="AlertCircle" Width="18" Height="18" Margin="4 0 0 0" VerticalAlignment="Center" 
+                                                                         Foreground="{Binding ElementName=TextStyleAnchor, Path=(TextElement.Foreground)}"/>
+                                            </StackPanel>
+                                        </Setter.Value>
+                                    </Setter>
                                     <Setter Property="ToolTip" Value="Exporting this clip will overwrite an existing file" />
                                 </DataTrigger>
                             </Style.Triggers>
+                            <Setter Property="Content" Value="Export" />
                         </Style>
-                    </materialDesign:Badged.Style>
-                </materialDesign:Badged>
-
+                    </Button.Style>
+                </Button>
             </Grid>
         </Grid>
     </materialDesign:DialogHost>
