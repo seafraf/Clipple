@@ -1,28 +1,20 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
-using System.Text.Json.Serialization;
+﻿using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Clipple.FFMPEG;
-using LiteDB;
-using SharpCompress.Common;
 
 namespace Clipple.ViewModel;
 
 public partial class Media
 {
-    private static readonly int MaximumJobs = 200; // Math.Max(1, Environment.ProcessorCount / 2);
+    private static readonly int       MaximumJobs        = 200; // Math.Max(1, Environment.ProcessorCount / 2);
     private static readonly Semaphore RateLimitSemaphore = new(MaximumJobs, MaximumJobs);
 
     #region Methods
+
     private async Task BuildAudioWaveforms()
     {
-        if (AudioStreams == null)
-            return;
-
         if (!Directory.Exists(CachePath))
             Directory.CreateDirectory(CachePath);
 
@@ -34,7 +26,7 @@ public partial class Media
             {
                 // Wait for a semaphore slot to become available
                 await Task.Run(() => RateLimitSemaphore.WaitOne());
-                var engine    = new WaveformEngine(FilePath, path, audioStream.AudioStreamIndex);
+                var engine = new WaveformEngine(FilePath, path, audioStream.AudioStreamIndex);
                 if (await engine.Run() != 0)
                     App.Notifications.NotifyWarning($"Failed to generate waveform ({audioStream.AudioStreamIndex}) for {FilePath}");
 
@@ -44,7 +36,7 @@ public partial class Media
             var image = new BitmapImage();
             image.BeginInit();
             image.CacheOption = BitmapCacheOption.OnLoad;
-            image.UriSource = new Uri(path);
+            image.UriSource   = new(path);
             image.EndInit();
 
             audioStream.Waveform = image;

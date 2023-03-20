@@ -5,15 +5,18 @@ namespace Clipple.ViewModel;
 public partial class Media
 {
     #region Members
-    private TimeSpan currentTime = TimeSpan.Zero;
-    private int volume = 100;
-    private bool isMuted = false;
-    private double playbackSpeed = 1.0;
-    private double timelineZoom = 0.0;
+
+    private TimeSpan              currentTime = TimeSpan.Zero;
+    private int                   volume      = 100;
+    private bool                  isMuted;
+    private double                playbackSpeed = 1.0;
+    private double                timelineZoom;
     private AudioStreamSettings[] audioStreamSettings = Array.Empty<AudioStreamSettings>();
+
     #endregion
 
     #region Properties
+
     /// <summary>
     ///     Position of the media play head.
     /// </summary>
@@ -37,7 +40,7 @@ public partial class Media
     /// </summary>
     public bool IsMuted
     {
-        get => isMuted; 
+        get => isMuted;
         set => SetProperty(ref isMuted, value);
     }
 
@@ -55,7 +58,7 @@ public partial class Media
     /// </summary>
     public double PlaybackSpeed
     {
-        get => playbackSpeed; 
+        get => playbackSpeed;
         set => SetProperty(ref playbackSpeed, value);
     }
 
@@ -64,8 +67,9 @@ public partial class Media
     /// </summary>
     public double TimelineZoom
     {
-        get => timelineZoom; 
+        get => timelineZoom;
         set => SetProperty(ref timelineZoom, value);
     }
+
     #endregion
 }

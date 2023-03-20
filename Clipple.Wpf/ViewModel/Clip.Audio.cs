@@ -1,23 +1,26 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
-using System.Windows.Input;
 
 namespace Clipple.ViewModel;
 
 public partial class Clip
 {
-#region Constants
-    private const long DefaultAudioBitrate = 320;
-#endregion
+    #region Constants
 
-#region Members
+    private const long DefaultAudioBitrate = 320;
+
+    #endregion
+
+    #region Members
+
     private bool                                      mergeAudio    = true;
     private ObservableCollection<AudioStreamSettings> audioSettings = new();
     private long                                      audioBitrate  = DefaultAudioBitrate;
-#endregion
 
-#region Properties
+    #endregion
+
+    #region Properties
+
     /// <summary>
     ///     Whether or not all audio streams should be merged into one audio stream, this is forced on
     ///     for output formats that only include audio
@@ -66,9 +69,11 @@ public partial class Clip
                 OnPropertyChanged(nameof(VideoBitrate));
         }
     }
-#endregion
 
-#region Methods
+    #endregion
+
+    #region Methods
+
     private void OnAudioSettingPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (!UseTargetSize)
@@ -78,5 +83,6 @@ public partial class Clip
         if (e.PropertyName == nameof(AudioStreamSettings.IsEnabled))
             OnPropertyChanged(nameof(VideoBitrate));
     }
-#endregion
+
+    #endregion
 }

@@ -1,9 +1,8 @@
-﻿using FFmpeg.AutoGen;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Clipple.ViewModel;
+using FFmpeg.AutoGen;
 
 namespace Clipple.Types;
 
@@ -18,11 +17,12 @@ public class ContainerFormatCollection
     }
 
     #region Methods
+
     private static unsafe ContainerFormat? FormatFromNative(byte* namePtr, byte* longNamePtr, byte* extensionsPtr, List<AudioVideoCodec>? supportedCodecIDs = null)
     {
         if (namePtr == null || longNamePtr == null)
             return null;
-        
+
         var name       = Marshal.PtrToStringAnsi((nint)namePtr);
         var longName   = Marshal.PtrToStringAnsi((nint)longNamePtr);
         var extensions = extensionsPtr == null ? name : Marshal.PtrToStringAnsi((nint)extensionsPtr);
@@ -30,7 +30,7 @@ public class ContainerFormatCollection
         if (name == null || longName == null || extensions == null)
             return null;
 
-        return new ContainerFormat(longName, name.Split(','), extensions.Split(','), supportedCodecIDs ?? new List<AudioVideoCodec>());
+        return new(longName, name.Split(','), extensions.Split(','), supportedCodecIDs ?? new List<AudioVideoCodec>());
     }
 
     private static unsafe IEnumerable<ContainerFormat> GetSupportedFormats()
@@ -39,20 +39,17 @@ public class ContainerFormatCollection
         var mx  = new List<ContainerFormat>();
 
         var supportedCodecs = GetSupportedEncoders();
-        
-        var state       = IntPtr.Zero;
+
+        var state       = nint.Zero;
         var inputFormat = ffmpeg.av_demuxer_iterate((void**)&state);
         while (inputFormat != null)
         {
-            if (FormatFromNative(inputFormat->name, inputFormat->long_name, inputFormat->extensions) is { } containerFormat)
-            {
-                dmx.Add(containerFormat);   
-            }
+            if (FormatFromNative(inputFormat->name, inputFormat->long_name, inputFormat->extensions) is { } containerFormat) dmx.Add(containerFormat);
 
             inputFormat = ffmpeg.av_demuxer_iterate((void**)&state);
         }
 
-        state = IntPtr.Zero;
+        state = nint.Zero;
         var outputFormat = ffmpeg.av_muxer_iterate((void**)&state);
         while (outputFormat != null)
         {
@@ -64,9 +61,9 @@ public class ContainerFormatCollection
 
                 return ffmpeg.avformat_query_codec(outputFormat, x.Id, ffmpeg.FF_COMPLIANCE_STRICT) == 1;
             }).ToList();
-            
+
             if (codecs.Count > 0 && FormatFromNative(outputFormat->name, outputFormat->long_name, outputFormat->extensions, codecs) is { } containerFormat)
-                mx.Add(containerFormat);   
+                mx.Add(containerFormat);
 
             outputFormat = ffmpeg.av_muxer_iterate((void**)&state);
         }
@@ -94,30 +91,29 @@ public class ContainerFormatCollection
     {
         var encoderIDs = new HashSet<AudioVideoCodec>();
 
-        var state = IntPtr.Zero;
+        var state = nint.Zero;
         var codec = ffmpeg.av_codec_iterate((void**)&state);
 
         while (codec != null)
         {
             if (codec->type == AVMediaType.AVMEDIA_TYPE_VIDEO || codec->type == AVMediaType.AVMEDIA_TYPE_AUDIO)
-            {
                 if (AudioVideoCodec.New(codec) is { } avc)
-                {
                     if (ffmpeg.av_codec_is_encoder(codec) != 0)
                         encoderIDs.Add(avc);
-                }
-            }
 
             codec = ffmpeg.av_codec_iterate((void**)&state);
         }
 
         return encoderIDs;
     }
+
     #endregion
-    
+
     #region Properties
+
     public List<ContainerFormat> SupportedFormats { get; }
 
     public HashSet<string> SupportedFormatNames { get; } = new();
+
     #endregion
 }

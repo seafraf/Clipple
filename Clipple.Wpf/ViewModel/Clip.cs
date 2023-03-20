@@ -5,10 +5,9 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using LiteDB;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
+
 namespace Clipple.ViewModel;
 
 public partial class Clip : ObservableObject, INotifyDataErrorInfo
@@ -18,7 +17,7 @@ public partial class Clip : ObservableObject, INotifyDataErrorInfo
     ///     Called during deserialization only.
     /// </summary>
     [BsonCtor]
-    public Clip()
+    private Clip()
 #pragma warning restore CS8618
     {
         InitialiseVideoViews();
@@ -47,19 +46,18 @@ public partial class Clip : ObservableObject, INotifyDataErrorInfo
     }
 
     #region Methods
+
     public void Initialise(Media media)
     {
         InitialiseEncoder();
 
         foreach (var audio in AudioSettings)
-        {
-            foreach (var filter in audio.AudioFilters)
-                filter.Initialise();
-        }
+        foreach (var filter in audio.AudioFilters)
+            filter.Initialise();
 
         if (PresetIndex != -1)
             return;
-                
+
         // Find best default preset for video and audio clips
         var cpc = App.ViewModel.ClipPresetCollection;
         if (media.HasVideo)
@@ -70,20 +68,22 @@ public partial class Clip : ObservableObject, INotifyDataErrorInfo
                 (cpc.Preset2160, 2160),
                 (cpc.Preset1440, 1440),
                 (cpc.Preset1080, 1080),
-                (cpc.Preset720, 720),
+                (cpc.Preset720, 720)
             };
 
             foreach (var (preset, resolution) in videoPresets)
             {
-                if (preset == null || !(media.VideoHeight >= resolution)) 
+                if (preset == null || !(media.VideoHeight >= resolution))
                     continue;
-                
+
                 ApplyPreset(media, preset, true);
                 break;
             }
         }
         else if (media.HasAudio && cpc.PresetAudio is { } preset)
+        {
             ApplyPreset(media, preset, true);
+        }
     }
 
     public void NotifyOutputChanged()
@@ -92,13 +92,14 @@ public partial class Clip : ObservableObject, INotifyDataErrorInfo
         OnPropertyChanged(nameof(Uri));
         OnPropertyChanged(nameof(FileNameExists));
     }
+
     #endregion
 
     #region Members
 
-    private TimeSpan              startTime;
-    private TimeSpan              duration;
-    private string                fileName;
+    private TimeSpan startTime;
+    private TimeSpan duration;
+    private string   fileName;
 
     #endregion
 
@@ -177,10 +178,11 @@ public partial class Clip : ObservableObject, INotifyDataErrorInfo
     public Uri Uri => new(FullFileName);
 
     /// <summary>
-    /// Whether or not FullFileName points to a file that exists
+    ///     Whether or not FullFileName points to a file that exists
     /// </summary>
     [BsonIgnore]
     public bool FileNameExists => File.Exists(FullFileName);
+
     #endregion
 
     #region INotifyDataErrorInfo implementation
@@ -219,12 +221,12 @@ public partial class Clip : ObservableObject, INotifyDataErrorInfo
     private void AddError(string propertyName, string error)
     {
         if (!propertyErrors.ContainsKey(propertyName))
-            propertyErrors.Add(propertyName, new List<string>());
+            propertyErrors.Add(propertyName, new());
 
         if (!propertyErrors[propertyName].Contains(error))
         {
             propertyErrors[propertyName].Add(error);
-            ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(propertyName));
+            ErrorsChanged?.Invoke(this, new(propertyName));
 
             OnPropertyChanged(nameof(HasErrors));
         }
@@ -235,7 +237,7 @@ public partial class Clip : ObservableObject, INotifyDataErrorInfo
         if (propertyErrors.ContainsKey(propertyName) && propertyErrors[propertyName].Count > 0)
         {
             propertyErrors.Remove(propertyName);
-            ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(propertyName));
+            ErrorsChanged?.Invoke(this, new(propertyName));
 
             OnPropertyChanged(nameof(HasErrors));
         }
@@ -256,5 +258,6 @@ public partial class Clip : ObservableObject, INotifyDataErrorInfo
             ((AudioStreamSettings)audioSetting).PropertyChanged += OnAudioSettingPropertyChanged;
         }
     }
-#endregion
+
+    #endregion
 }

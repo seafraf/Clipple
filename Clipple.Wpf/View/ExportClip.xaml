@@ -125,7 +125,7 @@
 
                 <Expander Header="Encoding" materialDesign:ExpanderAssist.HorizontalHeaderPadding="0 8 0 0">
                     <StackPanel>
-                        <ComboBox Grid.Column="1" Margin="0 0 0 4" materialDesign:HintAssist.Hint="Output format"
+                        <ComboBox Margin="0 0 0 4" materialDesign:HintAssist.Hint="Output format"
                                   Style="{StaticResource MaterialDesignFilledComboBox}"
                                   ItemsSource="{Binding Path=ContainerFormatCollection.SupportedFormats, Source={x:Static local:App.ViewModel}}"
                                   SelectedItem="{Binding Path=Clip.ContainerFormat}"

@@ -54,7 +54,7 @@
                         <!-- Library -->
                         <Grid Grid.Column="1"
                               Visibility="{Binding IsLibrarySelected, Converter={StaticResource BooleanToVisibilityConverter}}">
-                            <views:Library DataContext="{Binding Library}" />
+                            <views:Library x:Name="LibraryControl" DataContext="{Binding Library}" />
                         </Grid>
 
                         <!-- Settings -->
@@ -106,7 +106,7 @@
             <materialDesign:Snackbar x:Name="Snackbar"
                                      ActionButtonStyle="{StaticResource MaterialDesignSnackbarActionDarkButton}"
                                      MessageQueue="{Binding MessageQueue, Source={x:Static local:App.Notifications}}"
-                                     Margin="16 0 16 16"/>
+                                     Margin="16 0 16 16" />
         </Grid>
     </materialDesign:DialogHost>
 </Window>

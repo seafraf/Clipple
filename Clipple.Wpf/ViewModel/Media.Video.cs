@@ -1,20 +1,21 @@
-﻿using Clipple.Types;
-using FFmpeg.AutoGen;
+﻿using FFmpeg.AutoGen;
 using LiteDB;
-using System.Text.Json.Serialization;
 
 namespace Clipple.ViewModel;
 
 public partial class Media
 {
-    #region 
-    private int? videoWidth = -1;
-    private int? videoHeight = -1;
-    private int? videoFps = -1;
+    #region Members
+
+    private int?       videoWidth  = -1;
+    private int?       videoHeight = -1;
+    private int?       videoFps    = -1;
     private AVCodecID? videoCodecID;
+
     #endregion
 
     #region Properties
+
     /// <summary>
     ///     Video width in pixels
     /// </summary>
@@ -72,5 +73,6 @@ public partial class Media
     /// </summary>
     [BsonIgnore]
     public string VideoResolution => $"{VideoWidth}x{VideoHeight}";
+
     #endregion
 }

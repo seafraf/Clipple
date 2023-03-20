@@ -1,9 +1,8 @@
 ﻿<UserControl x:Class="Clipple.View.LibraryDeleteMedia"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:Clipple.View"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:viewmodel="clr-namespace:Clipple.ViewModel"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              mc:Ignorable="d" d:DataContext="{d:DesignInstance Type=viewmodel:LibraryDeleteTask}"
@@ -22,17 +21,17 @@
             <ItemsControl ItemsSource="{Binding SelectedMedia}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <CheckBox IsChecked="{Binding Selected}" Content="{Binding Media.FilePath}"  Margin="0 0 4 0" materialDesign:CheckBoxAssist.CheckBoxSize="19" />
+                        <CheckBox IsChecked="{Binding Selected}" Content="{Binding Media.FilePath}" Margin="0 0 4 0" materialDesign:CheckBoxAssist.CheckBoxSize="19" />
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
-            
+
             <StackPanel Orientation="Vertical" Margin="0 16 0 0" Visibility="{Binding DeleteFiles, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <materialDesign:PackIcon Kind="Warning" Width="24" Height="24" HorizontalAlignment="Center" />
-                <TextBlock Text="This action will permanently delete the selected files from the file system" Margin="4" Style="{StaticResource MaterialDesignBody1TextBlock}"/>
+                <TextBlock Text="This action will permanently delete the selected files from the file system" Margin="4" Style="{StaticResource MaterialDesignBody1TextBlock}" />
             </StackPanel>
         </StackPanel>
-        
+
         <Grid Grid.Row="1" Margin="8 0 8 8">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="auto" />
@@ -42,15 +41,15 @@
             </Grid.ColumnDefinitions>
 
             <CheckBox Content="Delete files from disk" materialDesign:CheckBoxAssist.CheckBoxSize="20" Margin="8 0 0 0"
-                      IsChecked="{Binding DeleteFiles}"/>
-            
-            <Button Content="Cancel" Grid.Column="2" 
-                    Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}" 
+                      IsChecked="{Binding DeleteFiles}" />
+
+            <Button Content="Cancel" Grid.Column="2"
+                    Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}"
                     Style="{StaticResource MaterialDesignFlatLightButton}" />
-            
+
             <Button Content="Delete" Grid.Column="3"
-                    Command="{Binding DeleteCommand}" 
-                    Style="{StaticResource MaterialDesignFlatButton}"  />
+                    Command="{Binding DeleteCommand}"
+                    Style="{StaticResource MaterialDesignFlatButton}" />
         </Grid>
     </Grid>
 </UserControl>

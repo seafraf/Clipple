@@ -1,13 +1,8 @@
-﻿using Clipple.Types;
-using LiteDB;
-using MaterialDesignThemes.Wpf;
-using Microsoft.Toolkit.Mvvm.ComponentModel;
-using Microsoft.Toolkit.Mvvm.Input;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
+using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -15,7 +10,12 @@ using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows.Forms;
 using System.Windows.Input;
-using System.Data;
+using Clipple.Types;
+using Clipple.View;
+using LiteDB;
+using MaterialDesignThemes.Wpf;
+using Microsoft.Toolkit.Mvvm.ComponentModel;
+using Microsoft.Toolkit.Mvvm.Input;
 
 namespace Clipple.ViewModel;
 
@@ -24,9 +24,9 @@ public class Library : ObservableObject
     public Library()
     {
         Database = new(Path.Combine(
-                                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                                    Application.ProductName,
-                                    "library.db"));
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            Application.ProductName,
+            "library.db"));
 
         var collection = Database.GetCollection<Media>();
         collection.EnsureIndex(x => x.FilePath, true);
@@ -40,7 +40,8 @@ public class Library : ObservableObject
         MediaSource.CollectionChanged += (s, e) => { OnPropertyChanged(nameof(SearchHelp)); };
     }
 
-#region Members
+    #region Members
+
     private          Media?          selectedMedia;
     private readonly HashSet<Media>  dirtyMedia        = new();
     private readonly HashSet<string> importingMedia    = new();
@@ -49,24 +50,26 @@ public class Library : ObservableObject
     private          MediaFilterMode filterTagsMode    = MediaFilterMode.All;
     private          MediaFilterMode filterClassesMode = MediaFilterMode.Any;
     private          MediaFilterMode filterFormatsMode = MediaFilterMode.All;
-    private          int             activeFilterCount = 0;
-#endregion
+    private          int             activeFilterCount;
 
-#region Properties
+    #endregion
+
+    #region Properties
+
     private LiteDatabase Database { get; }
 
     /// <summary>
-    /// The source collection for the Media collection view
+    ///     The source collection for the Media collection view
     /// </summary>
     private ObservableCollection<Media> MediaSource { get; }
 
-    /// <summary>   
-    /// All of the media in the library
+    /// <summary>
+    ///     All of the media in the library
     /// </summary>
     public ListCollectionView Media { get; }
 
     /// <summary>
-    /// The selected media entry.  Can be null if the Media list is empty
+    ///     The selected media entry.  Can be null if the Media list is empty
     /// </summary>
     public Media? SelectedMedia
     {
@@ -83,20 +86,20 @@ public class Library : ObservableObject
     }
 
     /// <summary>
-    /// The selected media's parent media's path.  This a helper property mapping the selected media's
-    /// parent ID to path, which is displayed under the "Parent path" field for the selected media.
+    ///     The selected media's parent media's path.  This a helper property mapping the selected media's
+    ///     parent ID to path, which is displayed under the "Parent path" field for the selected media.
     /// </summary>
     public string? SelectedMediaParentPath =>
         SelectedMedia is not { ParentId: { } id }
             ? null
             : Database.GetCollection<Media>().Query()
-                      .Where(x => x.Id == id)
-                      .Select(x => x.FilePath)
-                      .FirstOrDefault();
+                .Where(x => x.Id == id)
+                .Select(x => x.FilePath)
+                .FirstOrDefault();
 
     /// <summary>
-    /// The selected media's clips as a list of their paths.  This is a helper property mapping the selected media's
-    /// list of produced clips to the path of those clips
+    ///     The selected media's clips as a list of their paths.  This is a helper property mapping the selected media's
+    ///     list of produced clips to the path of those clips
     /// </summary>
     public List<string> SelectedMediaClipPaths
     {
@@ -106,14 +109,14 @@ public class Library : ObservableObject
                 return new();
 
             return Database.GetCollection<Media>().Query()
-                           .Where(x => media.Clips.Contains(x.Id))
-                           .Select(x => x.FilePath)
-                           .ToList();
+                .Where(x => media.Clips.Contains(x.Id))
+                .Select(x => x.FilePath)
+                .ToList();
         }
     }
 
     /// <summary>
-    /// Search phrase
+    ///     Search phrase
     /// </summary>
     public string? SearchText
     {
@@ -130,7 +133,7 @@ public class Library : ObservableObject
     }
 
     /// <summary>
-    /// The text that was used to generate the current filtered list
+    ///     The text that was used to generate the current filtered list
     /// </summary>
     public string? ActiveSearchText
     {
@@ -143,7 +146,7 @@ public class Library : ObservableObject
     }
 
     /// <summary>
-    /// Helper text for the search bar.  Due to a bug with XAML this must be a property
+    ///     Helper text for the search bar.  Due to a bug with XAML this must be a property
     /// </summary>
     public string SearchHelp
     {
@@ -157,22 +160,22 @@ public class Library : ObservableObject
     }
 
     /// <summary>
-    /// Tags used to filter displayed media
+    ///     Tags used to filter displayed media
     /// </summary>
     public ObservableCollection<Tag> FilterTags { get; } = new();
 
     /// <summary>
-    /// Classes used to filter displayed media
+    ///     Classes used to filter displayed media
     /// </summary>
     public ObservableCollection<MediaClassFilter> FilterClasses { get; } = new();
 
     /// <summary>
-    /// Types used to filter displayed media
+    ///     Types used to filter displayed media
     /// </summary>
     public ObservableCollection<ContainerFormat> FilterFormats { get; } = new();
 
     /// <summary>
-    /// Mode used to filter tags
+    ///     Mode used to filter tags
     /// </summary>
     public MediaFilterMode FilterTagsMode
     {
@@ -181,7 +184,7 @@ public class Library : ObservableObject
     }
 
     /// <summary>
-    /// Mode used to filter classes
+    ///     Mode used to filter classes
     /// </summary>
     public MediaFilterMode FilterClassesMode
     {
@@ -190,7 +193,7 @@ public class Library : ObservableObject
     }
 
     /// <summary>
-    /// Mode used to filter formats
+    ///     Mode used to filter formats
     /// </summary>
     public MediaFilterMode FilterFormatsMode
     {
@@ -199,18 +202,20 @@ public class Library : ObservableObject
     }
 
     /// <summary>
-    /// The number of active filters.  Only set when filter are applied (when ApplyFilters method is called)
+    ///     The number of active filters.  Only set when filter are applied (when ApplyFilters method is called)
     /// </summary>
     public int ActiveFilterCount
     {
         get => activeFilterCount;
         set => SetProperty(ref activeFilterCount, value);
     }
-#endregion
 
-#region Methods
+    #endregion
+
+    #region Methods
+
     /// <summary>
-    /// Creates a list of Media from the Media collection in the database.
+    ///     Creates a list of Media from the Media collection in the database.
     /// </summary>
     /// <returns>Task</returns>
     public async Task<List<Media>> GetMediaFromDatabase()
@@ -219,14 +224,13 @@ public class Library : ObservableObject
     }
 
     /// <summary>
-    /// Takes a list of media and initialises it for use in the library.  This will set the Media property.
+    ///     Takes a list of media and initialises it for use in the library.  This will set the Media property.
     /// </summary>
     /// <returns>Task</returns>
     public async Task LoadMedia(List<Media> mediaList)
     {
         var errors = new List<Exception>();
         foreach (var media in mediaList)
-        {
             try
             {
                 media.Initialise();
@@ -246,14 +250,13 @@ public class Library : ObservableObject
 
                 errors.Add(e);
             }
-        }
 
         if (errors.Count > 0)
             App.Notifications.NotifyException("Errors loading library", errors.ToArray());
     }
 
     /// <summary>
-    /// Called when media changes and requires saving.
+    ///     Called when media changes and requires saving.
     /// </summary>
     private void OnMediaDirty(object? mediaObj, EventArgs _)
     {
@@ -262,8 +265,8 @@ public class Library : ObservableObject
     }
 
     /// <summary>
-    /// Called when media changes and requires saving.  This event is rate limited and only called a max of one time
-    /// per second per media. 
+    ///     Called when media changes and requires saving.  This event is rate limited and only called a max of one time
+    ///     per second per media.
     /// </summary>
     private void OnMediaRequestUpdate(object? mediaObj, EventArgs _)
     {
@@ -279,12 +282,12 @@ public class Library : ObservableObject
     }
 
     /// <summary>
-    /// Called when a media a user has requested to delete a media file.  This operation needs will:
-    /// - Unload the media from the editor if it is loaded
-    /// - Delete the file from the disk if deleteFile is true
-    /// - Delete the media's cache directory
-    /// - Remove the media from the database
-    /// - Remove the media from any collection in the library that might have it
+    ///     Called when a media a user has requested to delete a media file.  This operation needs will:
+    ///     - Unload the media from the editor if it is loaded
+    ///     - Delete the file from the disk if deleteFile is true
+    ///     - Delete the media's cache directory
+    ///     - Remove the media from the database
+    ///     - Remove the media from any collection in the library that might have it
     /// </summary>
     private void OnMediaRequestDelete(object? mediaObj, bool deleteFile)
     {
@@ -294,6 +297,9 @@ public class Library : ObservableObject
         // Make sure nothing is using files from this media
         if (App.ViewModel.MediaEditor.Media == media)
             App.ViewModel.MediaEditor.Media = null;
+
+        if (media == SelectedMedia)
+            App.Window.LibraryControl.MediaPreview.MediaPlayer.Stop();
 
         media.DeleteCache();
 
@@ -322,16 +328,18 @@ public class Library : ObservableObject
     }
 
     /// <summary>
-    /// Add a media file to the library.
+    ///     Add a media file to the library.
     /// </summary>
     /// <param name="file">The file path</param>
-    /// <param name="parentId">The ID of the media that this media was created from. Pass null if this was not
-    /// created by media in the library</param>
+    /// <param name="parentId">
+    ///     The ID of the media that this media was created from. Pass null if this was not
+    ///     created by media in the library
+    /// </param>
     private async Task<Media> AddMediaInternal(string file, ObjectId? parentId)
     {
         // Mark this file as being imported
         importingMedia.Add(file);
-        
+
         try
         {
             // Create and initialise
@@ -369,22 +377,26 @@ public class Library : ObservableObject
 
 
     /// <summary>
-    /// Adds a single media file to the library
+    ///     Adds a single media file to the library
     /// </summary>
     /// <param name="file">The file to add</param>
-    /// <param name="parentId">The ID of the media that this media was created from. Pass null if this was not
-    /// created by media in the library</param>
-    /// <param name="replace">Whether or not this media should replace media with the same path.  If this is false
-    /// this function will fail and warn the user</param>
+    /// <param name="parentId">
+    ///     The ID of the media that this media was created from. Pass null if this was not
+    ///     created by media in the library
+    /// </param>
+    /// <param name="replace">
+    ///     Whether or not this media should replace media with the same path.  If this is false
+    ///     this function will fail and warn the user
+    /// </param>
     /// <returns>Task</returns>
     public async Task<Media?> AddMedia(string file, ObjectId? parentId = null, bool replace = false)
     {
         if (importingMedia.Contains(file))
         {
-            App.Notifications.NotifyWarning($"File already queued for import");
+            App.Notifications.NotifyWarning("File already queued for import");
             return null;
         }
-        
+
         if (MediaSource.FirstOrDefault(x => string.Equals(x.FilePath, file, StringComparison.CurrentCultureIgnoreCase)) is { } existingMedia)
         {
             if (replace)
@@ -394,27 +406,27 @@ public class Library : ObservableObject
             }
             else
             {
-                App.Notifications.NotifyWarning($"File already imported");
-                return null;   
+                App.Notifications.NotifyWarning("File already imported");
+                return null;
             }
         }
 
         try
         {
             var media = await AddMediaInternal(file, parentId);
-            App.Notifications.NotifyInfo($"Added media to the library!");
+            App.Notifications.NotifyInfo("Added media to the library!");
 
             return media;
         }
         catch (Exception e)
         {
-            App.Notifications.NotifyException($"Failed to add media", e);
+            App.Notifications.NotifyException("Failed to add media", e);
             return null;
         }
     }
 
     /// <summary>
-    /// Adds a group of media, e.g from a folder
+    ///     Adds a group of media, e.g from a folder
     /// </summary>
     /// <param name="files">The files to add</param>
     /// <param name="source">A name describing the source of the files</param>
@@ -425,9 +437,9 @@ public class Library : ObservableObject
         // This function should only be used on collections of media > 1
         if (files.Length == 1)
         {
-            if (await AddMedia(files[0]) is not { } media || !open) 
+            if (await AddMedia(files[0]) is not { } media || !open)
                 return;
-            
+
             SelectedMedia                   = media;
             App.ViewModel.MediaEditor.Media = media;
             return;
@@ -436,7 +448,6 @@ public class Library : ObservableObject
         var    errors             = new List<Exception>();
         Media? firstImportedMedia = null;
         foreach (var file in files)
-        {
             try
             {
                 if (Database.GetCollection<Media>().Exists(x => x.FilePath.Equals(file, StringComparison.OrdinalIgnoreCase)))
@@ -448,7 +459,6 @@ public class Library : ObservableObject
             {
                 errors.Add(e);
             }
-        }
 
         if (firstImportedMedia != null && open)
         {
@@ -457,15 +467,13 @@ public class Library : ObservableObject
         }
 
         if (errors.Count == 0)
-        {
             App.Notifications.NotifyInfo($"Added {files.Length} media files from {source}");
-        }
         else
             App.Notifications.NotifyException($"Failed to import {errors.Count}/{files.Length} media files from {source}", errors.ToArray());
     }
 
     /// <summary>
-    /// Saves the media from the dirty media list.  This function should be called before 
+    ///     Saves the media from the dirty media list.  This function should be called before
     /// </summary>
     public void SaveDirtyMedia()
     {
@@ -474,7 +482,7 @@ public class Library : ObservableObject
     }
 
     /// <summary>
-    /// Checks whether or not a specific media matches the currently configured filters.
+    ///     Checks whether or not a specific media matches the currently configured filters.
     /// </summary>
     /// <param name="media">The media to check</param>
     /// <returns>Whether or not filters are matched</returns>
@@ -520,7 +528,7 @@ public class Library : ObservableObject
     }
 
     /// <summary>
-    /// Applies all filters
+    ///     Applies all filters
     /// </summary>
     public void ApplyFilters()
     {
@@ -532,7 +540,7 @@ public class Library : ObservableObject
     }
 
     /// <summary>
-    /// Finds media by ID.  This doesn't use the Database for querying to avoid deserializing it again.
+    ///     Finds media by ID.  This doesn't use the Database for querying to avoid deserializing it again.
     /// </summary>
     /// <param name="id">The media's ID</param>
     /// <returns>The media or null if no media is found with the specified ID</returns>
@@ -540,9 +548,9 @@ public class Library : ObservableObject
     {
         return MediaSource.FirstOrDefault(x => x.Id == id);
     }
-    
+
     /// <summary>
-    /// Finds media by file path.  TThis doesn't use the Database for querying to avoid deserializing it again.
+    ///     Finds media by file path.  TThis doesn't use the Database for querying to avoid deserializing it again.
     /// </summary>
     /// <param name="path">The media's full file path</param>
     /// <returns>The media or null if no media is found with the specified file path</returns>
@@ -550,9 +558,11 @@ public class Library : ObservableObject
     {
         return MediaSource.FirstOrDefault(x => string.Equals(x.FilePath, path, StringComparison.CurrentCultureIgnoreCase));
     }
-#endregion
 
-#region Media commands
+    #endregion
+
+    #region Media commands
+
     public ICommand OpenInEditorCommand => new RelayCommand(() =>
     {
         if (SelectedMedia == null)
@@ -567,7 +577,7 @@ public class Library : ObservableObject
         if (list == null)
             return;
 
-        DialogHost.Show(new View.LibraryDeleteMedia()
+        DialogHost.Show(new LibraryDeleteMedia
         {
             DataContext = new LibraryDeleteTask(list.OfType<Media>())
         });
@@ -578,7 +588,7 @@ public class Library : ObservableObject
         if (list == null)
             return;
 
-        DialogHost.Show(new View.LibraryEditTags()
+        DialogHost.Show(new LibraryEditTags
         {
             DataContext = new LibraryEditTagsTask(list.OfType<Media>())
         });
@@ -595,16 +605,14 @@ public class Library : ObservableObject
     public ICommand SelectByPathCommand => new RelayCommand<string>(path =>
     {
         foreach (var media in MediaSource)
-        {
             if (media.FilePath == path)
             {
                 SelectedMedia = media;
                 return;
             }
-        }
     });
 
-    public ICommand OpenInExplorerCommand => new RelayCommand<string>((path) =>
+    public ICommand OpenInExplorerCommand => new RelayCommand<string>(path =>
     {
         Process.Start(new ProcessStartInfo("explorer.exe")
         {
@@ -612,9 +620,11 @@ public class Library : ObservableObject
             Arguments       = $"/select,\"{path}\""
         });
     });
-#endregion
 
-#region Filter tag commands
+    #endregion
+
+    #region Filter tag commands
+
     public ICommand AddFilterTagCommand => new RelayCommand(() =>
     {
         var name = App.ViewModel.TagSuggestionRegistry.ActiveTagNames.LastOrDefault();
@@ -625,41 +635,43 @@ public class Library : ObservableObject
         if (value == null)
             return;
 
-        FilterTags.Add(new Tag(name, value, true));
+        FilterTags.Add(new(name, value, true));
     });
 
-    public ICommand RemoveFilterTagCommand => new RelayCommand<Tag>((tag) =>
+    public ICommand RemoveFilterTagCommand => new RelayCommand<Tag>(tag =>
     {
         if (tag != null)
             FilterTags.Remove(tag);
     });
 
     public ICommand ClearFilterTagsCommand => new RelayCommand(FilterTags.Clear);
-#endregion
 
-#region Filter class commands
+    #endregion
+
+    #region Filter class commands
+
     public ICommand AddFilterClassCommand => new RelayCommand(() =>
     {
         foreach (var @class in MediaClass.MediaClasses)
-        {
             if (!FilterClasses.Any(x => x.Class == @class))
             {
-                FilterClasses.Add(new MediaClassFilter(@class));
+                FilterClasses.Add(new(@class));
                 break;
             }
-        }
     });
 
-    public ICommand RemoveFilterClassCommand => new RelayCommand<MediaClassFilter>((@class) =>
+    public ICommand RemoveFilterClassCommand => new RelayCommand<MediaClassFilter>(@class =>
     {
         if (@class != null)
             FilterClasses.Remove(@class);
     });
 
     public ICommand ClearFilterClassesCommand => new RelayCommand(FilterClasses.Clear);
-#endregion
 
-#region Filter type commands
+    #endregion
+
+    #region Filter type commands
+
     public ICommand AddFilterFormatCommand => new RelayCommand(() =>
     {
         // foreach (var format in MediaFormat.SupportedFormats)
@@ -672,16 +684,18 @@ public class Library : ObservableObject
         // }
     });
 
-    public ICommand RemoveFilterFormatCommand => new RelayCommand<ContainerFormat>((output) =>
+    public ICommand RemoveFilterFormatCommand => new RelayCommand<ContainerFormat>(output =>
     {
         if (output != null)
             FilterFormats.Remove(output);
     });
 
     public ICommand ClearFilterFormatsCommand => new RelayCommand(FilterFormats.Clear);
-#endregion
 
-#region Filter commands
+    #endregion
+
+    #region Filter commands
+
     public ICommand ApplyFiltersCommand => new RelayCommand(ApplyFilters);
 
     public ICommand ResetFiltersCommand => new RelayCommand(() =>
@@ -690,5 +704,6 @@ public class Library : ObservableObject
         FilterClasses.Clear();
         FilterFormats.Clear();
     });
-#endregion
+
+    #endregion
 }

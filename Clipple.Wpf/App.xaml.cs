@@ -1,90 +1,88 @@
-﻿using Clipple.View;
+﻿using System;
+using System.IO;
+using System.Windows;
+using System.Windows.Threading;
+using Clipple.View;
 using Clipple.ViewModel;
 using FFmpeg.AutoGen;
-using Squirrel;
-using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
-using System.Timers;
-using System.Windows;
 using LiteDB;
+using Squirrel;
 
-namespace Clipple
+namespace Clipple;
+
+/// <summary>
+///     Interaction logic for App.xaml
+/// </summary>
+public partial class App
 {
     /// <summary>
-    /// Interaction logic for App.xaml
+    ///     A reference to the root VM
     /// </summary>
-    public partial class App : Application
+    public static Root ViewModel => (Root)Current.Resources[nameof(Root)];
+
+    /// <summary>
+    ///     Reference to the notifications VM
+    /// </summary>
+    public static Notifications Notifications { get; } = new();
+
+    /// <summary>
+    ///     A reference to the main window instance.
+    /// </summary>
+    public static MainWindow Window => (MainWindow)Current.MainWindow;
+
+    /// <summary>
+    ///     The path to the FFmpeg libraries and executables.
+    /// </summary>
+    public static string LibPath { get; } = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Binaries", Environment.Is64BitProcess ? "64" : "32");
+
+    /// <summary>
+    ///     Version provided by Clowd.Squirrel
+    /// </summary>
+    public static SemanticVersion? Version { get; private set; }
+
+    public App()
     {
-        /// <summary>
-        /// A reference to the root VM
-        /// </summary>
-        public static Root ViewModel => (Root)Current.Resources[nameof(Root)];
+        DispatcherUnhandledException += OnDispatcherUnhandledException;
 
-        /// <summary>
-        /// Reference to the notifications VM
-        /// </summary>
-        public static Notifications Notifications { get; } = new();
+        ffmpeg.RootPath                     = LibPath;
+        BsonMapper.Global.EmptyStringToNull = false;
+    }
 
-        /// <summary>
-        /// A reference to the main window instance.
-        /// </summary>
-        public static MainWindow Window => (MainWindow)Current.MainWindow;
+    /// <summary>
+    ///     Attempt to handle all uncaught exceptions.  This is mostly here for debugging purposes so that users can send error
+    ///     messages
+    ///     in, instead of the application just closing.
+    /// </summary>
+    private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+    {
+        Notifications.NotifyException("Unexpected error", e.Exception);
+        e.Handled = true;
+    }
 
-        /// <summary>
-        /// The path to the FFmpeg libraries and executables.
-        /// </summary>
-        public static string LibPath { get; } = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Binaries", Environment.Is64BitProcess ? "64" : "32");
+    protected override void OnStartup(StartupEventArgs e)
+    {
+        base.OnStartup(e);
 
-        public App()
-        {
-            DispatcherUnhandledException += OnDispatcherUnhandledException;
+        SquirrelAwareApp.HandleEvents(OnAppInstall, onAppUninstall: OnAppUninstall, onEveryRun: OnAppRun);
+    }
 
-            ffmpeg.RootPath                     = LibPath;
-            BsonMapper.Global.EmptyStringToNull = false;
-        }
+    private static void OnAppInstall(SemanticVersion version, IAppTools tools)
+    {
+        tools.CreateShortcutForThisExe(ShortcutLocation.StartMenu);
+    }
 
-        /// <summary>
-        /// Attempt to handle all uncaught exceptions.  This is mostly here for debugging purposes so that users can send error messages 
-        /// in, instead of the application just closing.
-        /// </summary>
-        private void OnDispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
-        {
-            Notifications.NotifyException("Unexpected error", e.Exception);
-            e.Handled = true;
-        }
+    private static void OnAppUninstall(SemanticVersion version, IAppTools tools)
+    {
+        tools.RemoveShortcutForThisExe(ShortcutLocation.StartMenu);
+    }
 
-        protected override void OnStartup(StartupEventArgs e)
-        {
-            base.OnStartup(e);
+    private static void OnAppRun(SemanticVersion? version, IAppTools tools, bool firstRun)
+    {
+        Version = version ?? new SemanticVersion("0.0.0-DEBUG");
 
-            SquirrelAwareApp.HandleEvents(onInitialInstall: OnAppInstall, onAppUninstall: OnAppUninstall, onEveryRun: OnAppRun);
-        }
+        tools.SetProcessAppUserModelId();
 
-        private static void OnAppInstall(SemanticVersion version, IAppTools tools)
-        {
-            tools.CreateShortcutForThisExe(ShortcutLocation.StartMenu);
-        }
-
-        private static void OnAppUninstall(SemanticVersion version, IAppTools tools)
-        {
-            tools.RemoveShortcutForThisExe(ShortcutLocation.StartMenu);
-        }
-
-        private static void OnAppRun(SemanticVersion version, IAppTools tools, bool firstRun)
-        {
-            //ViewModel.UpdateViewModel.CurrentVersion = version ?? new SemanticVersion("1.0.0-VS-debug");
-
-            tools.SetProcessAppUserModelId();
-
-            if (firstRun) 
-                MessageBox.Show("Installed!");
-        }
+        if (firstRun)
+            MessageBox.Show("Installed!");
     }
 }

@@ -28,7 +28,7 @@ public class AudioVideoCodec : IEquatable<AudioVideoCodec>
         if (name == null || longName == null)
             return null;
 
-        return new AudioVideoCodec(codec->id, codec->type, name, longName);
+        return new(codec->id, codec->type, name, longName);
     }
 
     public AVCodecID   Id          { get; }

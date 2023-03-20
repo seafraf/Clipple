@@ -1,26 +1,21 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Data;
 
-namespace Clipple.Converters
+namespace Clipple.Converters;
+
+public class ComparisonConverter : IValueConverter
 {
-    public class ComparisonConverter : IValueConverter
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (value == null && parameter == null)
-                return true;
+        if (value == null && parameter == null)
+            return true;
 
-            return value?.Equals(parameter);
-        }
+        return value?.Equals(parameter);
+    }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            return value?.Equals(true) == true ? parameter : Binding.DoNothing;
-        }
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        return value?.Equals(true) == true ? parameter : Binding.DoNothing;
     }
 }

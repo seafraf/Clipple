@@ -1,31 +1,31 @@
 ﻿<UserControl x:Class="Clipple.View.Settings"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:viewmodel="clr-namespace:Clipple.ViewModel" 
-             mc:Ignorable="d" 
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:viewmodel="clr-namespace:Clipple.ViewModel"
+             mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800" d:DataContext="{d:DesignInstance Type=viewmodel:Settings}" MinWidth="400">
     <StackPanel>
-        <Expander Header="General" >
+        <Expander Header="General">
             <StackPanel>
-                <CheckBox Content="Create output folder if it doesn't exist" Margin="2" IsChecked="{Binding Path=CreateOutputFolder}"/>
+                <CheckBox Content="Create output folder if it doesn't exist" Margin="2" IsChecked="{Binding Path=CreateOutputFolder}" />
                 <TextBox Margin="2" Text="{Binding Path=DefaultOutputFolder}" />
 
                 <Separator Margin="0 8 0 8" />
 
-                <CheckBox Content="Add videos from the ingest folder automatically at startup" Margin="2" IsChecked="{Binding Path=IngestAutomatically}"/>
+                <CheckBox Content="Add videos from the ingest folder automatically at startup" Margin="2" IsChecked="{Binding Path=IngestAutomatically}" />
                 <TextBox Margin="2" Text="{Binding Path=IngestFolder}" IsEnabled="{Binding Path=IngestAutomatically}" />
 
                 <Separator Margin="0 8 0 8" />
 
                 <CheckBox Content="Mark new videos for deletion automatically" Margin="2" IsChecked="{Binding Path=DefaultDeleteVideos}" />
-                <CheckBox Content="Mark new clips for removal automatically" Margin="2" IsChecked="{Binding Path=DefaultRemoveClips}"/>
+                <CheckBox Content="Mark new clips for removal automatically" Margin="2" IsChecked="{Binding Path=DefaultRemoveClips}" />
                 <CheckBox Content="Start clip processing automatically" Margin="2" IsChecked="{Binding Path=StartProcessingAutomatically}" />
                 <CheckBox Content="Convert Microphone input to mono by default (experimental)" Margin="2" IsChecked="{Binding Path=DefaultMicrophoneMono}" />
-            </StackPanel> 
+            </StackPanel>
         </Expander>
-        <Expander Header="Persistence" >
+        <Expander Header="Persistence">
             <StackPanel>
                 <CheckBox Content="Autosave" Margin="2" IsChecked="{Binding Path=AutoSave}" />
                 <CheckBox Content="Save on exit" Margin="2" IsChecked="{Binding Path=SaveOnExit}" />
@@ -34,7 +34,7 @@
                 <Separator Margin="0 8 0 8" />
             </StackPanel>
         </Expander>
-        <Expander Header="Key bindings" >
+        <Expander Header="Key bindings">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="120" />
@@ -72,7 +72,7 @@
         </Expander>
         <Expander Header="Appearence">
             <StackPanel>
-                <CheckBox Content="Dark mode" Margin="2" IsChecked="{Binding Path=ThemeIsDark}"/>
+                <CheckBox Content="Dark mode" Margin="2" IsChecked="{Binding Path=ThemeIsDark}" />
                 <Grid Margin="2">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="120" />

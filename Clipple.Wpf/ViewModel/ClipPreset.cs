@@ -1,13 +1,5 @@
 ﻿using LiteDB;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
-using Microsoft.Toolkit.Mvvm.Input;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json.Serialization;
-using System.Threading.Tasks;
-using System.Windows.Input;
 
 namespace Clipple.ViewModel;
 
@@ -23,7 +15,8 @@ public class ClipPreset : ObservableObject
         this.audioCodecIndex      = audioCodecIndex;
     }
 
-#region Members
+    #region Members
+
     private string name;
     private string category;
     private long   priority;
@@ -44,9 +37,11 @@ public class ClipPreset : ObservableObject
     private int?    cropWidth;
     private int?    cropHeight;
     private string? extension;
-#endregion
 
-#region Properties
+    #endregion
+
+    #region Properties
+
     public string Name
     {
         get => name;
@@ -160,5 +155,6 @@ public class ClipPreset : ObservableObject
         get => extension;
         set => SetProperty(ref extension, value);
     }
-#endregion
+
+    #endregion
 }

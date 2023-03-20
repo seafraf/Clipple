@@ -1,6 +1,4 @@
 ﻿using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Globalization;
 using System.Windows.Media;
 using Clipple.AudioFilters;
 using FFmpeg.AutoGen;
@@ -10,59 +8,50 @@ using Microsoft.Toolkit.Mvvm.ComponentModel;
 namespace Clipple.ViewModel;
 
 /// <summary>
-/// The audio stream class is built using information provided by FFMPEG.  It contains:
-/// - Settings for playing the audio stream in the editor (filters, stream selection via IsEnabled, etc)
-/// - Settings for exporting the audio stream as a clip
-/// - Settings for displaying the audio clip in the UI (e.g the audio waveform)
-/// 
-/// When this class is used by a media view model, it:
-/// - Has a populated Waveform property
-/// - is used in the editor for:
-///   - MPV's filter, allowing audio filters for per-stream volume control and anything else.
-///   - Displaying a waveform for the stream inside the timeline control
-///   
-/// When this class is used by a clip view model, it:
-/// - Does NOT have a populated Waveform property
-/// - Is used for clip exporting exclusively
+///     The audio stream class is built using information provided by FFMPEG.  It contains:
+///     - Settings for playing the audio stream in the editor (filters, stream selection via IsEnabled, etc)
+///     - Settings for exporting the audio stream as a clip
+///     - Settings for displaying the audio clip in the UI (e.g the audio waveform)
+///     When this class is used by a media view model, it:
+///     - Has a populated Waveform property
+///     - is used in the editor for:
+///     - MPV's filter, allowing audio filters for per-stream volume control and anything else.
+///     - Displaying a waveform for the stream inside the timeline control
+///     When this class is used by a clip view model, it:
+///     - Does NOT have a populated Waveform property
+///     - Is used for clip exporting exclusively
 /// </summary>
 public class AudioStreamSettings : ObservableObject
 {
     [BsonCtor]
     public AudioStreamSettings(string name, int streamIndex, int audioStreamIndex, AVCodecID codecId)
     {
-        CodecID = codecId;
-        Name = name;
-        StreamIndex = streamIndex;
+        CodecID          = codecId;
+        Name             = name;
+        StreamIndex      = streamIndex;
         AudioStreamIndex = audioStreamIndex;
 
         InstallEvents();
     }
 
     #region Methods
+
     /// <summary>
-    /// Add event listeners to all filters so that if any propety on any filter is changed, the OnPropertyChanged
-    /// event is also called for this stream.
+    ///     Add event listeners to all filters so that if any propety on any filter is changed, the OnPropertyChanged
+    ///     event is also called for this stream.
     /// </summary>
     private void InstallEvents()
     {
-        foreach (var filter in audioFilters)
+        foreach (var filter in AudioFilters)
             filter.PropertyChanged += (s, e) => OnPropertyChanged(e.PropertyName);
     }
+
     #endregion
 
     #region Members
+
     private ImageSource? waveform;
-    private readonly ObservableCollection<AudioFilter> audioFilters = new()
-    {
-        new Volume.ViewModel()
-        {
-            IsEnabled = true
-        },
-        new Pan.ViewModel()
-        {
-            IsEnabled = false
-        },
-    };
+
     #endregion
 
     #region Properties
@@ -84,12 +73,12 @@ public class AudioStreamSettings : ObservableObject
     public int AudioStreamIndex { get; }
 
     /// <summary>
-    /// The ID of the codec used for this stream
+    ///     The ID of the codec used for this stream
     /// </summary>
     public AVCodecID CodecID { get; }
 
     /// <summary>
-    /// Helper function, returns the name of the codec for this stream
+    ///     Helper function, returns the name of the codec for this stream
     /// </summary>
     [BsonIgnore]
     public string CodecName => ffmpeg.avcodec_get_name(CodecID);
@@ -117,8 +106,19 @@ public class AudioStreamSettings : ObservableObject
     }
 
     /// <summary>
-    /// A list of all audio filters that apply to this stream.  Note the individual audio filter may be disabled.
+    ///     A list of all audio filters that apply to this stream.  Note the individual audio filter may be disabled.
     /// </summary>
-    public ObservableCollection<AudioFilter> AudioFilters { get => audioFilters; }
+    public ObservableCollection<AudioFilter> AudioFilters { get; } = new()
+    {
+        new Volume.ViewModel
+        {
+            IsEnabled = true
+        },
+        new Pan.ViewModel
+        {
+            IsEnabled = false
+        }
+    };
+
     #endregion
 }

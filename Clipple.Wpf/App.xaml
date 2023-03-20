@@ -1,8 +1,7 @@
 ﻿<Application x:Class="Clipple.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:Clipple" 
-             xmlns:System="clr-namespace:System;assembly=netstandard" 
+             xmlns:system="clr-namespace:System;assembly=netstandard"
              xmlns:converters="clr-namespace:Clipple.Converters"
              xmlns:vm="clr-namespace:Clipple.ViewModel"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
@@ -18,17 +17,17 @@
                     <converters:InverseBooleanConverter x:Key="InverseBooleanConverter" />
                     <converters:ComparisonConverter x:Key="ComparisonConverter" />
 
-                    <converters:ValueConverterGroup x:Key="InverseComparisonConverter" >
+                    <converters:ValueConverterGroup x:Key="InverseComparisonConverter">
                         <converters:ComparisonConverter />
                         <converters:InverseBooleanConverter />
                     </converters:ValueConverterGroup>
 
-                    <converters:ValueConverterGroup x:Key="ComparisonVisibilityConverter" >
+                    <converters:ValueConverterGroup x:Key="ComparisonVisibilityConverter">
                         <converters:ComparisonConverter />
                         <BooleanToVisibilityConverter />
                     </converters:ValueConverterGroup>
 
-                    <converters:ValueConverterGroup x:Key="InverseComparisonVisibilityConverter" >
+                    <converters:ValueConverterGroup x:Key="InverseComparisonVisibilityConverter">
                         <converters:ComparisonConverter />
                         <converters:InverseBooleanConverter />
                         <BooleanToVisibilityConverter />
@@ -44,8 +43,9 @@
                     <converters:BooleanAllVisibilityConverter x:Key="BooleanAllVisibilityConverter" />
 
                     <!-- Converter params -->
-                    <System:Int32 x:Key="IntZero">0</System:Int32>
-                    <System:Int32 x:Key="IntOne">1</System:Int32>
+                    <system:Int32 x:Key="IntZero">0</system:Int32>
+                    <system:Int32 x:Key="IntOne">1</system:Int32>
+                    <system:Int32 x:Key="IntNegativeOne">-1</system:Int32>
                 </ResourceDictionary>
 
                 <materialDesign:BundledTheme BaseTheme="Dark" PrimaryColor="Blue" SecondaryColor="Green" />

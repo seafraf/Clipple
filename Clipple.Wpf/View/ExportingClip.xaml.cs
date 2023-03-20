@@ -1,8 +1,6 @@
-﻿using System.Windows.Controls;
+﻿namespace Clipple.View;
 
-namespace Clipple.View;
-
-public partial class ExportingClip : UserControl
+public partial class ExportingClip
 {
     public ExportingClip()
     {

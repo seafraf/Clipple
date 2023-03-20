@@ -1,35 +1,31 @@
-﻿using Clipple.ViewModel;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System;
+using Clipple.ViewModel;
 
-namespace Clipple.FFMPEG
+namespace Clipple.FFMPEG;
+
+public class MediaInput
 {
-    public class MediaInput
+    public MediaInput(string inputFile, Media media)
     {
-        public MediaInput(string inputFile, Media media)
-        {
-            InputFile = inputFile;
-            this.media = media;
-        }
+        InputFile = inputFile;
+        if (media.Clip is not { } clip)
+            throw new NullReferenceException("Media input cannot have a null clip");
 
-        #region Members
-        private readonly Media media;
-        #endregion
+        Clip = clip;
+    }
 
-        #region Properties
-        public string InputFile { get; }
-        private Clip Clip => media.Clip;
+    #region Properties
 
-        public TimeSpan StartTime => Clip.StartTime;
-        public TimeSpan Duration => Clip.Duration;
-        #endregion
+    private string InputFile { get; }
+    private Clip   Clip      { get; }
 
-        public override string? ToString()
-        {
-            return $"-ss {StartTime} -t {Duration} -i \"{InputFile}\"";
-        }
+    private TimeSpan StartTime => Clip.StartTime;
+    private TimeSpan Duration  => Clip.Duration;
+
+    #endregion
+
+    public override string? ToString()
+    {
+        return $"-ss {StartTime} -t {Duration} -i \"{InputFile}\"";
     }
 }

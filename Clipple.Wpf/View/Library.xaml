@@ -1,14 +1,14 @@
 ﻿<UserControl x:Class="Clipple.View.Library"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:types="clr-namespace:Clipple.Types"
              xmlns:viewmodel="clr-namespace:Clipple.ViewModel"
              xmlns:view="clr-namespace:Clipple.View"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:converters="clr-namespace:Clipple.Converters"
-             mc:Ignorable="d" 
+             mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=viewmodel:Library}"
              d:DesignHeight="1000" d:DesignWidth="1900" AllowDrop="True" DragEnter="OnDragEnter" Drop="OnDrop" Background="Transparent">
     <UserControl.Resources>
@@ -37,7 +37,7 @@
 
                     <StackPanel Grid.Column="0" Orientation="Horizontal">
                         <StackPanel>
-                            <TextBox Width="300"  Margin="4"  materialDesign:TextFieldAssist.HasClearButton="True" materialDesign:HintAssist.HelperText="{Binding SearchHelp}"
+                            <TextBox Width="300" Margin="4" materialDesign:TextFieldAssist.HasClearButton="True" materialDesign:HintAssist.HelperText="{Binding SearchHelp}"
                                      Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" KeyDown="OnSearchKeyDown">
                                 <materialDesign:HintAssist.Hint>
                                     <StackPanel Orientation="Horizontal">
@@ -81,7 +81,8 @@
                                 Command="{Binding OpenInEditorCommand}">
                             <Button.IsEnabled>
                                 <MultiBinding Converter="{StaticResource BooleanAllConverter}">
-                                    <Binding ElementName="LibraryListView" Path="SelectedItems.Count" Converter="{StaticResource ComparisonConverter}" ConverterParameter="{StaticResource IntOne}" />
+                                    <Binding ElementName="LibraryListView" Path="SelectedItems.Count" Converter="{StaticResource ComparisonConverter}"
+                                             ConverterParameter="{StaticResource IntOne}" />
                                     <Binding Path="SelectedMedia.FileInfo.Exists" />
                                 </MultiBinding>
                             </Button.IsEnabled>
@@ -94,7 +95,8 @@
                                 CommandParameter="{Binding SelectedMedia.Uri.AbsoluteUri}">
                             <Button.IsEnabled>
                                 <MultiBinding Converter="{StaticResource BooleanAllConverter}">
-                                    <Binding ElementName="LibraryListView" Path="SelectedItems.Count" Converter="{StaticResource ComparisonConverter}" ConverterParameter="{StaticResource IntOne}" />
+                                    <Binding ElementName="LibraryListView" Path="SelectedItems.Count" Converter="{StaticResource ComparisonConverter}"
+                                             ConverterParameter="{StaticResource IntOne}" />
                                     <Binding Path="SelectedMedia.FileInfo.Exists" />
                                 </MultiBinding>
                             </Button.IsEnabled>
@@ -120,15 +122,17 @@
                           ItemsSource="{Binding Media, IsAsync=True}"
                           SelectedItem="{Binding SelectedMedia}">
                     <ListView.ContextMenu>
-                        <ContextMenu DataContext="{Binding Path=PlacementTarget.(ListView.DataContext), RelativeSource={RelativeSource Self}}" d:DataContext="{d:DesignInstance viewmodel:Library}">
+                        <ContextMenu DataContext="{Binding Path=PlacementTarget.(ListView.DataContext), RelativeSource={RelativeSource Self}}"
+                                     d:DataContext="{d:DesignInstance viewmodel:Library}">
 
                             <!-- Open in editor -->
                             <MenuItem Header="Edit"
-                                      Icon="{materialDesign:PackIcon Kind=MovieEdit}" 
+                                      Icon="{materialDesign:PackIcon Kind=MovieEdit}"
                                       Command="{Binding OpenInEditorCommand}">
                                 <MenuItem.IsEnabled>
                                     <MultiBinding Converter="{StaticResource BooleanAllConverter}">
-                                        <Binding RelativeSource="{RelativeSource AncestorType={x:Type ContextMenu}}" Path="PlacementTarget.(ListView.SelectedItems).Count" Converter="{StaticResource ComparisonConverter}" ConverterParameter="{StaticResource IntOne}" />
+                                        <Binding RelativeSource="{RelativeSource AncestorType={x:Type ContextMenu}}" Path="PlacementTarget.(ListView.SelectedItems).Count"
+                                                 Converter="{StaticResource ComparisonConverter}" ConverterParameter="{StaticResource IntOne}" />
                                         <Binding Path="SelectedMedia.FileInfo.Exists" />
                                     </MultiBinding>
                                 </MenuItem.IsEnabled>
@@ -136,12 +140,13 @@
 
                             <!-- Open in explorer -->
                             <MenuItem Header="Open in explorer"
-                                      Icon="{materialDesign:PackIcon Kind=Folder}" 
+                                      Icon="{materialDesign:PackIcon Kind=Folder}"
                                       Command="{Binding Path=OpenInExplorerCommand}"
                                       CommandParameter="{Binding SelectedMedia.Uri.AbsoluteUri}">
                                 <MenuItem.IsEnabled>
                                     <MultiBinding Converter="{StaticResource BooleanAllConverter}">
-                                        <Binding RelativeSource="{RelativeSource AncestorType={x:Type ContextMenu}}" Path="PlacementTarget.(ListView.SelectedItems).Count" Converter="{StaticResource ComparisonConverter}" ConverterParameter="{StaticResource IntOne}" />
+                                        <Binding RelativeSource="{RelativeSource AncestorType={x:Type ContextMenu}}" Path="PlacementTarget.(ListView.SelectedItems).Count"
+                                                 Converter="{StaticResource ComparisonConverter}" ConverterParameter="{StaticResource IntOne}" />
                                         <Binding Path="SelectedMedia.FileInfo.Exists" />
                                     </MultiBinding>
                                 </MenuItem.IsEnabled>
@@ -150,7 +155,7 @@
 
                             <!-- Mass edit tags -->
                             <MenuItem Header="Edit tags"
-                                      Icon="{materialDesign:PackIcon Kind=Tag}" 
+                                      Icon="{materialDesign:PackIcon Kind=Tag}"
                                       IsEnabled="{Binding Path=PlacementTarget.(ListView.SelectedItems).Count, Converter={StaticResource InverseComparisonConverter}, ConverterParameter={StaticResource IntZero}, RelativeSource={RelativeSource AncestorType={x:Type ContextMenu}}}"
                                       Command="{Binding Source={x:Static viewmodel:Library.OpenEditTagsCommand}}"
                                       CommandParameter="{Binding Path=PlacementTarget.(ListView.SelectedItems), RelativeSource={RelativeSource AncestorType={x:Type ContextMenu}}}" />
@@ -162,7 +167,7 @@
                                 <MenuItem.ItemContainerStyle>
                                     <Style TargetType="{x:Type MenuItem}" BasedOn="{StaticResource MaterialDesignMenuItem}">
                                         <Setter Property="Header" Value="{Binding Name}" />
-                                        <Setter Property="Command" Value="{Binding Source={x:Static viewmodel:Library.EditClassesCommand}}"/>
+                                        <Setter Property="Command" Value="{Binding Source={x:Static viewmodel:Library.EditClassesCommand}}" />
                                         <Setter Property="CommandParameter">
                                             <Setter.Value>
                                                 <MultiBinding Converter="{StaticResource EditClassesConverter}">
@@ -180,9 +185,9 @@
                             <!-- Delete selected tags -->
                             <MenuItem Header="Delete"
                                       Icon="{materialDesign:PackIcon Kind=Delete}"
-                                      IsEnabled="{Binding Path=PlacementTarget.(ListView.SelectedItems).Count, Converter={StaticResource InverseComparisonConverter}, ConverterParameter={StaticResource IntZero}, RelativeSource={RelativeSource AncestorType={x:Type ContextMenu}}}" 
+                                      IsEnabled="{Binding Path=PlacementTarget.(ListView.SelectedItems).Count, Converter={StaticResource InverseComparisonConverter}, ConverterParameter={StaticResource IntZero}, RelativeSource={RelativeSource AncestorType={x:Type ContextMenu}}}"
                                       Command="{Binding Source={x:Static viewmodel:Library.OpenDeleteDialogCommand}}"
-                                      CommandParameter="{Binding Path=PlacementTarget.(ListView.SelectedItems), RelativeSource={RelativeSource AncestorType={x:Type ContextMenu}}}"/>
+                                      CommandParameter="{Binding Path=PlacementTarget.(ListView.SelectedItems), RelativeSource={RelativeSource AncestorType={x:Type ContextMenu}}}" />
                         </ContextMenu>
                     </ListView.ContextMenu>
                     <ListView.View>
@@ -197,16 +202,17 @@
                             <GridViewColumn Header="Duration">
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
-                                        <TextBlock Text="{Binding Duration, StringFormat=mm\\:ss\\.ff}" Style="{StaticResource MaterialDesignBody2TextBlock}" VerticalAlignment="Center" />
+                                        <TextBlock Text="{Binding Duration, StringFormat=mm\\:ss\\.ff}" Style="{StaticResource MaterialDesignBody2TextBlock}"
+                                                   VerticalAlignment="Center" />
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
                             <GridViewColumn Header="Class">
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
-                                        <ComboBox DisplayMemberPath="Name" 
-                                                  SelectedItem="{Binding Class, UpdateSourceTrigger=PropertyChanged}" 
-                                                  SelectedIndex="{Binding ClassIndex, UpdateSourceTrigger=PropertyChanged}" 
+                                        <ComboBox DisplayMemberPath="Name"
+                                                  SelectedItem="{Binding Class, UpdateSourceTrigger=PropertyChanged}"
+                                                  SelectedIndex="{Binding ClassIndex, UpdateSourceTrigger=PropertyChanged}"
                                                   ItemsSource="{x:Static types:MediaClass.MediaClasses}"
                                                   IsEnabled="{Binding FileInfo.Exists}" />
                                     </DataTemplate>
@@ -232,8 +238,8 @@
                                                 <DataTemplate>
                                                     <materialDesign:Chip IsEnabled="False" Height="24" Margin="0">
                                                         <TextBlock>
-                                                                <Run Text="{Binding Name, StringFormat='{}{0}:'}" />
-                                                                <Run Text="{Binding Value}" />
+                                                            <Run Text="{Binding Name, StringFormat='{}{0}:'}" />
+                                                            <Run Text="{Binding Value}" />
                                                         </TextBlock>
                                                     </materialDesign:Chip>
                                                 </DataTemplate>
@@ -256,16 +262,16 @@
                     <Grid.Visibility>
                         <MultiBinding Converter="{StaticResource BooleanAllVisibilityConverter}">
                             <Binding Path="SelectedMedia" Converter="{StaticResource InverseComparisonConverter}" ConverterParameter="{x:Null}" />
-                            <Binding Path="SelectedMedia.FileInfo.Exists"  />
+                            <Binding Path="SelectedMedia.FileInfo.Exists" />
                         </MultiBinding>
                     </Grid.Visibility>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="auto" />
+                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
                     <materialDesign:Card Grid.Row="0" Margin="8" materialDesign:ElevationAssist.Elevation="Dp4">
-                        <MediaElement Source="{Binding SelectedMedia.FilePath}" LoadedBehavior="Pause" />
+                        <view:MediaPreview x:Name="MediaPreview" DataContext="{Binding SelectedMedia}" />
                     </materialDesign:Card>
 
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="4 4 4 4">
@@ -283,38 +289,40 @@
                                     <TextBox Text="{Binding SelectedMedia.FilePath, Mode=OneWay}" materialDesign:HintAssist.Hint="File path" />
                                     <TextBox Text="{Binding SelectedMedia.FileSize, Mode=OneWay}" materialDesign:HintAssist.Hint="File size" />
                                     <TextBox Text="{Binding SelectedMedia.Duration, StringFormat=mm\\:ss\\.ff, Mode=OneWay}" materialDesign:HintAssist.Hint="Duration" />
-                                    <TextBox Text="{Binding SelectedMedia.Description, UpdateSourceTrigger=PropertyChanged}" materialDesign:HintAssist.Hint="Description" IsReadOnly="False" />
-                                    <ComboBox DisplayMemberPath="Name" materialDesign:HintAssist.Hint="Class" materialDesign:HintAssist.IsFloating="True" 
-                                          SelectedItem="{Binding SelectedMedia.Class}" 
-                                          SelectedIndex="{Binding SelectedMedia.ClassIndex}" 
-                                          ItemsSource="{x:Static types:MediaClass.MediaClasses}" />
+                                    <TextBox Text="{Binding SelectedMedia.Description, UpdateSourceTrigger=PropertyChanged}" materialDesign:HintAssist.Hint="Description"
+                                             IsReadOnly="False" />
+                                    <ComboBox DisplayMemberPath="Name" materialDesign:HintAssist.Hint="Class" materialDesign:HintAssist.IsFloating="True"
+                                              SelectedItem="{Binding SelectedMedia.Class}"
+                                              SelectedIndex="{Binding SelectedMedia.ClassIndex}"
+                                              ItemsSource="{x:Static types:MediaClass.MediaClasses}" />
                                 </StackPanel>
                             </Expander>
-                            
+
                             <Expander Header="References">
                                 <StackPanel Margin="8 0 8 8">
-                                    <Grid Margin="0 0 0 0" Visibility="{Binding SelectedMediaParentPath, Converter={StaticResource InverseComparisonVisibilityConverter}, ConverterParameter={x:Null}}">
+                                    <Grid Margin="0 0 0 0"
+                                          Visibility="{Binding SelectedMediaParentPath, Converter={StaticResource InverseComparisonVisibilityConverter}, ConverterParameter={x:Null}}">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="Auto" />
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
-                                        
+
                                         <TextBox Grid.Column="0" Text="{Binding SelectedMediaParentPath, Mode=OneWay}" materialDesign:HintAssist.Hint="Produced by" />
-                                        
+
                                         <Button Grid.Column="1" Width="32" Height="32" ToolTip="Open in library" Margin="4 8 0 0"
-                                                Content="{materialDesign:PackIcon Library, Size=24}" 
-                                                Style="{StaticResource MaterialDesignIconButton}" 
+                                                Content="{materialDesign:PackIcon Library, Size=24}"
+                                                Style="{StaticResource MaterialDesignIconButton}"
                                                 Command="{Binding SelectByPathCommand}"
-                                                CommandParameter="{Binding SelectedMediaParentPath}"/>
-                                        
+                                                CommandParameter="{Binding SelectedMediaParentPath}" />
+
                                         <Button Grid.Column="2" Width="32" Height="32" ToolTip="Open in explorer" Margin="0 8 0 0"
                                                 Content="{materialDesign:PackIcon Folder, Size=24}"
                                                 Style="{StaticResource MaterialDesignIconButton}"
                                                 Command="{Binding OpenInExplorerCommand}"
-                                                CommandParameter="{Binding SelectedMediaParentPath}"/>
+                                                CommandParameter="{Binding SelectedMediaParentPath}" />
                                     </Grid>
-                                    
+
                                     <ItemsControl ItemsSource="{Binding SelectedMediaClipPaths}">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
@@ -324,15 +332,15 @@
                                                         <ColumnDefinition Width="Auto" />
                                                         <ColumnDefinition Width="Auto" />
                                                     </Grid.ColumnDefinitions>
-                                        
+
                                                     <TextBox Grid.Column="0" Text="{Binding Mode=OneWay}" materialDesign:HintAssist.Hint="Produced clip" />
-                                        
+
                                                     <Button Grid.Column="1" Width="32" Height="32" ToolTip="Open in library" Margin="4 8 0 0"
-                                                            Content="{materialDesign:PackIcon Library, Size=24}" 
-                                                            Style="{StaticResource MaterialDesignIconButton}" 
+                                                            Content="{materialDesign:PackIcon Library, Size=24}"
+                                                            Style="{StaticResource MaterialDesignIconButton}"
                                                             Command="{Binding DataContext.SelectByPathCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                                            CommandParameter="{Binding}"/>
-                                        
+                                                            CommandParameter="{Binding}" />
+
                                                     <Button Grid.Column="2" Width="32" Height="32" ToolTip="Open in explorer" Margin="0 8 0 0"
                                                             Content="{materialDesign:PackIcon Folder, Size=24}"
                                                             Style="{StaticResource MaterialDesignIconButton}"
@@ -361,8 +369,8 @@
                                                 <TextBox Text="{Binding CodecName, Mode=OneWay}">
                                                     <materialDesign:HintAssist.Hint>
                                                         <TextBlock>
-                                                        <Run Text="Codec for" />
-                                                        <Run Text="{Binding Name}" />
+                                                            <Run Text="Codec for" />
+                                                            <Run Text="{Binding Name}" />
                                                         </TextBlock>
                                                     </materialDesign:HintAssist.Hint>
                                                 </TextBox>
@@ -374,14 +382,16 @@
 
                             <Expander Header="Tags" IsExpanded="True">
                                 <StackPanel>
-                                    <DataGrid AutoGenerateColumns="False" EnableRowVirtualization="True" SelectionMode="Single" SelectionUnit="FullRow" CanUserAddRows="False" CanUserDeleteRows="False"
-                                          Visibility="{Binding SelectedMedia.Tags.Count, Converter={StaticResource InverseComparisonVisibilityConverter}, ConverterParameter={StaticResource IntZero}}"
-                                          ItemsSource="{Binding SelectedMedia.Tags, Mode=OneWay}">
+                                    <DataGrid AutoGenerateColumns="False" EnableRowVirtualization="True" SelectionMode="Single" SelectionUnit="FullRow" CanUserAddRows="False"
+                                              CanUserDeleteRows="False"
+                                              Visibility="{Binding SelectedMedia.Tags.Count, Converter={StaticResource InverseComparisonVisibilityConverter}, ConverterParameter={StaticResource IntZero}}"
+                                              ItemsSource="{Binding SelectedMedia.Tags, Mode=OneWay}">
                                         <DataGrid.Columns>
                                             <DataGridTemplateColumn Header="Name" Width="auto">
                                                 <DataGridTemplateColumn.CellTemplate>
                                                     <DataTemplate>
-                                                        <ComboBox IsEditable="True" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" ItemsSource="{Binding NameSuggestions}" />
+                                                        <ComboBox IsEditable="True" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
+                                                                  ItemsSource="{Binding NameSuggestions}" />
                                                     </DataTemplate>
                                                 </DataGridTemplateColumn.CellTemplate>
                                             </DataGridTemplateColumn>
@@ -389,7 +399,8 @@
                                             <DataGridTemplateColumn Header="Value" Width="*">
                                                 <DataGridTemplateColumn.CellTemplate>
                                                     <DataTemplate>
-                                                        <ComboBox IsEditable="True" Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}" ItemsSource="{Binding ValueSuggestions}" />
+                                                        <ComboBox IsEditable="True" Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}"
+                                                                  ItemsSource="{Binding ValueSuggestions}" />
                                                     </DataTemplate>
                                                 </DataGridTemplateColumn.CellTemplate>
                                             </DataGridTemplateColumn>
@@ -397,10 +408,10 @@
                                             <DataGridTemplateColumn CanUserResize="False" CanUserReorder="False">
                                                 <DataGridTemplateColumn.CellTemplate>
                                                     <DataTemplate>
-                                                        <Button Width="24" Height="24" Padding="0" 
-                                                            Style="{StaticResource MaterialDesignIconForegroundButton}"
-                                                            Command="{Binding DeleteCommand}"
-                                                            CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.SelectedMedia}">
+                                                        <Button Width="24" Height="24" Padding="0"
+                                                                Style="{StaticResource MaterialDesignIconForegroundButton}"
+                                                                Command="{Binding DeleteCommand}"
+                                                                CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.SelectedMedia}">
                                                             <materialDesign:PackIcon Kind="Close" Width="20" Height="20" Margin="0" Padding="0" />
                                                         </Button>
                                                     </DataTemplate>
@@ -410,8 +421,8 @@
                                     </DataGrid>
 
                                     <Button Margin="4" Content="Add tag"
-                                        Style="{StaticResource MaterialDesignRaisedDarkButton}"
-                                        Command="{Binding SelectedMedia.AddTagCommand}" />
+                                            Style="{StaticResource MaterialDesignRaisedDarkButton}"
+                                            Command="{Binding SelectedMedia.AddTagCommand}" />
                                 </StackPanel>
                             </Expander>
                         </StackPanel>
@@ -421,12 +432,12 @@
                     <Grid.Visibility>
                         <MultiBinding Converter="{StaticResource BooleanAllVisibilityConverter}">
                             <Binding Path="SelectedMedia" Converter="{StaticResource InverseComparisonConverter}" ConverterParameter="{x:Null}" />
-                            <Binding Path="SelectedMedia.FileInfo.Exists" Converter="{StaticResource InverseBooleanConverter}"  />
+                            <Binding Path="SelectedMedia.FileInfo.Exists" Converter="{StaticResource InverseBooleanConverter}" />
                         </MultiBinding>
                     </Grid.Visibility>
                     <StackPanel Margin="16">
                         <materialDesign:PackIcon Width="64" Height="64" Kind="Error" HorizontalAlignment="Center" />
-                        <TextBlock Text="The selected media does not exist!" HorizontalAlignment="Center" TextWrapping="Wrap" 
+                        <TextBlock Text="The selected media does not exist!" HorizontalAlignment="Center" TextWrapping="Wrap"
                                    Style="{StaticResource MaterialDesignBody1TextBlock}" />
                     </StackPanel>
                 </Grid>

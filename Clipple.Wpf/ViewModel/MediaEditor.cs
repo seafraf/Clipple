@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Threading;
 using Clipple.Types;
 using Clipple.View;
@@ -24,32 +22,29 @@ public class MediaEditor : ObservableObject
     {
         ZoomIn  = new RelayCommand(() => Zoom = Math.Clamp(Zoom + 0.05, 0.0, 1.0));
         ZoomOut = new RelayCommand(() => Zoom = Math.Clamp(Zoom - 0.05, 0.0, 1.0));
-        OpenExportDialogCommand = new RelayCommand(async () =>
+        OpenExportDialogCommand = new RelayCommand(() =>
         {
             if (Media == null)
                 return;
 
-            await DialogHost.Show(new ExportClip()
+            DialogHost.Show(new ExportClip
             {
                 DataContext = Media
             });
         });
 
 
-        MediaPlayer = new MpvPlayer(Path.Combine(App.LibPath, "mpv-2.dll"))
-                      {
-                          KeepOpen = KeepOpen.Always
-                      };
+        MediaPlayer = new(Path.Combine(App.LibPath, "mpv-2.dll"))
+        {
+            KeepOpen = KeepOpen.Always
+        };
 
         MediaPlayer.PositionChanged += OnMediaPositionChanged;
 
         MediaPlayer.MediaPaused   += (s, e) => OnPropertyChanged(nameof(IsPlaying));
         MediaPlayer.MediaResumed  += (s, e) => OnPropertyChanged(nameof(IsPlaying));
         MediaPlayer.MediaFinished += (s, e) => OnPropertyChanged(nameof(IsPlaying));
-        MediaPlayer.MediaError += (s, e) =>
-        {
-            State = MediaPlayerState.Error;
-        };
+        MediaPlayer.MediaError    += (s, e) => { State = MediaPlayerState.Error; };
         MediaPlayer.MediaLoaded   += OnMediaLoaded;
 
         var timelineDragTick = new DispatcherTimer();
@@ -66,7 +61,7 @@ public class MediaEditor : ObservableObject
     #region Members
 
     private TimeSpan         currentTime;
-    private Media?  media;
+    private Media?           media;
     private MediaPlayerState state = MediaPlayerState.Waiting;
     private bool             isTimelineBusy;
     private bool             isPlayQueued;
@@ -105,14 +100,14 @@ public class MediaEditor : ObservableObject
         {
             if (value != null)
                 App.ViewModel.AppState.EditorMediaId = value.Id;
-            
+
             // Unload old video
             if (media != null)
             {
                 SetStreamEvents(false);
                 Unload();
             }
-            
+
             SetProperty(ref media, value);
 
             OnPropertyChanged(nameof(Volume));
@@ -286,7 +281,7 @@ public class MediaEditor : ObservableObject
 
         State = MediaPlayerState.Ready;
 
-        if (Media == null) 
+        if (Media == null)
             return;
 
         // Load media settings into the MediaPlayer
@@ -313,19 +308,19 @@ public class MediaEditor : ObservableObject
         if (State != MediaPlayerState.Ready || WaitingFirstSeek)
             return;
 
-        if (Media != null)
+        if (Media is { Clip: { } clip })
         {
-            if (e.NewPosition > Media.Clip.EndTime)
+            if (e.NewPosition > clip.EndTime)
             {
                 Pause();
-                CurrentTime = Media.Clip.EndTime;
+                CurrentTime = clip.EndTime;
 
                 Seek(CurrentTime);
             }
 
-            if (e.NewPosition < Media.Clip.StartTime)
+            if (e.NewPosition < clip.StartTime)
             {
-                CurrentTime = Media.Clip.StartTime;
+                CurrentTime = clip.StartTime;
 
                 Seek(CurrentTime);
             }
@@ -497,15 +492,16 @@ public class MediaEditor : ObservableObject
 
         var enabledStreams = Media.AudioStreams.Where(x => x.IsEnabled).ToList();
 
-        var stringFilters   = new List<string>();
-        var inputs          = new List<string>();
+        var stringFilters = new List<string>();
+        var inputs        = new List<string>();
         foreach (var stream in enabledStreams)
         {
             var filters = stream.AudioFilters.Where(x => x.IsEnabled).ToList();
             if (filters.Count > 0)
             {
-                for (int i = 0; i < filters.Count; i++)
-                    stringFilters.Add($"[{(i == 0 ? $"aid{stream.AudioStreamIndex + 1}" : $"f_{stream.StreamIndex}_{i - 1}")}]{filters[i].FilterString}[f_{stream.StreamIndex}_{i}]");
+                for (var i = 0; i < filters.Count; i++)
+                    stringFilters.Add(
+                        $"[{(i == 0 ? $"aid{stream.AudioStreamIndex + 1}" : $"f_{stream.StreamIndex}_{i - 1}")}]{filters[i].FilterString}[f_{stream.StreamIndex}_{i}]");
 
                 inputs.Add($"[f_{stream.StreamIndex}_{filters.Count - 1}]");
             }
@@ -520,9 +516,7 @@ public class MediaEditor : ObservableObject
         var inputString  = string.Join("", inputs);
 
         if (stringFilters.Count == 0)
-        {
             MediaPlayer.API.SetPropertyString("lavfi-complex", $"{inputString}amix=inputs={inputs.Count}[ao]");
-        }
         else
             MediaPlayer.API.SetPropertyString("lavfi-complex", $"{filterString}; {inputString}amix=inputs={inputs.Count}[ao]");
     }

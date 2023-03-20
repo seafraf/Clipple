@@ -2,9 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text.Json.Serialization;
-using System.Windows;
-using Clipple.Types;
 using Clipple.Util.ISOBMFF;
 using FFmpeg.AutoGen;
 using LiteDB;
@@ -15,7 +12,7 @@ public partial class Media
 {
     #region Methods
 
-    protected unsafe bool GetMediaInfo()
+    private unsafe void GetMediaInfo()
     {
         AVFormatContext* formatContext = null;
         AVCodecContext*  codecContext  = null;
@@ -38,7 +35,7 @@ public partial class Media
         {
             formatContext = CheckNull(ffmpeg.avformat_alloc_context(),
                 "ffmpeg couldn't allocate context");
- 
+
             CheckCode(ffmpeg.avformat_open_input(&formatContext, fileInfo.FullName, null, null),
                 $"ffmpeg couldn't open {fileInfo.FullName}");
 
@@ -58,7 +55,7 @@ public partial class Media
             var formatNames = Marshal.PtrToStringAnsi((nint)formatContext->iformat->name)?.Split(",");
             if (formatNames == null || !formatNames.Any(x => App.ViewModel.ContainerFormatCollection.SupportedFormatNames.Contains(x)))
                 throw new NotSupportedException($"{fileInfo.FullName} is not in a supported format");
-            
+
             Duration = TimeSpan.FromSeconds((double)formatContext->duration / ffmpeg.AV_TIME_BASE);
 
             var audioStreams = new List<AudioStreamSettings>();
@@ -68,14 +65,14 @@ public partial class Media
 
                 if (i == bestVideoStreamIndex)
                 {
-                    VideoFps      = (int)Math.Round(ffmpeg.av_q2d(ffmpeg.av_guess_frame_rate(formatContext, stream, null)));
-                    VideoWidth    = stream->codecpar->width;
-                    VideoHeight   = stream->codecpar->height;
-                    VideoCodecID  = stream->codecpar->codec_id; 
+                    VideoFps     = (int)Math.Round(ffmpeg.av_q2d(ffmpeg.av_guess_frame_rate(formatContext, stream, null)));
+                    VideoWidth   = stream->codecpar->width;
+                    VideoHeight  = stream->codecpar->height;
+                    VideoCodecID = stream->codecpar->codec_id;
                 }
                 else if (stream->codecpar->codec_type == AVMediaType.AVMEDIA_TYPE_AUDIO)
                 {
-                    audioStreams.Add(new AudioStreamSettings(audioTracks.ElementAtOrDefault(i)?.Name ?? $"Stream {audioStreams.Count}", i, audioStreams.Count, stream->codecpar->codec_id));
+                    audioStreams.Add(new(audioTracks.ElementAtOrDefault(i)?.Name ?? $"Stream {audioStreams.Count}", i, audioStreams.Count, stream->codecpar->codec_id));
                 }
             }
 
@@ -89,22 +86,18 @@ public partial class Media
             if (codecContext != null)
                 ffmpeg.avcodec_free_context(&codecContext);
         }
-
-        return true;
     }
 
-    protected unsafe int CheckCode(int code, string error)
+    private unsafe void CheckCode(int code, string error)
     {
-        if (code < 0)
-        {
-            var bufferSize = 1024;
-            var buffer     = stackalloc byte[bufferSize];
-            ffmpeg.av_strerror(code, buffer, (ulong)bufferSize);
+        if (code >= 0)
+            return;
+        
+        const int bufferSize = 1024;
+        var       buffer     = stackalloc byte[bufferSize];
+        ffmpeg.av_strerror(code, buffer, (ulong)bufferSize);
 
-            throw new InvalidOperationException($"{error}: {Marshal.PtrToStringAnsi((IntPtr)buffer)}");
-        }
-
-        return code;
+        throw new InvalidOperationException($"{error}: {Marshal.PtrToStringAnsi((nint)buffer)}");
     }
 
     protected unsafe T* CheckNull<T>(T* nullable, string error) where T : unmanaged
@@ -118,9 +111,11 @@ public partial class Media
     #endregion
 
     #region Members
+
     private TimeSpan duration = TimeSpan.Zero;
-    private bool hasAudio;
-    private bool hasVideo;
+    private bool     hasAudio;
+    private bool     hasVideo;
+
     #endregion
 
     #region Properties
@@ -153,11 +148,11 @@ public partial class Media
     }
 
     /// <summary>
-    /// This property is used to control whether or not GetMediaInfo has been called for this media yet.
-    /// Easiest way to check is by checking the duration, other properties filled by GetMediaInfo are optional
+    ///     This property is used to control whether or not GetMediaInfo has been called for this media yet.
+    ///     Easiest way to check is by checking the duration, other properties filled by GetMediaInfo are optional
     /// </summary>
     [BsonIgnore]
     private bool HasMediaInfo => Duration != TimeSpan.Zero;
 
-#endregion
+    #endregion
 }

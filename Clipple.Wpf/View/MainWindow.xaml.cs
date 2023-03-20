@@ -1,153 +1,84 @@
-﻿using Clipple.ViewModel;
-using Microsoft.Toolkit.Mvvm.Input;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Timers;
+﻿using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Clipple.ViewModel;
 
-namespace Clipple.View
+namespace Clipple.View;
+
+/// <summary>
+///     Interaction logic for MainWindow.xaml
+/// </summary>
+public partial class MainWindow
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
-    public partial class MainWindow : Window
+    public MediaEditor MediaEditor => mediaEditor;
+
+    public MainWindow()
     {
-        public MediaEditor MediaEditor => mediaEditor;
+        InitializeComponent();
 
-        public MainWindow()
-        {
-            InitializeComponent();
+        var vm = (Root)DataContext;
 
-            var vm = (Root)DataContext;
+        // Load theme
+        //ThemeManager.Current.ChangeTheme(this, vm.SettingsViewModel.ThemeKey);
 
-            // Load theme
-            //ThemeManager.Current.ChangeTheme(this, vm.SettingsViewModel.ThemeKey);
+        // Create key bindings now
+        UpdateKeyBindings();
 
-            // Create key bindings now
-            UpdateKeyBindings();
+        // Update key bindings when the settings change
+        //vm.SettingsViewModel.PropertyChanged += (s, e) => UpdateKeyBindings();
+    }
 
-            // Update key bindings when the settings change
-            //vm.SettingsViewModel.PropertyChanged += (s, e) => UpdateKeyBindings();
-        }
+    private void UpdateKeyBindings()
+    {
+        var vm = (Root)DataContext;
 
-        private void UpdateKeyBindings()
-        {
-            var vm = (Root)DataContext;
-
-            //hotKeys = new()
-            //{
-            //    (vm.SettingsViewModel.ControlHotKey, AppCommands.ControlCommand),
-            //    (vm.SettingsViewModel.PreviousFrameHotKey, AppCommands.PreviousFrameCommand),
-            //    (vm.SettingsViewModel.NextFrameHotKey, AppCommands.NextFrameCommand),
-            //    (vm.SettingsViewModel.ToggleMuteHotKey, AppCommands.ToggleMuteCommand),
-            //    (vm.SettingsViewModel.VolumeUpHotKey, AppCommands.VolumeUpCommand),
-            //    (vm.SettingsViewModel.VolumeDownHotKey, AppCommands.VolumeDownCommand),
-            //    (vm.SettingsViewModel.CreateClipHotKey, AppCommands.CreateClipCommand),
-            //    (vm.SettingsViewModel.SeekStartHotKey, AppCommands.SeekStartCommand),
-            //    (vm.SettingsViewModel.SeekEndHotKey, AppCommands.SeekEndCommand),
-            //    (vm.SettingsViewModel.SaveHotKey, AppCommands.SaveCommand),
-            //};
-        }
-
-        #region Members
-        //private List<(HotKey, RelayCommand)> hotKeys;
-        //private HashSet<Flyout> openFlyouts = new();
-        #endregion
-
-        //private void OnDragOver(object sender, DragEventArgs e)
+        //hotKeys = new()
         //{
-        //    if (e.Data.GetDataPresent(DataFormats.FileDrop))
+        //    (vm.SettingsViewModel.ControlHotKey, AppCommands.ControlCommand),
+        //    (vm.SettingsViewModel.PreviousFrameHotKey, AppCommands.PreviousFrameCommand),
+        //    (vm.SettingsViewModel.NextFrameHotKey, AppCommands.NextFrameCommand),
+        //    (vm.SettingsViewModel.ToggleMuteHotKey, AppCommands.ToggleMuteCommand),
+        //    (vm.SettingsViewModel.VolumeUpHotKey, AppCommands.VolumeUpCommand),
+        //    (vm.SettingsViewModel.VolumeDownHotKey, AppCommands.VolumeDownCommand),
+        //    (vm.SettingsViewModel.CreateClipHotKey, AppCommands.CreateClipCommand),
+        //    (vm.SettingsViewModel.SeekStartHotKey, AppCommands.SeekStartCommand),
+        //    (vm.SettingsViewModel.SeekEndHotKey, AppCommands.SeekEndCommand),
+        //    (vm.SettingsViewModel.SaveHotKey, AppCommands.SaveCommand),
+        //};
+    }
+
+    private void OnPreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.OriginalSource is TextBox)
+            return;
+
+        FocusManager.SetIsFocusScope(this, true);
+        FocusManager.SetFocusedElement(this, this);
+
+        //foreach (var (key, command) in hotKeys)
+        //{
+        //    if (key.Key == e.Key && e.KeyboardDevice.Modifiers == key.ModifierKeys)
         //    {
-        //        e.Effects = DragDropEffects.Copy;
-        //        e.Handled = true;
+        //        command.Execute(null);
+        //        return;
         //    }
         //}
+    }
 
-        //private void OnDrop(object sender, DragEventArgs e)
-        //{
-        //    if (e.Data.GetDataPresent(DataFormats.FileDrop))
-        //    {
-        //        string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+    private void OnClosing(object sender, CancelEventArgs e)
+    {
+        var vm = (Root)DataContext;
 
-        //        if (DataContext is not RootViewModel vm)
-        //            return;
+        vm.MediaEditor.MediaPlayer.Dispose();
+        vm.Library.SaveDirtyMedia();
+    }
 
-        //        var addedAny = false;
-        //        foreach (string file in files)
-        //        {
-        //            if (vm.AddVideo(file))
-        //                addedAny = true;
-        //        }    
+    private async void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        var vm = (Root)DataContext;
 
-        //        // Select the new(est) video
-        //        if (addedAny)
-        //            vm.SelectedVideo = vm.Videos[vm.Videos.Count - 1];
-        //    }
-        //}
-
-        private void OnPreviewKeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.OriginalSource is TextBox)
-                return;
-
-            FocusManager.SetIsFocusScope(this, true);
-            FocusManager.SetFocusedElement(this, this);
-
-            //foreach (var (key, command) in hotKeys)
-            //{
-            //    if (key.Key == e.Key && e.KeyboardDevice.Modifiers == key.ModifierKeys)
-            //    {
-            //        command.Execute(null);
-            //        return;
-            //    }
-            //}
-        }
-
-        private void OnClosing(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-            var vm = (Root)DataContext;
-
-            //if (vm.SettingsViewModel.SaveOnExit)
-            //    await vm.Save();
-
-            vm.MediaEditor.MediaPlayer.Dispose();
-            vm.Library.SaveDirtyMedia();
-        }
-
-        private void OnStatusBarClicked(object sender, MouseButtonEventArgs e)
-        {
-            var dialog = new LogsView();
-            dialog.ShowDialog();
-        }
-
-        private void FlyoutIsOpenChanged(object sender, RoutedEventArgs e)
-        {
-            //var flyout = ((Flyout)sender);
-
-            //if (flyout.IsOpen && !openFlyouts.Contains(flyout))
-            //{
-            //    openFlyouts.Add(flyout);
-            //    App.ViewModel.VideoPlayerViewModel.OverlayContentCount++;
-            //}
-        }
-
-        private void FlyoutClosingFinished(object sender, RoutedEventArgs e)
-        {
-            //var flyout = ((Flyout)sender);
-
-            //openFlyouts.Remove(flyout);
-            //App.ViewModel.VideoPlayerViewModel.OverlayContentCount--;
-        }
-
-        private async void OnLoaded(object sender, RoutedEventArgs e)
-        {
-            var vm = (Root)DataContext;
-
-            // place this somewhere better
-            await vm.Load();
-        }
+        // place this somewhere better
+        await vm.Load();
     }
 }

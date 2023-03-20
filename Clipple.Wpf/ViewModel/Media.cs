@@ -1,16 +1,11 @@
 ﻿using System;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using System.Windows.Media.Animation;
 using Clipple.Types;
 using Clipple.Util;
-using Clipple.View;
-using FFmpeg.AutoGen;
 using LiteDB;
 using MaterialDesignThemes.Wpf;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
@@ -30,7 +25,7 @@ public partial class Media : ObservableObject
     }
 
     /// <summary>
-    /// Must be called after the media class has been constructed.
+    ///     Must be called after the media class has been constructed.
     /// </summary>
     public void Initialise()
     {
@@ -43,10 +38,8 @@ public partial class Media : ObservableObject
 
         // Initialise filters
         foreach (var audioStream in AudioStreams)
-        {
-            foreach (var filter in audioStream.AudioFilters)
-                filter.Initialise();
-        }
+        foreach (var filter in audioStream.AudioFilters)
+            filter.Initialise();
 
         // Post deserialization tasks
         Class = MediaClass.MediaClasses.ElementAtOrDefault(ClassIndex);
@@ -56,7 +49,7 @@ public partial class Media : ObservableObject
     }
 
     /// <summary>
-    /// Creates or loads from a cache; audio wave forms.
+    ///     Creates or loads from a cache; audio wave forms.
     /// </summary>
     /// <returns>Task</returns>
     public async Task BuildOrCacheResources()
@@ -66,7 +59,7 @@ public partial class Media : ObservableObject
     }
 
     /// <summary>
-    /// Delete the cache directory and it's contents. 
+    ///     Delete the cache directory and it's contents.
     /// </summary>
     public void DeleteCache()
     {
@@ -76,12 +69,12 @@ public partial class Media : ObservableObject
             dirInfo.Delete(true);
     }
 
-#region Methods
+    #region Methods
 
     private void CopyAudioStreamFilters(int audioStreamIndex, bool toMedia)
     {
         var a = AudioStreams?.Where(x => x.AudioStreamIndex == audioStreamIndex).FirstOrDefault();
-        var b = Clip.AudioSettings?.Where(x => x.AudioStreamIndex == audioStreamIndex).FirstOrDefault();
+        var b = Clip?.AudioSettings?.Where(x => x.AudioStreamIndex == audioStreamIndex).FirstOrDefault();
 
         var source      = toMedia ? a : b;
         var destination = toMedia ? b : a;
@@ -89,7 +82,7 @@ public partial class Media : ObservableObject
         if (source == null || destination == null)
             return;
 
-        for (int i = 0; i < source.AudioFilters.Count; i++)
+        for (var i = 0; i < source.AudioFilters.Count; i++)
         {
             var sourceFilter      = source.AudioFilters[i];
             var destinationFilter = destination.AudioFilters[i];
@@ -99,7 +92,7 @@ public partial class Media : ObservableObject
     }
 
     /// <summary>
-    /// Imports audio stream filters from the media to the media's clip.
+    ///     Imports audio stream filters from the media to the media's clip.
     /// </summary>
     /// <param name="audioStreamIndex">The index of the stream whose filters to import from</param>
     private void ImportAudioStreamFilters(int audioStreamIndex)
@@ -108,27 +101,28 @@ public partial class Media : ObservableObject
     }
 
     /// <summary>
-    /// Exports audio stream filters from the media's clip to the media.
+    ///     Exports audio stream filters from the media's clip to the media.
     /// </summary>
     /// <param name="audioStreamIndex">The index of the stream whose filters to export from</param>
     private void ExportAudioStreamFilters(int audioStreamIndex)
     {
         CopyAudioStreamFilters(audioStreamIndex, true);
     }
-#endregion
 
-#region Members
+    #endregion
 
-    private FileInfo                       fileInfo;
-    private Clip?                          clip;
-    private string?                        description;
-    private int                            classIndex = 1; // raw by default
-    private MediaClass?                    @class;
-    private ObjectId?                      parentId;
+    #region Members
 
-#endregion
+    private FileInfo    fileInfo;
+    private Clip?       clip;
+    private string?     description;
+    private int         classIndex = 1; // raw by default
+    private MediaClass? @class;
+    private ObjectId?   parentId;
 
-#region Properties
+    #endregion
+
+    #region Properties
 
     /// <summary>
     ///     A reference to the media's file info. This can be used to determine the path, file size, etc
@@ -154,7 +148,7 @@ public partial class Media : ObservableObject
     }
 
     /// <summary>
-    /// User provided description of the media
+    ///     User provided description of the media
     /// </summary>
     public string? Description
     {
@@ -163,7 +157,7 @@ public partial class Media : ObservableObject
     }
 
     /// <summary>
-    /// User provided media class.  This is used for quickly organising media in the library.
+    ///     User provided media class.  This is used for quickly organising media in the library.
     /// </summary>
     [BsonIgnore]
     public MediaClass? Class
@@ -173,7 +167,7 @@ public partial class Media : ObservableObject
     }
 
     /// <summary>
-    /// Class index in MediaClass.MediaClasses
+    ///     Class index in MediaClass.MediaClasses
     /// </summary>
     public int ClassIndex
     {
@@ -205,7 +199,7 @@ public partial class Media : ObservableObject
     public ObjectId Id { get; set; } = ObjectId.NewObjectId();
 
     /// <summary>
-    /// The ID of the media that produced this media.  This is not set for media that is imported.
+    ///     The ID of the media that produced this media.  This is not set for media that is imported.
     /// </summary>
     public ObjectId? ParentId
     {
@@ -214,9 +208,9 @@ public partial class Media : ObservableObject
     }
 
     /// <summary>
-    /// Clips that this media has produced.
+    ///     Clips that this media has produced.
     /// </summary>
-    public ObservableCollection<ObjectId> Clips { get; private set; }
+    public ObservableCollection<ObjectId> Clips { get; }
 
     /// <summary>
     ///     Path used for caching data related to this media
@@ -229,22 +223,21 @@ public partial class Media : ObservableObject
 
 
     #region Commands
+
     [BsonIgnore]
     public ICommand StartExportCommand => new RelayCommand(() =>
     {
-        DialogHost.Show(new View.ExportingClip()
+        DialogHost.Show(new View.ExportingClip
         {
             DataContext = new ExportingClip(this)
         }, "ExportClip");
     });
 
-    [BsonIgnore]
-    public ICommand ImportAudioStreamFiltersCommand => new RelayCommand<int>(ImportAudioStreamFilters);
+    [BsonIgnore] public ICommand ImportAudioStreamFiltersCommand => new RelayCommand<int>(ImportAudioStreamFilters);
 
-    [BsonIgnore]
-    public ICommand ExportAudioStreamFiltersCommand => new RelayCommand<int>(ExportAudioStreamFilters);
+    [BsonIgnore] public ICommand ExportAudioStreamFiltersCommand => new RelayCommand<int>(ExportAudioStreamFilters);
 
-    [BsonIgnore]
-    public ICommand AddTagCommand => new RelayCommand(AddNewTag);
+    [BsonIgnore] public ICommand AddTagCommand => new RelayCommand(AddNewTag);
+
     #endregion
 }

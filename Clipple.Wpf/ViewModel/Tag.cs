@@ -1,30 +1,22 @@
-﻿using LiteDB;
-using Microsoft.Toolkit.Mvvm.ComponentModel;
-using Microsoft.Toolkit.Mvvm.Input;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Drawing;
-using System.Numerics;
-using System.Text.Json.Serialization;
 using System.Windows.Input;
+using LiteDB;
+using Microsoft.Toolkit.Mvvm.ComponentModel;
+using Microsoft.Toolkit.Mvvm.Input;
 
 namespace Clipple.ViewModel;
 
 public class Tag : ObservableObject, IDisposable
 {
-    [BsonCtor]
-    public Tag(string name, string value) : this(name, value, false)
-    {
-    }
-
-    public Tag(string name, string value, bool hidden)
+    public Tag(string name, string value, bool hidden = false)
     {
         this.name   = name;
         this.value  = value;
         this.hidden = hidden;
 
-        DeleteCommand = new RelayCommand<Media>((media) =>
+        DeleteCommand = new RelayCommand<Media>(media =>
         {
             if (!hidden)
                 media?.DeleteTag(this);
@@ -36,8 +28,9 @@ public class Tag : ObservableObject, IDisposable
     }
 
     #region Methods
+
     /// <summary>
-    /// Removes this tag from the tag registry
+    ///     Removes this tag from the tag registry
     /// </summary>
     public void Dispose()
     {
@@ -51,19 +44,23 @@ public class Tag : ObservableObject, IDisposable
                Name == tag.Name &&
                Value == tag.Value;
     }
+
     #endregion
 
     #region Members
-    private bool hidden;
+
+    private readonly bool hidden;
 
     private string name;
 
     private string value;
+
     #endregion
 
     #region Properties
+
     /// <summary>
-    /// The name of this tag.
+    ///     The name of this tag.
     /// </summary>
     public string Name
     {
@@ -83,7 +80,7 @@ public class Tag : ObservableObject, IDisposable
     }
 
     /// <summary>
-    /// The value of this tag
+    ///     The value of this tag
     /// </summary>
     public string Value
     {
@@ -103,16 +100,14 @@ public class Tag : ObservableObject, IDisposable
     }
 
     /// <summary>
-    /// Helper property.  Returns the list of existing tag names provided by the tag registry.
+    ///     Helper property.  Returns the list of existing tag names provided by the tag registry.
     /// </summary>
     [BsonIgnore]
-    public ObservableCollection<string> NameSuggestions
-    {
-        get => App.ViewModel.TagSuggestionRegistry.ActiveTagNames;
-    }
+    public ObservableCollection<string> NameSuggestions => App.ViewModel.TagSuggestionRegistry.ActiveTagNames;
 
     /// <summary>
-    /// Helper property.  Returns value suggestions based off of the name of this tag.  Value suggestions are provided by the tag registry.
+    ///     Helper property.  Returns value suggestions based off of the name of this tag.  Value suggestions are provided by
+    ///     the tag registry.
     /// </summary>
     [BsonIgnore]
     public ObservableCollection<string> ValueSuggestions
@@ -126,11 +121,12 @@ public class Tag : ObservableObject, IDisposable
             return new();
         }
     }
+
     #endregion
 
     #region Commands
-    [BsonIgnore]
-    public ICommand DeleteCommand { get; }
+
+    [BsonIgnore] public ICommand DeleteCommand { get; }
+
     #endregion
 }
-

@@ -14,7 +14,7 @@ public abstract class PersistentDataHelper
         {
             return BsonMapper.Global.ToObject<T>(BsonSerializer.Deserialize(File.ReadAllBytes(fileName)));
         }
-        catch (FileNotFoundException e)
+        catch (FileNotFoundException)
         {
             return default;
         }

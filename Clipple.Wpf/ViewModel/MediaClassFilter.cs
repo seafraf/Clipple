@@ -12,9 +12,9 @@ public class MediaClassFilter : ObservableObject
 
     private MediaClass mediaClass;
 
-	public MediaClass Class
-	{
-		get => mediaClass;
-		set => SetProperty(ref mediaClass, value);
-	}
+    public MediaClass Class
+    {
+        get => mediaClass;
+        set => SetProperty(ref mediaClass, value);
+    }
 }

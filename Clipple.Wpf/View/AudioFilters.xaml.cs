@@ -1,41 +1,28 @@
-﻿using Clipple.AudioFilters;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using Clipple.AudioFilters;
 
-namespace Clipple.View
+namespace Clipple.View;
+
+/// <summary>
+///     Interaction logic for AudioFilters.xaml
+/// </summary>
+public partial class AudioFilters
 {
-    /// <summary>
-    /// Interaction logic for AudioFilters.xaml
-    /// </summary>
-    public partial class AudioFilters : UserControl
+    public AudioFilters()
     {
-        public AudioFilters()
-        {
-            InitializeComponent();
-        }
+        InitializeComponent();
+    }
 
-        private void OnExpanderLoaded(object sender, RoutedEventArgs e)
-        {
-            if (sender is Expander expander)
-                expander.Content = ((AudioFilter)expander.DataContext).GenerateControl();
-        }
+    private void OnExpanderLoaded(object sender, RoutedEventArgs e)
+    {
+        if (sender is Expander expander)
+            expander.Content = ((AudioFilter)expander.DataContext).GenerateControl();
+    }
 
-        private void OnExpanderEnabledChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            if (sender is Expander expander)
-                expander.IsExpanded = (bool)e.NewValue;
-        }
+    private void OnExpanderEnabledChanged(object sender, DependencyPropertyChangedEventArgs e)
+    {
+        if (sender is Expander expander)
+            expander.IsExpanded = (bool)e.NewValue;
     }
 }

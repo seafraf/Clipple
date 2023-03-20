@@ -1,14 +1,9 @@
-﻿using LiteDB;
-using Microsoft.Toolkit.Mvvm.ComponentModel;
-using Microsoft.Toolkit.Mvvm.Input;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Input;
-using System.Xml.Linq;
+using Microsoft.Toolkit.Mvvm.ComponentModel;
+using Microsoft.Toolkit.Mvvm.Input;
 
 namespace Clipple.ViewModel;
 
@@ -23,11 +18,14 @@ public class LibraryEditTagsTask : ObservableObject
         }
 
         #region Members
+
         private string name;
         private string value;
+
         #endregion
 
         #region Properties
+
         public ObservableCollection<Tag> Tags { get; } = new();
 
         public string Name
@@ -42,6 +40,7 @@ public class LibraryEditTagsTask : ObservableObject
                     tag.Name = value;
             }
         }
+
         public string Value
         {
             get => value;
@@ -54,10 +53,7 @@ public class LibraryEditTagsTask : ObservableObject
             }
         }
 
-        public ObservableCollection<string> NameSuggestions
-        {
-            get => App.ViewModel.TagSuggestionRegistry.ActiveTagNames;
-        }
+        public ObservableCollection<string> NameSuggestions => App.ViewModel.TagSuggestionRegistry.ActiveTagNames;
 
         public ObservableCollection<string> ValueSuggestions
         {
@@ -70,6 +66,7 @@ public class LibraryEditTagsTask : ObservableObject
                 return new();
             }
         }
+
         #endregion
     }
 
@@ -79,10 +76,10 @@ public class LibraryEditTagsTask : ObservableObject
         {
             foreach (var tag in m.Tags)
             {
-                var group = TagGroups.Where(x => x.Name == tag.Name && x.Value == tag.Value).FirstOrDefault();
+                var group = TagGroups.FirstOrDefault(x => x.Name == tag.Name && x.Value == tag.Value);
                 if (group == null)
                 {
-                    group = new TagGroup(tag.Name, tag.Value);
+                    group = new(tag.Name, tag.Value);
                     TagGroups.Add(group);
                 }
 
@@ -90,7 +87,9 @@ public class LibraryEditTagsTask : ObservableObject
             }
 
             Media.Add(m);
-        };
+        }
+
+        ;
     }
 
     public ObservableCollection<Media> Media { get; } = new();
@@ -98,14 +97,14 @@ public class LibraryEditTagsTask : ObservableObject
     public ObservableCollection<TagGroup> TagGroups { get; } = new();
 
     #region Commands
-    public ICommand DeleteCommand => new RelayCommand<TagGroup>((group) =>
+
+    public ICommand DeleteCommand => new RelayCommand<TagGroup>(group =>
     {
         if (group == null)
             return;
 
         // Remove the tag from all media
         foreach (var media in Media)
-        {
             for (var i = 0; i < media.Tags.Count; i++)
             {
                 var tag = media.Tags[i];
@@ -117,13 +116,12 @@ public class LibraryEditTagsTask : ObservableObject
                     i--;
                 }
             }
-        }
-        
+
         // Remove the group from this display
         TagGroups.Remove(group);
     });
 
-    public ICommand ExpandCommand => new RelayCommand<TagGroup>((group) =>
+    public ICommand ExpandCommand => new RelayCommand<TagGroup>(group =>
     {
         if (group == null)
             return;
@@ -131,14 +129,12 @@ public class LibraryEditTagsTask : ObservableObject
         // Add tags to each media that is missing the tag described by this group and
         // add any created tag to the group also
         foreach (var media in Media)
-        {
             if (!media.Tags.Any(x => x.Name == group.Name && x.Value == group.Value))
             {
                 var tag = new Tag(group.Name, group.Value);
                 media.Tags.Add(tag);
                 group.Tags.Add(tag);
             }
-        }
     });
 
     public ICommand NewTagCommand => new RelayCommand(() =>
@@ -156,6 +152,6 @@ public class LibraryEditTagsTask : ObservableObject
 
         TagGroups.Add(group);
     });
+
     #endregion
 }
-

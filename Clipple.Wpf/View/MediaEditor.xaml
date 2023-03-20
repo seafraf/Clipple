@@ -123,7 +123,7 @@
                 <WindowsFormsHost Grid.Row="0" Visibility="{Binding Media.HasVideo, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <wf:Panel x:Name="PlayerHost" />
                 </WindowsFormsHost>
-                
+
                 <Grid Grid.Row="0" Visibility="{Binding Media.HasVideo, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
                     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                         <materialDesign:PackIcon Kind="VideoBoxOff" Width="64" Height="64" HorizontalAlignment="Center" />
@@ -133,7 +133,7 @@
 
                 <Grid Grid.Row="1" VerticalAlignment="Bottom">
                     <materialDesign:Card Margin="4 4 4 0">
-                        <Grid Grid.Row="0" Grid.ColumnSpan="2" Margin="4">
+                        <Grid Margin="4">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="*" />

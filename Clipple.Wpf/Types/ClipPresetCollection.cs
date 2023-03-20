@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Linq;
 using System.Windows.Data;
 using Clipple.ViewModel;
 
@@ -12,7 +11,7 @@ public class ClipPresetCollection
     public ClipPresetCollection(ContainerFormatCollection containerFormatCollection)
     {
         LoadDefault(containerFormatCollection);
-        
+
         var view = CollectionViewSource.GetDefaultView(Presets);
         view.GroupDescriptions.Clear();
         view.GroupDescriptions.Add(new PropertyGroupDescription("Category"));
@@ -21,7 +20,7 @@ public class ClipPresetCollection
     }
 
     /// <summary>
-    /// Load built in default presets
+    ///     Load built in default presets
     /// </summary>
     private void LoadDefault(ContainerFormatCollection containerFormatCollection)
     {
@@ -34,53 +33,53 @@ public class ClipPresetCollection
         var defaultVideoCodecIndex = defaultContainer.VideoCodecs.FindIndex(x => x.Name == "libx264");
         if (defaultVideoCodecIndex == -1)
             throw new NotSupportedException("h264 not supported by ffmpeg");
-        
+
         var defaultAudioCodecIndex = defaultContainer.AudioCodecs.FindIndex(x => x.Name == "aac");
         if (defaultAudioCodecIndex == -1)
             throw new NotSupportedException("aac not supported by ffmpeg");
-        
+
         Preset2160 = AddPreset(new("2160p, 60fps", "Recommended", defaultContainerIndex, defaultVideoCodecIndex, defaultAudioCodecIndex)
         {
             VideoBitrate = 45000,
-            Extension = "mp4"
+            Extension    = "mp4"
         });
-        
+
         Preset1440 = AddPreset(new("1440p, 60fps", "Recommended", defaultContainerIndex, defaultVideoCodecIndex, defaultAudioCodecIndex)
         {
             VideoBitrate = 16000,
             Extension    = "mp4"
         });
-        
+
         Preset1080 = AddPreset(new("1080p, 60fps", "Recommended", defaultContainerIndex, defaultVideoCodecIndex, defaultAudioCodecIndex)
         {
             VideoBitrate = 8000,
             Extension    = "mp4"
-        }); 
-        
+        });
+
         Preset720 = AddPreset(new("720p, 60fps", "Recommended", defaultContainerIndex, defaultVideoCodecIndex, defaultAudioCodecIndex)
         {
             VideoBitrate = 5000,
             Extension    = "mp4"
         });
-        
+
         AddPreset(new("Video, 100MB", "Discord Nitro", defaultContainerIndex, defaultVideoCodecIndex, defaultAudioCodecIndex)
         {
             UseTargetSize = true,
-            TargetSize = 100.0
+            TargetSize    = 100.0
         });
-        
+
         AddPreset(new("Video, 50MB", "Discord Nitro", defaultContainerIndex, defaultVideoCodecIndex, defaultAudioCodecIndex)
         {
             UseTargetSize = true,
             TargetSize    = 50.0
         });
-        
+
         AddPreset(new("Video, 8MB", "Discord", defaultContainerIndex, defaultVideoCodecIndex, defaultAudioCodecIndex)
         {
             UseTargetSize = true,
             TargetSize    = 8.0
         });
-        
+
         LoadAudioPreset(containerFormatCollection);
         LoadGifPreset(containerFormatCollection);
     }
@@ -99,7 +98,7 @@ public class ClipPresetCollection
 
         PresetAudio = AddPreset(new("Audio", "Discord", audioContainerIndex, null, lameCodecIndex)
         {
-            AudioBitrate = 640,
+            AudioBitrate = 640
         });
     }
 
@@ -124,11 +123,10 @@ public class ClipPresetCollection
     }
 
     /// <summary>
-    /// Load custom user presets
+    ///     Load custom user presets
     /// </summary>
     private void LoadCustom()
     {
-        
     }
 
     private ClipPreset AddPreset(ClipPreset preset)
@@ -140,13 +138,15 @@ public class ClipPresetCollection
     }
 
     #region Properties
+
     public ObservableCollection<ClipPreset> Presets { get; } = new();
 
-    public ClipPreset? Preset720 { get; private set; }
+    public ClipPreset? Preset720  { get; private set; }
     public ClipPreset? Preset1080 { get; private set; }
     public ClipPreset? Preset1440 { get; private set; }
     public ClipPreset? Preset2160 { get; private set; }
-    
+
     public ClipPreset? PresetAudio { get; private set; }
+
     #endregion
 }

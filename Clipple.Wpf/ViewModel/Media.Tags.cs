@@ -1,25 +1,21 @@
-﻿using LiteDB;
-using Microsoft.Toolkit.Mvvm.Input;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
-using System.Text.Json.Serialization;
-using System.Threading.Tasks;
-using System.Windows.Input;
+using LiteDB;
 
 namespace Clipple.ViewModel;
 
 public partial class Media
 {
     #region Members
+
     private ObservableCollection<Tag> tags = new();
+
     #endregion
 
     #region Properties
+
     /// <summary>
-    /// A list of this media's tags
+    ///     A list of this media's tags
     /// </summary>
     public ObservableCollection<Tag> Tags
     {
@@ -28,7 +24,7 @@ public partial class Media
     }
 
     /// <summary>
-    /// Formatting helper. Describes the amount of tags that this media has
+    ///     Formatting helper. Describes the amount of tags that this media has
     /// </summary>
     [BsonIgnore]
     public string TagCountString
@@ -44,9 +40,11 @@ public partial class Media
             return $"{Tags.Count} tags";
         }
     }
+
     #endregion
 
     #region Methods
+
     private void AddNewTag()
     {
         var tag = Tags.LastOrDefault();
@@ -55,7 +53,7 @@ public partial class Media
 
     public void AddTag(string name, string value)
     {
-        Tags.Add(new Tag(name, value));
+        Tags.Add(new(name, value));
 
         OnPropertyChanged(nameof(TagCountString));
     }
@@ -67,6 +65,6 @@ public partial class Media
 
         OnPropertyChanged(nameof(TagCountString));
     }
+
     #endregion
 }
-

@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 
@@ -10,18 +8,12 @@ namespace Clipple.Converters;
 
 public class BooleanAllVisibilityConverter : IMultiValueConverter
 {
-    public object Convert(object[] values, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+    public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
     {
-        foreach (object value in values)
-        {
-            if ((value is bool boolean) && boolean == false)
-                return Visibility.Collapsed;
-        }
-
-        return Visibility.Visible;
+        return values.Any(value => value is false) ? Visibility.Collapsed : Visibility.Visible;
     }
 
-    public object[] ConvertBack(object value, Type[] targetTypes, object parameter, System.Globalization.CultureInfo culture)
+    public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
     {
         throw new NotSupportedException();
     }

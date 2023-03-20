@@ -1,86 +1,72 @@
-﻿using Clipple.ViewModel;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
-namespace Clipple.View
+namespace Clipple.View;
+
+/// <summary>
+///     Interaction logic for Library.xaml
+/// </summary>
+public partial class Library
 {
-    /// <summary>
-    /// Interaction logic for Library.xaml
-    /// </summary>
-    public partial class Library : UserControl
+    public Library()
     {
-        public Library()
-        {
-            InitializeComponent();
-        }
+        InitializeComponent();
+    }
 
-        private async void OnDrop(object sender, DragEventArgs e)
-        {
-            if (!e.Data.GetDataPresent(DataFormats.FileDrop)) 
-                return;
+    private async void OnDrop(object sender, DragEventArgs e)
+    {
+        if (!e.Data.GetDataPresent(DataFormats.FileDrop))
+            return;
 
-            if (e.Data.GetData(DataFormats.FileDrop) is not string[] files)
-                return;
-            
-            if (DataContext is not ViewModel.Library vm)
-                return;
+        if (e.Data.GetData(DataFormats.FileDrop) is not string[] files)
+            return;
 
-            await vm.AddMedias(files, "drag and drop");
-        }
+        if (DataContext is not ViewModel.Library vm)
+            return;
 
-        private void OnDragEnter(object sender, DragEventArgs e)
-        {
-            if (!e.Data.GetDataPresent(DataFormats.FileDrop)) 
-                return;
-            
-            e.Effects = DragDropEffects.Copy;
-            e.Handled = true;
-        }
+        await vm.AddMedias(files, "drag and drop");
+    }
 
-        private void OnSearchKeyDown(object sender, KeyEventArgs e)
-        {
-            if (DataContext is not ViewModel.Library vm || e.Key != Key.Enter)
-                return;
+    private void OnDragEnter(object sender, DragEventArgs e)
+    {
+        if (!e.Data.GetDataPresent(DataFormats.FileDrop))
+            return;
 
-            vm.ApplyFilters();
-        }
+        e.Effects = DragDropEffects.Copy;
+        e.Handled = true;
+    }
 
-        private void OnFiltersClosed(object sender, RoutedEventArgs e)
-        {
-            if (DataContext is not ViewModel.Library vm)
-                return;
+    private void OnSearchKeyDown(object sender, KeyEventArgs e)
+    {
+        if (DataContext is not ViewModel.Library vm || e.Key != Key.Enter)
+            return;
 
-            vm.ApplyFilters();
-        }
+        vm.ApplyFilters();
+    }
 
-        private void OnDoubleClick(object sender, MouseButtonEventArgs e)
-        {
-            if (DataContext is not ViewModel.Library vm)
-                return;
+    private void OnFiltersClosed(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not ViewModel.Library vm)
+            return;
 
-            if (vm.SelectedMedia?.FileInfo.Exists == true)
-                vm.OpenInEditorCommand.Execute(null);
-        }
+        vm.ApplyFilters();
+    }
 
-        private void OnKeyDown(object sender, KeyEventArgs e)
-        {
-            if (DataContext is not ViewModel.Library vm || e.Key != Key.Delete)
-                return;
-            
-            ViewModel.Library.OpenDeleteDialogCommand.Execute(((ListView)sender).SelectedItems);
-        }
+    private void OnDoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        if (DataContext is not ViewModel.Library vm)
+            return;
+
+        if (vm.SelectedMedia?.FileInfo.Exists == true)
+            vm.OpenInEditorCommand.Execute(null);
+    }
+
+    private void OnKeyDown(object sender, KeyEventArgs e)
+    {
+        if (DataContext is not ViewModel.Library vm || e.Key != Key.Delete)
+            return;
+
+        ViewModel.Library.OpenDeleteDialogCommand.Execute(((ListView)sender).SelectedItems);
     }
 }

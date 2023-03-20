@@ -1,6 +1,6 @@
-﻿using Microsoft.Toolkit.Mvvm.ComponentModel;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using Microsoft.Toolkit.Mvvm.ComponentModel;
 
 namespace Clipple.ViewModel;
 
@@ -15,25 +15,24 @@ public class TagSuggestionRegistry : ObservableObject
         }
 
         /// <summary>
-        /// Key:    string representing the tag value
-        /// Value:  a count of how many tags are using this value
+        ///     Key:    string representing the tag value
+        ///     Value:  a count of how many tags are using this value
         /// </summary>
         public Dictionary<string, int> ValueReferenceCount { get; } = new();
 
         /// <summary>
-        /// A counto of how many tags have this name
+        ///     A count of how many tags have this name
         /// </summary>
         public int ReferenceCount { get; set; }
 
         /// <summary>
-        /// A list of values for this tag name that have more than one active usage.
-        /// 
-        /// This value is intended as a user suggestion for values when adding tags to media.
+        ///     A list of values for this tag name that have more than one active usage.
+        ///     This value is intended as a user suggestion for values when adding tags to media.
         /// </summary>
         public ObservableCollection<string> ActiveValues { get; } = new();
 
         /// <summary>
-        /// Registers a usage of a tag value.
+        ///     Registers a usage of a tag value.
         /// </summary>
         /// <param name="value">The value to register the usage of</param>
         public void RegisterValue(string value)
@@ -54,7 +53,7 @@ public class TagSuggestionRegistry : ObservableObject
         }
 
         /// <summary>
-        /// Releases a usage of a tag value.
+        ///     Releases a usage of a tag value.
         /// </summary>
         /// <param name="value"></param>
         public void ReleaseValue(string value)
@@ -67,31 +66,36 @@ public class TagSuggestionRegistry : ObservableObject
                     ActiveValues.Remove(value);
                 }
                 else
+                {
                     ValueReferenceCount[value]--;
+                }
             }
         }
     }
 
     #region Properties
+
     /// <summary>
-    /// A list of tag stats by tag name.  The NameStats class contains a reference count for
-    /// the tag name and reference counts for individual values for that tag name.
+    ///     A list of tag stats by tag name.  The NameStats class contains a reference count for
+    ///     the tag name and reference counts for individual values for that tag name.
     /// </summary>
     public Dictionary<string, NameStats> Tags { get; } = new();
 
     /// <summary>
-    /// A list of registered tag names.  This list will be updated when all usages of a tag are
-    /// released.  The intended usage of this property is to get a list of currentyl 
+    ///     A list of registered tag names.  This list will be updated when all usages of a tag are
+    ///     released.  The intended usage of this property is to get a list of currentyl
     /// </summary>
     public ObservableCollection<string> ActiveTagNames { get; } = new();
+
     #endregion
 
     #region Methods
+
     /// <summary>
-    /// Registers the usage of a tag.  It is important that after this tag is registered as used, both:
-    /// a) It is released when the tag is no longer used (e.g removed from media, or the media itself was removed)
-    /// b) The tag does not change in name or value after being registered.  If a tag needs to change it should be removed
-    ///    and registered again with a new name and value.
+    ///     Registers the usage of a tag.  It is important that after this tag is registered as used, both:
+    ///     a) It is released when the tag is no longer used (e.g removed from media, or the media itself was removed)
+    ///     b) The tag does not change in name or value after being registered.  If a tag needs to change it should be removed
+    ///     and registered again with a new name and value.
     /// </summary>
     /// <param name="tag">The tag to register</param>
     public void RegisterTag(Tag tag)
@@ -107,13 +111,13 @@ public class TagSuggestionRegistry : ObservableObject
         }
         else
         {
-            Tags.Add(tag.Name, new NameStats(tag));
+            Tags.Add(tag.Name, new(tag));
             ActiveTagNames.Add(tag.Name);
         }
     }
 
     /// <summary>
-    /// Releases the usage of a tag.  This will also release the usage of the tag's value.
+    ///     Releases the usage of a tag.  This will also release the usage of the tag's value.
     /// </summary>
     /// <param name="tag">The tag to release</param>
     public void ReleaseTag(Tag tag)
@@ -133,5 +137,6 @@ public class TagSuggestionRegistry : ObservableObject
             }
         }
     }
+
     #endregion
 }

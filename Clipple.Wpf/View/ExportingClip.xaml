@@ -3,7 +3,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:local="clr-namespace:Clipple.View"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:viewmodel="clr-namespace:Clipple.ViewModel"
              xmlns:types="clr-namespace:Clipple.Types"
@@ -14,7 +13,7 @@
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
-        
+
         <StackPanel Grid.Row="0">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -23,30 +22,36 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="auto" />
                 </Grid.ColumnDefinitions>
-                
-                <materialDesign:PackIcon Kind="Tick" Width="48" Height="48" Margin="0 0 16 0" 
-                         Foreground="{DynamicResource PrimaryHueLightBrush}" 
-                         Visibility="{Binding Status, Converter={StaticResource ComparisonConverter}, ConverterParameter={x:Static types:ClipExportingStatus.Finished}}"/>
-                
+
+                <materialDesign:PackIcon Kind="Tick" Width="48" Height="48" Margin="0 0 16 0"
+                                         Foreground="{DynamicResource PrimaryHueLightBrush}"
+                                         Visibility="{Binding Status, Converter={StaticResource ComparisonConverter}, ConverterParameter={x:Static types:ClipExportingStatus.Finished}}" />
+
                 <TextBlock Grid.Column="1" VerticalAlignment="Center">
                     <TextBlock.Style>
                         <Style TargetType="TextBlock" BasedOn="{StaticResource MaterialDesignHeadline5TextBlock}">
                             <Setter Property="TextBlock.Text" Value="Exporting clip" />
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding Status, Converter={StaticResource ComparisonConverter}, ConverterParameter={x:Static types:ClipExportingStatus.Finished}}" Value="True">
+                                <DataTrigger
+                                    Binding="{Binding Status, Converter={StaticResource ComparisonConverter}, ConverterParameter={x:Static types:ClipExportingStatus.Finished}}"
+                                    Value="True">
                                     <Setter Property="TextBlock.Text" Value="Clip exported!" />
                                 </DataTrigger>
-                                <DataTrigger Binding="{Binding Status, Converter={StaticResource ComparisonConverter}, ConverterParameter={x:Static types:ClipExportingStatus.Cancelled}}" Value="True">
+                                <DataTrigger
+                                    Binding="{Binding Status, Converter={StaticResource ComparisonConverter}, ConverterParameter={x:Static types:ClipExportingStatus.Cancelled}}"
+                                    Value="True">
                                     <Setter Property="TextBlock.Text" Value="Export cancelled" />
                                 </DataTrigger>
-                                <DataTrigger Binding="{Binding Status, Converter={StaticResource ComparisonConverter}, ConverterParameter={x:Static types:ClipExportingStatus.Failed}}" Value="True">
+                                <DataTrigger
+                                    Binding="{Binding Status, Converter={StaticResource ComparisonConverter}, ConverterParameter={x:Static types:ClipExportingStatus.Failed}}"
+                                    Value="True">
                                     <Setter Property="TextBlock.Text" Value="Export failed!" />
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
                     </TextBlock.Style>
                 </TextBlock>
-                
+
                 <Button Grid.Column="3" Width="48" Height="48" HorizontalAlignment="Right"
                         Style="{StaticResource MaterialDesignIconButton}"
                         Command="{Binding CloseCommand}"
@@ -55,15 +60,19 @@
 
             <TextBlock Margin="0 0 0 16">
                 <TextBlock.Style>
-                    <Style TargetType="TextBlock" BasedOn="{StaticResource MaterialDesignBody1TextBlock}" >
+                    <Style TargetType="TextBlock" BasedOn="{StaticResource MaterialDesignBody1TextBlock}">
                         <Setter Property="TextBlock.Text" Value="Waiting.." />
                         <Setter Property="Visibility" Value="Collapsed" />
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding Status, Converter={StaticResource ComparisonConverter}, ConverterParameter={x:Static types:ClipExportingStatus.Processing}}" Value="True">
+                            <DataTrigger
+                                Binding="{Binding Status, Converter={StaticResource ComparisonConverter}, ConverterParameter={x:Static types:ClipExportingStatus.Processing}}"
+                                Value="True">
                                 <Setter Property="TextBlock.Text" Value="Processing.." />
                                 <Setter Property="Visibility" Value="Visible" />
                             </DataTrigger>
-                            <DataTrigger Binding="{Binding Status, Converter={StaticResource ComparisonConverter}, ConverterParameter={x:Static types:ClipExportingStatus.ProcessingFirstPass}}" Value="True">
+                            <DataTrigger
+                                Binding="{Binding Status, Converter={StaticResource ComparisonConverter}, ConverterParameter={x:Static types:ClipExportingStatus.ProcessingFirstPass}}"
+                                Value="True">
                                 <Setter Property="TextBlock.Text" Value="Processing first pass.." />
                                 <Setter Property="Visibility" Value="Visible" />
                             </DataTrigger>
@@ -76,17 +85,21 @@
                 <TextBox Text="{Binding Output, Mode=OneWay}" TextWrapping="WrapWithOverflow" IsReadOnly="True" />
             </ScrollViewer>
 
-            <ProgressBar Grid.Row="1" Maximum="1.00"
-                         IsIndeterminate="{Binding IsIndeterminate}" 
+            <ProgressBar Maximum="1.00"
+                         IsIndeterminate="{Binding IsIndeterminate}"
                          Value="{Binding Path=CompletionFactor}">
                 <ProgressBar.Style>
-                    <Style TargetType="ProgressBar" BasedOn="{StaticResource MaterialDesignLinearProgressBar}" >
+                    <Style TargetType="ProgressBar" BasedOn="{StaticResource MaterialDesignLinearProgressBar}">
                         <Setter Property="Visibility" Value="Collapsed" />
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding Status, Converter={StaticResource ComparisonConverter}, ConverterParameter={x:Static types:ClipExportingStatus.Processing}}" Value="True">
+                            <DataTrigger
+                                Binding="{Binding Status, Converter={StaticResource ComparisonConverter}, ConverterParameter={x:Static types:ClipExportingStatus.Processing}}"
+                                Value="True">
                                 <Setter Property="Visibility" Value="Visible" />
                             </DataTrigger>
-                            <DataTrigger Binding="{Binding Status, Converter={StaticResource ComparisonConverter}, ConverterParameter={x:Static types:ClipExportingStatus.ProcessingFirstPass}}" Value="True">
+                            <DataTrigger
+                                Binding="{Binding Status, Converter={StaticResource ComparisonConverter}, ConverterParameter={x:Static types:ClipExportingStatus.ProcessingFirstPass}}"
+                                Value="True">
                                 <Setter Property="Visibility" Value="Visible" />
                             </DataTrigger>
                         </Style.Triggers>
@@ -97,20 +110,22 @@
         </StackPanel>
 
         <!-- Failed/cancelled -->
-        <Grid Grid.Row="1" >
+        <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="auto" />
             </Grid.ColumnDefinitions>
 
             <Grid.Style>
-                <Style TargetType="Grid" >
+                <Style TargetType="Grid">
                     <Setter Property="Visibility" Value="Collapsed" />
                     <Style.Triggers>
-                        <DataTrigger Binding="{Binding Status, Converter={StaticResource ComparisonConverter}, ConverterParameter={x:Static types:ClipExportingStatus.Failed}}" Value="True">
+                        <DataTrigger Binding="{Binding Status, Converter={StaticResource ComparisonConverter}, ConverterParameter={x:Static types:ClipExportingStatus.Failed}}"
+                                     Value="True">
                             <Setter Property="Visibility" Value="Visible" />
                         </DataTrigger>
-                        <DataTrigger Binding="{Binding Status, Converter={StaticResource ComparisonConverter}, ConverterParameter={x:Static types:ClipExportingStatus.Cancelled}}" Value="True">
+                        <DataTrigger Binding="{Binding Status, Converter={StaticResource ComparisonConverter}, ConverterParameter={x:Static types:ClipExportingStatus.Cancelled}}"
+                                     Value="True">
                             <Setter Property="Visibility" Value="Visible" />
                         </DataTrigger>
                     </Style.Triggers>
@@ -118,25 +133,28 @@
             </Grid.Style>
 
             <Button Content="Close" Margin="0 8 8 0" Grid.Column="1"
-                    Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}" 
-                    Style="{StaticResource MaterialDesignFlatButton}"/>
+                    Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}"
+                    Style="{StaticResource MaterialDesignFlatButton}" />
         </Grid>
 
         <!-- Processing -->
-        <Grid Grid.Row="1" >
+        <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="auto" />
             </Grid.ColumnDefinitions>
 
             <Grid.Style>
-                <Style TargetType="Grid" >
+                <Style TargetType="Grid">
                     <Setter Property="Visibility" Value="Collapsed" />
                     <Style.Triggers>
-                        <DataTrigger Binding="{Binding Status, Converter={StaticResource ComparisonConverter}, ConverterParameter={x:Static types:ClipExportingStatus.Processing}}" Value="True">
+                        <DataTrigger Binding="{Binding Status, Converter={StaticResource ComparisonConverter}, ConverterParameter={x:Static types:ClipExportingStatus.Processing}}"
+                                     Value="True">
                             <Setter Property="Visibility" Value="Visible" />
                         </DataTrigger>
-                        <DataTrigger Binding="{Binding Status, Converter={StaticResource ComparisonConverter}, ConverterParameter={x:Static types:ClipExportingStatus.ProcessingFirstPass}}" Value="True">
+                        <DataTrigger
+                            Binding="{Binding Status, Converter={StaticResource ComparisonConverter}, ConverterParameter={x:Static types:ClipExportingStatus.ProcessingFirstPass}}"
+                            Value="True">
                             <Setter Property="Visibility" Value="Visible" />
                         </DataTrigger>
                     </Style.Triggers>
@@ -144,12 +162,13 @@
             </Grid.Style>
 
             <Button Content="Cancel" Margin="0 8 8 0" Grid.Column="1"
-                    Command="{Binding CloseCommand}" 
-                    Style="{StaticResource MaterialDesignFlatButton}"/>
+                    Command="{Binding CloseCommand}"
+                    Style="{StaticResource MaterialDesignFlatButton}" />
         </Grid>
 
         <!-- Finished, success -->
-        <Grid Grid.Row="1" Visibility="{Binding Status, Converter={StaticResource ComparisonVisibilityConverter}, ConverterParameter={x:Static types:ClipExportingStatus.Finished}}">
+        <Grid Grid.Row="1"
+              Visibility="{Binding Status, Converter={StaticResource ComparisonVisibilityConverter}, ConverterParameter={x:Static types:ClipExportingStatus.Finished}}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="auto" />
                 <ColumnDefinition Width="*" />
@@ -158,17 +177,17 @@
                 <ColumnDefinition Width="auto" />
             </Grid.ColumnDefinitions>
 
-            <materialDesign:PopupBox Grid.Column="0" Margin="16" >
+            <materialDesign:PopupBox Grid.Column="0" Margin="16">
                 <TextBlock Text="Coming soon" />
             </materialDesign:PopupBox>
-            
+
             <Button Content="Open in explorer" Margin="0 8 8 0" Grid.Column="3"
-                    Command="{Binding OpenInExplorer}" 
-                    Style="{StaticResource MaterialDesignFlatButton}"/>
-            
+                    Command="{Binding OpenInExplorer}"
+                    Style="{StaticResource MaterialDesignFlatButton}" />
+
             <Button Content="Open in library" Margin="0 8 8 0" Grid.Column="4"
-                    Command="{Binding OpenInLibrary}" 
-                    Style="{StaticResource MaterialDesignFlatButton}"/>
+                    Command="{Binding OpenInLibrary}"
+                    Style="{StaticResource MaterialDesignFlatButton}" />
         </Grid>
     </Grid>
 </UserControl>

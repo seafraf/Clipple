@@ -3,8 +3,8 @@ using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
-using System.Windows.Threading;
 using Clipple.FFMPEG;
 using Clipple.Types;
 using MaterialDesignThemes.Wpf;
@@ -17,7 +17,7 @@ public class ExportingClip : ObservableObject
 {
     public ExportingClip(Media media)
     {
-        this.media    = media;
+        this.media = media;
 
         // Run the export task as soon as the ClipExporter view model is created
         Task.Run(async () =>
@@ -33,18 +33,21 @@ public class ExportingClip : ObservableObject
         });
     }
 
-#region Members
+    #region Members
+
     private          Media                   media;
     private          Media?                  outputMedia;
     private          double                  completionFactor;
     private          bool                    isIndeterminate         = true;
     private readonly CancellationTokenSource cancellationTokenSource = new();
     private          ClipExportingStatus     status                  = ClipExportingStatus.Waiting;
-#endregion
 
-#region Properties
+    #endregion
+
+    #region Properties
+
     /// <summary>
-    /// The media whose clip is being processed by this export.
+    ///     The media whose clip is being processed by this export.
     /// </summary>
     public Media Media
     {
@@ -53,12 +56,12 @@ public class ExportingClip : ObservableObject
     }
 
     /// <summary>
-    /// All output given from the clip engine
+    ///     All output given from the clip engine
     /// </summary>
     public StringBuilder Output { get; } = new();
 
     /// <summary>
-    /// Whether or not the progress of the export can be determined
+    ///     Whether or not the progress of the export can be determined
     /// </summary>
     public bool IsIndeterminate
     {
@@ -67,7 +70,7 @@ public class ExportingClip : ObservableObject
     }
 
     /// <summary>
-    /// Factor representing how complete the export process is.  This will be zero when IsIndeterminate = true
+    ///     Factor representing how complete the export process is.  This will be zero when IsIndeterminate = true
     /// </summary>
     public double CompletionFactor
     {
@@ -76,22 +79,24 @@ public class ExportingClip : ObservableObject
     }
 
     /// <summary>
-    /// The status 
+    ///     The status
     /// </summary>
     public ClipExportingStatus Status
     {
         get => status;
         set => SetProperty(ref status, value);
     }
-#endregion
+
+    #endregion
 
 
-#region Methods
+    #region Methods
+
     private async Task Export()
     {
         if (media.Clip is not { } clip)
             return;
-        
+
         var inputFile = media.FileInfo.FullName;
 
         // Run first pass if required
@@ -123,7 +128,7 @@ public class ExportingClip : ObservableObject
             : ClipExportingStatus.Failed;
 
         if (Status == ClipExportingStatus.Finished)
-            await System.Windows.Application.Current.Dispatcher.Invoke(ImportResult);
+            await Application.Current.Dispatcher.Invoke(ImportResult);
     }
 
     private void OnEngineOutput(object? sender, string e)
@@ -136,18 +141,18 @@ public class ExportingClip : ObservableObject
     {
         if (media.Clip is not { } clip)
             return;
-        
+
         var clipDuration = clip.Duration;
-        if (!(clipDuration.TotalSeconds > 0.0) || !(e.Time.TotalSeconds > 0)) 
+        if (!(clipDuration.TotalSeconds > 0.0) || !(e.Time.TotalSeconds > 0))
             return;
-        
+
         CompletionFactor = Math.Min(Math.Max(0.0, e.Time.TotalSeconds / clipDuration.TotalSeconds), 1.0);
         IsIndeterminate  = false;
     }
 
     /// <summary>
-    /// Imports the output clip to the library, setting various properties on the media to link the produced
-    /// clip to the media.
+    ///     Imports the output clip to the library, setting various properties on the media to link the produced
+    ///     clip to the media.
     /// </summary>
     private async Task ImportResult()
     {
@@ -162,14 +167,16 @@ public class ExportingClip : ObservableObject
             media.Clips.Add(libraryMedia.Id);
         }
     }
-#endregion
 
-#region Commands
+    #endregion
+
+    #region Commands
+
     public ICommand CloseCommand => new RelayCommand(() =>
     {
         // Cancel token just in case the ffmpeg engine is still running
         cancellationTokenSource.Cancel();
-        
+
         // Close exporting dialog only
         DialogHost.Close("ExportClip");
     });
@@ -185,7 +192,7 @@ public class ExportingClip : ObservableObject
             Arguments       = $"/select,\"{uri.AbsoluteUri}\""
         });
     });
-    
+
     public ICommand OpenInLibrary => new RelayCommand(() =>
     {
         if (outputMedia is not { } output)
@@ -199,5 +206,6 @@ public class ExportingClip : ObservableObject
         App.ViewModel.Library.SelectedMedia = output;
         App.ViewModel.IsLibrarySelected     = true;
     });
-#endregion
+
+    #endregion
 }

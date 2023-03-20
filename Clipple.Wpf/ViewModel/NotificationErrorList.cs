@@ -1,9 +1,5 @@
-﻿using Microsoft.Toolkit.Mvvm.ComponentModel;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System;
+using Microsoft.Toolkit.Mvvm.ComponentModel;
 
 namespace Clipple.ViewModel;
 
@@ -14,5 +10,5 @@ public class NotificationErrorList : ObservableObject
         Exceptions = exceptions;
     }
 
-    public Exception[] Exceptions { get; private set; }
+    public Exception[] Exceptions { get; }
 }

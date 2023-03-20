@@ -1,22 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Clipple.FFMPEG
+namespace Clipple.FFMPEG;
+
+public class EngineProcessStatistics
 {
-    public class EngineProcessStatistics
+    public EngineProcessStatistics(TimeSpan time)
     {
-        public EngineProcessStatistics(int frame, TimeSpan time, double bitrate)
-        {
-            Frame   = frame;
-            Time    = time;
-            Bitrate = bitrate;
-        }
-
-        public int Frame { get; }
-        public TimeSpan Time { get; }
-        public double Bitrate { get; }
+        Time    = time;
     }
+    
+    public  TimeSpan Time  { get; }
 }

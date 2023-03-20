@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Clipple.Types;
-using Clipple.Wpf.ViewModel;
+using Clipple.ViewModel.PersistentData;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
 
 namespace Clipple.ViewModel;
@@ -9,63 +9,64 @@ public class Root : ObservableObject
 {
     public Root()
     {
-        UpdateViewModel       = new();
+        Updater               = new();
         MediaEditor           = new();
         TagSuggestionRegistry = new();
 
         ClipPresetCollection = new(ContainerFormatCollection);
-        
-        // Persistent data
-        AppState = PersistentDataHelper.Load<PersistentData.AppState>() ?? new();
 
-        AppState.PropertyChanged += (_, _) => PersistentDataHelper.Save(AppState); 
+        // Persistent data
+        AppState = PersistentDataHelper.Load<AppState>() ?? new();
+
+        AppState.PropertyChanged += (_, _) => PersistentDataHelper.Save(AppState);
     }
 
-#region Members
+    #region Members
+
     private bool isLoading = true;
 
     private string loadingText = string.Empty;
 
-    private bool isEditorSelected  = true;
-    private bool isLibrarySelected = false;
-    private bool isSettingSelected = false;
-#endregion
+    private bool isEditorSelected = true;
+    private bool isLibrarySelected;
+    private bool isSettingSelected;
 
-#region Methods
+    #endregion
+
+    #region Methods
+
     public async Task Load()
     {
-        // TODO:
         LoadingText = "Checking for updates";
-        await UpdateViewModel.CheckForUpdate();
+        await Updater.CheckForUpdate();
 
         LoadingText = "Loading library";
         var media = await Library.GetMediaFromDatabase();
 
         LoadingText = "Initialising media";
         await Library.LoadMedia(media);
-        
+
         // Restore AppState
-        if (AppState.LibraryMediaId is {} libraryId)
+        if (AppState.LibraryMediaId is { } libraryId)
             Library.SelectedMedia = Library.GetMediaById(libraryId);
-        
-        if (AppState.EditorMediaId is {} editorId)
+
+        if (AppState.EditorMediaId is { } editorId)
             MediaEditor.Media = Library.GetMediaById(editorId);
 
         IsLoading = false;
     }
-#endregion
 
-#region Properties
+    #endregion
+
+    #region Properties
+
     /// <summary>
-    /// The index of the root transitioner.  0 is the index of the loading panel and 1 is the index of the grid panel.,
+    ///     The index of the root transitioner.  0 is the index of the loading panel and 1 is the index of the grid panel.,
     /// </summary>
-    public int LoadingTransitionIndex
-    {
-        get => IsLoading ? 0 : 1;
-    }
+    public int LoadingTransitionIndex => IsLoading ? 0 : 1;
 
     /// <summary>
-    /// True immediately after launching Clipple.  Set to false by Load(), called by the code behind for the main window.
+    ///     True immediately after launching Clipple.  Set to false by Load(), called by the code behind for the main window.
     /// </summary>
     public bool IsLoading
     {
@@ -78,7 +79,7 @@ public class Root : ObservableObject
     }
 
     /// <summary>
-    /// Text describing the loading process.
+    ///     Text describing the loading process.
     /// </summary>
     public string LoadingText
     {
@@ -87,7 +88,7 @@ public class Root : ObservableObject
     }
 
     /// <summary>
-    /// Whether or nor the editor tab is selected
+    ///     Whether or nor the editor tab is selected
     /// </summary>
     public bool IsEditorSelected
     {
@@ -105,13 +106,18 @@ public class Root : ObservableObject
     }
 
     /// <summary>
-    /// Whether or not the library tab is selected
+    ///     Whether or not the library tab is selected
     /// </summary>
     public bool IsLibrarySelected
     {
         get => isLibrarySelected;
         set
         {
+            // If the library was selected and is no longer going to be selected, pause the media preview
+            // just in case it is left playing in the background
+            if (isLibrarySelected && !value)
+                App.Window.LibraryControl.MediaPreview.MediaPlayer.Pause();
+
             SetProperty(ref isLibrarySelected, value);
 
             if (!value)
@@ -123,7 +129,7 @@ public class Root : ObservableObject
     }
 
     /// <summary>
-    /// Whether or not the settings tab is selected
+    ///     Whether or not the settings tab is selected
     /// </summary>
     public bool IsSettingsSelected
     {
@@ -141,51 +147,53 @@ public class Root : ObservableObject
     }
 
     /// <summary>
-    /// Reference to the video editor view model
+    ///     Reference to the video editor view model
     /// </summary>
     public MediaEditor MediaEditor { get; }
 
     /// <summary>
-    /// Library view model
+    ///     Library view model
     /// </summary>
     public Library Library { get; } = new();
 
     /// <summary>
-    /// Reference to the settings
+    ///     Reference to the settings
     /// </summary>
     public Settings Settings { get; } = new();
 
     /// <summary>
-    /// Reference to the settings
+    ///     Reference to the updater
     /// </summary>
-    public UpdateViewModel UpdateViewModel { get; }
+    public Updater Updater { get; }
 
     /// <summary>
-    /// Refernece to the tag suggestion registry
+    ///     Reference to the tag suggestion registry
     /// </summary>
     public TagSuggestionRegistry TagSuggestionRegistry { get; }
 
     /// <summary>
-    /// Reference to the collection of valid media formats for encoding and decoding.
+    ///     Reference to the collection of valid media formats for encoding and decoding.
     /// </summary>
     public ContainerFormatCollection ContainerFormatCollection { get; } = new();
 
     /// <summary>
-    /// Collection of clip presets, user and default
+    ///     Collection of clip presets, user and default
     /// </summary>
     public ClipPresetCollection ClipPresetCollection { get; }
-    
-    /// <summary>
-    /// App state persistent data
-    /// </summary>
-    public PersistentData.AppState AppState { get; }
 
     /// <summary>
-    /// Title for the main window
+    ///     App state persistent data
     /// </summary>
-    public string Title => $"Clipple ({UpdateViewModel.CurrentVersion})";
-#endregion
+    public AppState AppState { get; }
 
-#region Commands
-#endregion
+    /// <summary>
+    ///     Title for the main window
+    /// </summary>
+    public string Title => $"Clipple ({App.Version})";
+
+    #endregion
+
+    #region Commands
+
+    #endregion
 }

@@ -3,10 +3,29 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:local="clr-namespace:Clipple.View"
+             xmlns:viewmodel="clr-namespace:Clipple.ViewModel"
+             xmlns:forms="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              mc:Ignorable="d"
-             d:DesignHeight="300" d:DesignWidth="300">
-    <Grid>
-        
-    </Grid>
+             d:DesignHeight="500" d:DesignWidth="500" d:DataContext="{d:DesignInstance Type=viewmodel:Media}" DataContextChanged="OnMediaChanged" Loaded="OnLoaded">
+    <StackPanel>
+        <WindowsFormsHost SizeChanged="OnSizeChanged" x:Name="PlayerHostParent"
+                          Visibility="{Binding HasVideo, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <forms:Panel x:Name="PlayerHost" />
+        </WindowsFormsHost>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="0" Margin="4 4 2 4" Click="TogglePlayButtonClick" x:Name="TogglePlayButton"
+                    Style="{StaticResource MaterialDesignIconButton}" Content="{materialDesign:PackIcon Play}" />
+            <Slider Grid.Column="1" Margin="2 4 2 4" VerticalAlignment="Center" x:Name="PositionSlider" Maximum="1"
+                    Thumb.DragStarted="PositionDragStarted" Thumb.DragCompleted="PositionDragCompleted" ValueChanged="OnPositionSliderChanged" />
+            <Button Grid.Column="2" Margin="2 4 4 4" Click="ToggleMuteButtonClick" x:Name="ToggleMuteButton"
+                    Style="{StaticResource MaterialDesignIconButton}" Content="{materialDesign:PackIcon Mute}" />
+        </Grid>
+    </StackPanel>
 </UserControl>

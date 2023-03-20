@@ -9,7 +9,7 @@ namespace Clipple.ViewModel;
 
 public partial class Clip
 {
-#region Methods
+    #region Methods
 
     private void InitialiseVideoViews()
     {
@@ -18,11 +18,13 @@ public partial class Clip
     }
 
     #endregion
-    
-#region Constants
+
+    #region Constants
+
     private const long DefaultVideoBitrate = 60000;
-#endregion
-    
+
+    #endregion
+
     #region Members
 
     private long              videoBitrate = DefaultVideoBitrate;
@@ -188,39 +190,39 @@ public partial class Clip
     /// </summary>
     [BsonIgnore]
     public ListCollectionView ResolutionPresets { get; } = new(new ObservableCollection<ResolutionPreset>
-                                                               {
-                                                                   // 32:9
-                                                                   new(32, 9, 5120, 1440),
-                                                                   new(32, 9, 3840, 1080),
+    {
+        // 32:9
+        new(32, 9, 5120, 1440),
+        new(32, 9, 3840, 1080),
 
-                                                                   // 21:9
-                                                                   new(21, 9, 5120, 2160),
-                                                                   new(21, 9, 3440, 1440),
+        // 21:9
+        new(21, 9, 5120, 2160),
+        new(21, 9, 3440, 1440),
 
-                                                                   // 16:9
-                                                                   new(16, 9, 7680, 4320),
-                                                                   new(16, 9, 5120, 2880),
-                                                                   new(16, 9, 3840, 2160),
-                                                                   new(16, 9, 2560, 1440),
-                                                                   new(16, 9, 1920, 1080),
-                                                                   new(16, 9, 1600, 900),
-                                                                   new(16, 9, 1366, 768),
-                                                                   new(16, 9, 1280, 720),
-                                                                   new(16, 9, 7680, 4320),
-                                                                   new(16, 9, 7680, 4320),
+        // 16:9
+        new(16, 9, 7680, 4320),
+        new(16, 9, 5120, 2880),
+        new(16, 9, 3840, 2160),
+        new(16, 9, 2560, 1440),
+        new(16, 9, 1920, 1080),
+        new(16, 9, 1600, 900),
+        new(16, 9, 1366, 768),
+        new(16, 9, 1280, 720),
+        new(16, 9, 7680, 4320),
+        new(16, 9, 7680, 4320),
 
-                                                                   // 16:10
-                                                                   new(16, 10, 2560, 1600),
-                                                                   new(16, 10, 1920, 1200),
-                                                                   new(16, 10, 1280, 800),
+        // 16:10
+        new(16, 10, 2560, 1600),
+        new(16, 10, 1920, 1200),
+        new(16, 10, 1280, 800),
 
-                                                                   // 4:3
-                                                                   new(4, 3, 2048, 1536),
-                                                                   new(4, 3, 1920, 1440),
-                                                                   new(4, 3, 1600, 1200),
-                                                                   new(4, 3, 1440, 1080),
-                                                                   new(4, 3, 1400, 1050)
-                                                               });
+        // 4:3
+        new(4, 3, 2048, 1536),
+        new(4, 3, 1920, 1440),
+        new(4, 3, 1600, 1200),
+        new(4, 3, 1440, 1080),
+        new(4, 3, 1400, 1050)
+    });
 
     /// <summary>
     ///     Resolution preset set by the resolution preset combo box.  Setting this will update TargetWidth and TargetHeight
@@ -242,5 +244,6 @@ public partial class Clip
             OnPropertyChanged(nameof(TargetHeight));
         }
     }
-#endregion
+
+    #endregion
 }

@@ -1,17 +1,17 @@
-﻿using Clipple.Types;
+﻿using System.Linq;
+using Clipple.Types;
 using LiteDB;
-using System.Linq;
-using System.Reflection.Metadata.Ecma335;
-using System.Windows.Media.Animation;
 
 namespace Clipple.ViewModel;
 
 public partial class Clip
 {
     #region Constants
+
     private const double DefaultOutputTargetSize = 100;
+
     #endregion
-    
+
     #region Members
 
     private AudioVideoCodec? audioCodec;
@@ -28,6 +28,7 @@ public partial class Clip
     #endregion
 
     #region Methods
+
     private void InitialiseEncoder()
     {
         var audioIndex = AudioCodecIndex;
@@ -35,19 +36,21 @@ public partial class Clip
         var extIndex   = ExtensionIndex;
 
         ContainerFormat = App.ViewModel.ContainerFormatCollection.SupportedFormats.ElementAtOrDefault(containerFormatIndex) ??
-            App.ViewModel.ContainerFormatCollection.SupportedFormats.First();
+                          App.ViewModel.ContainerFormatCollection.SupportedFormats.First();
 
         AudioCodecIndex = audioIndex;
         VideoCodecIndex = videoIndex;
-        ExtensionIndex = extIndex;
+        ExtensionIndex  = extIndex;
 
         AudioCodec = ContainerFormat.AudioCodecs.ElementAtOrDefault(audioIndex);
         VideoCodec = ContainerFormat.VideoCodecs.ElementAtOrDefault(videoIndex);
-        Extension = ContainerFormat.Extensions.ElementAtOrDefault(extIndex) ?? ContainerFormat.Extension;
+        Extension  = ContainerFormat.Extensions.ElementAtOrDefault(extIndex) ?? ContainerFormat.Extension;
     }
+
     #endregion
 
     #region Properties
+
     /// <summary>
     ///     Index of , for serialization
     /// </summary>
@@ -76,27 +79,31 @@ public partial class Clip
             if (value.SupportsAudio)
             {
                 AudioCodecIndex = 0;
-                AudioCodec = value.AudioCodecs.First();
+                AudioCodec      = value.AudioCodecs.First();
             }
             else
+            {
                 AudioCodecIndex = -1;
+            }
 
             if (value.SupportsVideo)
             {
                 VideoCodecIndex = 0;
-                VideoCodec = value.VideoCodecs.First();
+                VideoCodec      = value.VideoCodecs.First();
             }
             else
+            {
                 VideoCodecIndex = -1;
+            }
 
             // Reset extension
             ExtensionIndex = 0;
-            Extension = value.Extensions.ElementAt(ExtensionIndex);
+            Extension      = value.Extensions.ElementAt(ExtensionIndex);
         }
     }
 
     /// <summary>
-    /// Audio codec index
+    ///     Audio codec index
     /// </summary>
     public int AudioCodecIndex
     {
@@ -115,7 +122,7 @@ public partial class Clip
     }
 
     /// <summary>
-    /// Video codec index 
+    ///     Video codec index
     /// </summary>
     public int VideoCodecIndex
     {
@@ -134,7 +141,7 @@ public partial class Clip
     }
 
     /// <summary>
-    ///     Selected extension 
+    ///     Selected extension
     /// </summary>
     [BsonIgnore]
     public string Extension
@@ -148,7 +155,7 @@ public partial class Clip
     }
 
     /// <summary>
-    ///     Selected extension 
+    ///     Selected extension
     /// </summary>
     public int ExtensionIndex
     {
