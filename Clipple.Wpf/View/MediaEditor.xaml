@@ -154,7 +154,7 @@
                                     <Run Text="/" />
                                     <Run ToolTip="Media duration" ToolTipService.Placement="MousePoint"
                                          ToolTipService.InitialShowDelay="100"
-                                         Text="{Binding Duration, Mode=OneWay, StringFormat=mm\\:ss\\.ff}" />
+                                         Text="{Binding Media.Duration, Mode=OneWay, StringFormat=mm\\:ss\\.ff}" />
                                 </TextBlock>
                             </Grid>
 
@@ -214,7 +214,7 @@
                         Time="{Binding Path=CurrentTime, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
                         ClipStart="{Binding Path=Media.Clip.StartTime, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
                         ClipDuration="{Binding Path=Media.Clip.Duration, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                        Duration="{Binding Path=Duration}"
+                        Duration="{Binding Path=Media.Duration}"
                         IsDragging="{Binding Path=IsTimelineBusy, UpdateSourceTrigger=PropertyChanged, Mode=OneWayToSource}"
                         Zoom="{Binding Path=Zoom, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
                         ShowAudioStreamNames="{Binding ShowAudioStreamNames, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />

@@ -186,12 +186,18 @@ public partial class Timeline
 
     private void SetClipDurationClamped(TimeSpan time)
     {
+        if (time.Ticks < 0)
+            return;
+        
         ClipDuration = TimeSpan.FromTicks(Math.Clamp(time.Ticks, 0, Duration.Ticks - ClipStart.Ticks));
         SetTimeClamped(Time);
     }
 
     private void SetTimeClamped(TimeSpan time)
     {
+        if (time.Ticks < 0)
+            return;
+        
         Time = TimeSpan.FromTicks(Math.Clamp(time.Ticks, ClipStart.Ticks, ClipStart.Ticks + ClipDuration.Ticks));
     }
 

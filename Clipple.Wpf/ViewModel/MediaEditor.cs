@@ -86,11 +86,6 @@ public class MediaEditor : ObservableObject
     }
 
     /// <summary>
-    ///     Helper property for the media's duration.  TimeSpan.Zero if no video is loaded
-    /// </summary>
-    public TimeSpan Duration => MediaPlayer.Duration;
-
-    /// <summary>
     ///     The currently loaded media
     /// </summary>
     public Media? Media
@@ -276,9 +271,6 @@ public class MediaEditor : ObservableObject
     /// </summary>
     private void OnMediaLoaded(object? sender, EventArgs e)
     {
-        // Duration changes when new media loads
-        OnPropertyChanged(nameof(Duration));
-
         State = MediaPlayerState.Ready;
 
         if (Media == null)
