@@ -25,8 +25,8 @@ public class Updater : ObservableObject
     /// </summary>
     public async Task CheckForUpdate()
     {
-        // if (!Manager.IsInstalledApp)
-        //     return;
+        if (!manager.IsInstalledApp)
+            return;
 
         var updateInfo = await manager.CheckForUpdate();
         if (updateInfo != null && updateInfo.ReleasesToApply.Count > 0)
