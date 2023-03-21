@@ -72,12 +72,12 @@ public class MediaEditor : ObservableObject
     #region Properties
 
     /// <summary>
-    ///     A reference to the media player
+    /// A reference to the media player
     /// </summary>
     public MpvPlayer MediaPlayer { get; }
 
     /// <summary>
-    ///     Current media time.
+    /// Current media time.
     /// </summary>
     public TimeSpan CurrentTime
     {
@@ -86,7 +86,7 @@ public class MediaEditor : ObservableObject
     }
 
     /// <summary>
-    ///     The currently loaded media
+    /// The currently loaded media
     /// </summary>
     public Media? Media
     {
@@ -123,7 +123,7 @@ public class MediaEditor : ObservableObject
     }
 
     /// <summary>
-    ///     Media state
+    /// Media state
     /// </summary>
     public MediaPlayerState State
     {
@@ -132,13 +132,13 @@ public class MediaEditor : ObservableObject
     }
 
     /// <summary>
-    ///     Whether or not the media is playing
+    /// Whether or not the media is playing
     /// </summary>
     public bool IsPlaying => MediaPlayer.IsPlaying && !MediaPlayer.EndReached;
 
     /// <summary>
-    ///     Set by the Timeline control when the user is dragging any of the controls, whilst dragging the media players
-    ///     should be paused
+    /// Set by the Timeline control when the user is dragging any of the controls, whilst dragging the media players
+    /// should be paused
     /// </summary>
     public bool IsTimelineBusy
     {
@@ -169,16 +169,16 @@ public class MediaEditor : ObservableObject
     }
 
     /// <summary>
-    ///     This is true immediately after loading media and is set back to false when the first
-    ///     seek used to recover the old position has finished.  This is required because at some
-    ///     random (thread based) time, OnPositionChanged will be called with a zero point time, if
-    ///     this happens after the first seek then it reset the previously loaded position.  This
-    ///     variable call be used to ignore that OnPositionChanged event
+    /// This is true immediately after loading media and is set back to false when the first
+    /// seek used to recover the old position has finished.  This is required because at some
+    /// random (thread based) time, OnPositionChanged will be called with a zero point time, if
+    /// this happens after the first seek then it reset the previously loaded position.  This
+    /// variable call be used to ignore that OnPositionChanged event
     /// </summary>
     private bool WaitingFirstSeek { get; set; }
 
     /// <summary>
-    ///     Player volume, 0-100
+    /// Player volume, 0-100
     /// </summary>
     public int Volume
     {
@@ -194,7 +194,7 @@ public class MediaEditor : ObservableObject
     }
 
     /// <summary>
-    ///     Whether or not audio is muted
+    /// Whether or not audio is muted
     /// </summary>
     public bool IsMuted
     {
@@ -210,7 +210,7 @@ public class MediaEditor : ObservableObject
     }
 
     /// <summary>
-    ///     Playback sppeed
+    /// Playback speed
     /// </summary>
     public double PlaybackSpeed
     {
@@ -226,9 +226,9 @@ public class MediaEditor : ObservableObject
     }
 
     /// <summary>
-    ///     Zoom level for timeline.  0 - 1.
-    ///     0: fit waveform in timeline size
-    ///     1: one to one pixel ratio with waveform resolution
+    /// Zoom level for timeline.  0 - 1.
+    /// 0: fit waveform in timeline size
+    /// 1: one to one pixel ratio with waveform resolution
     /// </summary>
     public double Zoom
     {
@@ -243,13 +243,56 @@ public class MediaEditor : ObservableObject
     }
 
     /// <summary>
-    ///     Whether or not audio stream names should be drawn on the timeline
+    /// Whether or not audio stream names should be drawn on the timeline
     /// </summary>
 
     public bool ShowAudioStreamNames
     {
         get => showAudioStreamNames;
         set => SetProperty(ref showAudioStreamNames, value);
+    }
+
+    /// <summary>
+    /// Returns the time between frames for the currently loaded media.  Note that some videos and all audio-only files do not have a defined FPS, in those cases
+    /// the frame time will be an assumed 60FPS.
+    /// </summary>
+    public TimeSpan FrameTime
+    {
+        get
+        {
+            if (Media is { HasVideo: true, VideoFps: { } fps } loadedMedia)
+                return TimeSpan.FromSeconds(1.0 / (double)loadedMedia.VideoFps);
+
+            return TimeSpan.FromSeconds(1.0 / 60.0);
+        }
+    }
+
+    /// <summary>
+    /// True if there is space for a full FrameTime between the current time and the end of the clip
+    /// </summary>
+    private bool HasNextFrame
+    {
+        get
+        {
+            if (media is not { Clip: { } clip })
+                return false;
+
+            return clip.EndTime - CurrentTime > FrameTime;
+        }
+    }
+    
+    /// <summary>
+    /// True if there is space for a full FrameTime between the current time and the beginning of the clip
+    /// </summary>
+    private bool HasPreviousFrame
+    {
+        get
+        {
+            if (media is not { Clip: { } clip })
+                return false;
+
+            return CurrentTime - clip.StartTime > FrameTime;
+        }
     }
 
     #endregion
@@ -267,7 +310,7 @@ public class MediaEditor : ObservableObject
     #region Events
 
     /// <summary>
-    ///     Called when media is loaded by MPV
+    /// Called when media is loaded by MPV
     /// </summary>
     private void OnMediaLoaded(object? sender, EventArgs e)
     {
@@ -291,7 +334,7 @@ public class MediaEditor : ObservableObject
     }
 
     /// <summary>
-    ///     Called every time the position chang
+    /// Called every time the position chang
     /// </summary>
     /// <param name="sender"></param>
     /// <param name="e"></param>
@@ -328,7 +371,7 @@ public class MediaEditor : ObservableObject
     }
 
     /// <summary>
-    ///     Called when a property from the loaded media changes
+    /// Called when a property from the loaded media changes
     /// </summary>
     private void OnAudioStreamPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
@@ -340,10 +383,11 @@ public class MediaEditor : ObservableObject
     #region Methods
 
     /// <summary>
-    ///     Tries to seek to a specific position in the media.
+    /// Tries to seek to a specific position in the media.
     /// </summary>
     /// <param name="time">The time to seek to</param>
-    public void Seek(TimeSpan time)
+    /// <param name="resume">Set to true to resume after the seek has completed</param>
+    public void Seek(TimeSpan time, bool resume = false)
     {
         if (Media == null || State != MediaPlayerState.Ready)
             return;
@@ -352,31 +396,33 @@ public class MediaEditor : ObservableObject
         // NOTE: this optimisation is almost REQUIRED as otherwise when seeking to a position near the
         // end of a clip boundary, the PositionChanged callback will request a new position again, causing
         // an infinite loop of seeks
-        var frameTime = 1.0 / Media.VideoFps;
-        var diff      = Math.Abs(time.TotalSeconds - MediaPlayer.Position.TotalSeconds);
+        var diff      = Math.Abs(time.Ticks - MediaPlayer.Position.Ticks);
 
-        if (diff >= frameTime)
+        if (diff >= FrameTime.Ticks)
             Task.Run(async () =>
             {
                 await MediaPlayer.SeekAsync(time.TotalSeconds);
                 WaitingFirstSeek = false;
+                
+                if (resume)
+                    MediaPlayer.Resume();
             });
         else
             WaitingFirstSeek = false;
     }
 
     /// <summary>
-    ///     Seeks to the start of the media's clip
+    /// Seeks to the start of the media's clip
     /// </summary>
-    public void SeekStart()
+    public void SeekStart(bool resume = false)
     {
         if (Media?.Clip != null)
-            Seek(Media.Clip.StartTime);
+            Seek(Media.Clip.StartTime, resume);
     }
 
 
     /// <summary>
-    ///     Seeks to the end of the media's clip
+    /// Seeks to the end of the media's clip
     /// </summary>
     public void SeekEnd()
     {
@@ -385,7 +431,7 @@ public class MediaEditor : ObservableObject
     }
 
     /// <summary>
-    ///     Closes current media
+    /// Closes current media
     /// </summary>
     public void Unload()
     {
@@ -395,41 +441,45 @@ public class MediaEditor : ObservableObject
     }
 
     /// <summary>
-    ///     Loads a new media
+    /// Loads a new media
     /// </summary>
-    /// <param name="media">Full path to the media</param>
-    public void Load(string media)
+    /// <param name="mediaFile">Full path to the media</param>
+    public void Load(string mediaFile)
     {
         State = MediaPlayerState.Loading;
 
-        MediaPlayer.Load(media);
+        MediaPlayer.Load(mediaFile);
     }
 
     /// <summary>
-    ///     Toggles all of the players between a play and pause state
+    /// Sends either a play or pause command to the media player
     /// </summary>
     public void TogglePlayPause()
     {
-        if (State == MediaPlayerState.Ready && !IsTimelineBusy)
-        {
-            if (MediaPlayer.IsPlaying)
-                MediaPlayer.Pause();
-            else
-                MediaPlayer.Resume();
-        }
+        if (MediaPlayer.IsPlaying)
+            Pause();
+        else
+            Play();
     }
 
     /// <summary>
-    ///     Runs play on all players
+    /// Sends play command to the media player
     /// </summary>
     public void Play()
     {
-        if (State == MediaPlayerState.Ready && !IsTimelineBusy)
+        if (State != MediaPlayerState.Ready || IsTimelineBusy) 
+            return;
+        
+        if (!HasNextFrame)
+        {
+            SeekStart(true);
+        }
+        else 
             MediaPlayer.Resume();
     }
 
     /// <summary>
-    ///     Runs pause on all players
+    /// Sends a pause command to the media player
     /// </summary>
     public void Pause()
     {
@@ -438,30 +488,30 @@ public class MediaEditor : ObservableObject
     }
 
     /// <summary>
-    ///     Runs ShowFrameNext on the main media player then syncs audio
+    /// Runs ShowFrameNext on the main media player then syncs audio
     /// </summary>
     public void ShowFrameNext()
     {
-        if (State == MediaPlayerState.Ready && !IsTimelineBusy)
+        if (State == MediaPlayerState.Ready && !IsTimelineBusy && HasNextFrame)
             MediaPlayer.NextFrame();
     }
 
     /// <summary>
-    ///     Runs ShowFramePrev on the main media player then syncs audio
+    /// Runs ShowFramePrev on the main media player then syncs audio
     /// </summary>
     public void ShowFramePrev()
     {
-        if (State == MediaPlayerState.Ready && !IsTimelineBusy)
+        if (State == MediaPlayerState.Ready && !IsTimelineBusy && HasPreviousFrame)
             MediaPlayer.PreviousFrame();
     }
 
     /// <summary>
-    ///     Adds or removes event handlers for all of the current media's audio streams.
+    /// Adds or removes event handlers for all of the current media's audio streams.
     /// </summary>
     /// <param name="install">True to install event handlers, false to remove them</param>
     private void SetStreamEvents(bool install = true)
     {
-        if (Media == null || Media.AudioStreams == null)
+        if (Media == null)
             return;
 
         foreach (var audioStream in Media.AudioStreams)
@@ -472,7 +522,7 @@ public class MediaEditor : ObservableObject
     }
 
     /// <summary>
-    ///     Updates the filter used for audio on the media player to reflect the current media's AudioStream settings
+    /// Updates the filter used for audio on the media player to reflect the current media's AudioStream settings
     /// </summary>
     private void UpdateAudioStreamFilter()
     {
@@ -491,10 +541,8 @@ public class MediaEditor : ObservableObject
             var filters = stream.AudioFilters.Where(x => x.IsEnabled).ToList();
             if (filters.Count > 0)
             {
-                for (var i = 0; i < filters.Count; i++)
-                    stringFilters.Add(
-                        $"[{(i == 0 ? $"aid{stream.AudioStreamIndex + 1}" : $"f_{stream.StreamIndex}_{i - 1}")}]{filters[i].FilterString}[f_{stream.StreamIndex}_{i}]");
-
+                stringFilters.AddRange(filters.Select((t, i) =>
+                    $"[{(i == 0 ? $"aid{stream.AudioStreamIndex + 1}" : $"f_{stream.StreamIndex}_{i - 1}")}]{t.FilterString}[f_{stream.StreamIndex}_{i}]"));
                 inputs.Add($"[f_{stream.StreamIndex}_{filters.Count - 1}]");
             }
             else
@@ -507,10 +555,8 @@ public class MediaEditor : ObservableObject
         var filterString = string.Join("; ", stringFilters);
         var inputString  = string.Join("", inputs);
 
-        if (stringFilters.Count == 0)
-            MediaPlayer.API.SetPropertyString("lavfi-complex", $"{inputString}amix=inputs={inputs.Count}[ao]");
-        else
-            MediaPlayer.API.SetPropertyString("lavfi-complex", $"{filterString}; {inputString}amix=inputs={inputs.Count}[ao]");
+        MediaPlayer.API.SetPropertyString("lavfi-complex",
+            stringFilters.Count == 0 ? $"{inputString}amix=inputs={inputs.Count}[ao]" : $"{filterString}; {inputString}amix=inputs={inputs.Count}[ao]");
     }
 
     #endregion
