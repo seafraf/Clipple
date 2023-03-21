@@ -165,7 +165,7 @@
             </StackPanel>
         </Expander>
 
-        <Expander materialDesign:BadgedAssist.Badge="1">
+        <Expander materialDesign:BadgedAssist.Badge="1" Visibility="Collapsed">
             <Expander.Header>
                 <Grid>
                     <Grid.ColumnDefinitions>
