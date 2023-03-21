@@ -34,7 +34,9 @@
                             <ColumnDefinition Width="1" />
                             <ColumnDefinition Width="0*" x:Name="PlayheadButtonColumnSpacerEnd" />
                         </Grid.ColumnDefinitions>
-                        <view:TimelineMarker Duration="{Binding Path=Duration}" Grid.Column="0" Grid.ColumnSpan="3" />
+                        <view:TimelineMarker Grid.Column="0" Grid.ColumnSpan="3" MouseLeftButtonDown="OnGoToMarkerClicked"
+                                             Duration="{Binding Path=Duration}" 
+                                             GoToMarkerGrid="{Binding ElementName=GotoMarkerGrid}"/>
                     </Grid>
 
                     <!-- Background colour and waveforms -->
@@ -105,6 +107,9 @@
                                             PreviewMouseUp="Playhead_MouseUp"
                                             PreviewMouseMove="Playhead_MouseMove" />
                     </Grid>
+                    
+                    <Grid x:Name="GotoMarkerGrid" Grid.Row="0" Grid.RowSpan="2" Width="1" HorizontalAlignment="Left" Cursor="Hand" IsHitTestVisible="False" 
+                          Background="{StaticResource PrimaryHueDarkBrush}" /> 
                 </Grid>
             </Grid>
         </ScrollViewer>

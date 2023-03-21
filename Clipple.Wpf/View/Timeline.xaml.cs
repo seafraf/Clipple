@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -282,6 +283,14 @@ public partial class Timeline
             ScrollViewer.ScrollToHorizontalOffset(offset - TimelineWidth);
     }
 
+    private TimeSpan PixelsToTime(double pixels)
+    {
+        var wavePxOnTimeline = WaveformEngine.ResolutionX * Transform.ScaleX;
+        var ticksPerPixel    = Duration.Ticks / wavePxOnTimeline;
+        var timePerPixel     = TimeSpan.FromTicks((long)ticksPerPixel);
+        return pixels * timePerPixel;
+    }
+
     private void DragTick(MouseEventArgs e, DragTarget dragTarget)
     {
         if (IsDragging)
@@ -292,13 +301,10 @@ public partial class Timeline
             var diffY = pos.Y - lastDragPoint.Y;
 
             lastDragPoint = new(pos.X, lastDragPoint.Y);
-
-
-            var wavePxOnTimeline = WaveformEngine.ResolutionX * Transform.ScaleX;
+            
             var sens             = 1.0 - -diffY / (App.Window.MediaEditor.ActualHeight / 3.0);
-            var ticksPerPixel    = Duration.Ticks / wavePxOnTimeline;
-            var timePerPixel     = TimeSpan.FromTicks((long)ticksPerPixel);
-            var timeDiff         = diffX * timePerPixel * Math.Clamp(sens, 0.01, 1);
+            var wavePxOnTimeline = WaveformEngine.ResolutionX * Transform.ScaleX;
+            var timeDiff         = PixelsToTime(diffX) * Math.Clamp(sens, 0.01, 1);
 
             switch (dragTarget)
             {
@@ -407,5 +413,14 @@ public partial class Timeline
         UpdateZoom();
     }
 
+    private void OnGoToMarkerClicked(object sender, MouseButtonEventArgs e)
+    {
+        var pos = e.GetPosition(sender as UIElement);
+        e.Handled = true;
+
+        IsDragging = true;
+        SetTimeClamped(PixelsToTime(pos.X));
+        IsDragging = false;
+    }
     #endregion
 }

@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 
 namespace Clipple.View;
@@ -19,10 +21,16 @@ public partial class TimelineMarker
     #region Dependency Properties
 
     public static readonly DependencyProperty DurationProperty = DependencyProperty.Register(
-        "Duration",
+        nameof(Duration),
         typeof(TimeSpan),
         typeof(TimelineMarker),
         new FrameworkPropertyMetadata(TimeSpan.Zero, FrameworkPropertyMetadataOptions.AffectsRender));
+    
+    public static readonly DependencyProperty GoToMarkerGridProperty = DependencyProperty.Register(
+        nameof(GoToMarkerGrid),
+        typeof(Grid),
+        typeof(TimelineMarker),
+        new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender));
 
     #endregion
 
@@ -33,7 +41,12 @@ public partial class TimelineMarker
         get => (TimeSpan)GetValue(DurationProperty);
         set => SetValue(DurationProperty, value);
     }
-
+    
+    public Grid? GoToMarkerGrid
+    {
+        get => (Grid?)GetValue(GoToMarkerGridProperty);
+        set => SetValue(GoToMarkerGridProperty, value);
+    }
     #endregion
 
     protected override void OnRender(DrawingContext drawingContext)
@@ -41,6 +54,8 @@ public partial class TimelineMarker
         base.OnRender(drawingContext);
 
         var paddedWidth = ActualWidth - 1;
+        
+        Trace.WriteLine("asd");
 
         // Aim to have one marker every 18 pixels, but the total lines should be a multiple of frequency
         var frequency = 10;
@@ -80,5 +95,29 @@ public partial class TimelineMarker
                 drawingContext.DrawRectangle(Brushes.White, null, new(x, ActualHeight - 4, 1, 4));
             }
         }
+    }
+
+    private void OnMouseEnter(object sender, MouseEventArgs e)
+    {
+        if (GoToMarkerGrid == null)
+            return;
+
+        GoToMarkerGrid.Visibility = Visibility.Visible;
+    }
+
+    private void OnMouseLeave(object sender, MouseEventArgs e)
+    {
+        if (GoToMarkerGrid == null)
+            return;
+        
+        GoToMarkerGrid.Visibility = Visibility.Collapsed;
+    }
+
+    private void OnMouseMove(object sender, MouseEventArgs e)
+    {
+        if (GoToMarkerGrid == null)
+            return;
+
+        GoToMarkerGrid.Margin = new(e.GetPosition(this).X, 0, 0, 0);
     }
 }
