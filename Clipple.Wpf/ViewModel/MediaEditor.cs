@@ -304,6 +304,12 @@ public class MediaEditor : ObservableObject
     public ICommand ZoomOut { get; }
 
     public ICommand OpenExportDialogCommand { get; }
+    
+    public ICommand ControlCommand          => new RelayCommand(TogglePlayPause);
+    
+    public ICommand PreviousFrameCommand    => new RelayCommand(ShowFramePrev);
+    
+    public ICommand NextFrameCommand        => new RelayCommand(ShowFrameNext);
 
     #endregion
 

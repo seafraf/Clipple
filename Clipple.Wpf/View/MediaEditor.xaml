@@ -12,7 +12,7 @@
              d:DataContext="{d:DesignInstance Type=viewmodel:MediaEditor}"
              mc:Ignorable="d"
              d:DesignHeight="1080" d:DesignWidth="1920"
-             Loaded="OnLoaded" PreviewMouseWheel="OnMouseWheel" AllowDrop="True" DragEnter="OnDragEnter" Drop="OnDrop" Background="Transparent">
+             Loaded="OnLoaded" PreviewMouseWheel="OnMouseWheel" PreviewKeyDown="OnPreviewKeyDown" AllowDrop="True" DragEnter="OnDragEnter" Drop="OnDrop" Background="Transparent">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
@@ -162,12 +162,12 @@
                             <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
                                 <Button Width="32" Height="32" ToolTip="Previous frame" Margin="0 0 4 0"
                                         Style="{StaticResource MaterialDesignIconButton}"
-                                        Command="{Binding Source={x:Static local:AppCommands.PreviousFrameCommand}}">
+                                        Command="{Binding PreviousFrameCommand}">
                                     <materialDesign:PackIcon Kind="StepBackward" Width="28" Height="28" />
                                 </Button>
                                 <Button Width="32" Height="32" ToolTip="Play" Margin="0 0 4 0"
                                         Style="{StaticResource MaterialDesignIconButton}"
-                                        Command="{Binding Source={x:Static local:AppCommands.ControlCommand}}">
+                                        Command="{Binding ControlCommand}">
                                     <materialDesign:PackIcon Width="28" Height="28"
                                                              materialDesign:ElevationAssist.Elevation="Dp8">
                                         <materialDesign:PackIcon.Style>
@@ -180,13 +180,14 @@
                                                         <Setter Property="Kind" Value="Play" />
                                                     </DataTrigger>
                                                 </Style.Triggers>
+                                                <Setter Property="Kind" Value="Play" />
                                             </Style>
                                         </materialDesign:PackIcon.Style>
                                     </materialDesign:PackIcon>
                                 </Button>
                                 <Button Width="32" Height="32" ToolTip="Next frame" Margin="0 0 0 0"
                                         Style="{StaticResource MaterialDesignIconButton}"
-                                        Command="{Binding Source={x:Static local:AppCommands.NextFrameCommand}}">
+                                        Command="{Binding NextFrameCommand}">
                                     <materialDesign:PackIcon Kind="StepForward" Width="28" Height="28" />
                                 </Button>
                             </StackPanel>

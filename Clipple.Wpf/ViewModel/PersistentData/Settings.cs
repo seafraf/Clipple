@@ -14,6 +14,10 @@ public class Settings : ObservableObject
 {
     #region Members
     private string clipOutputFolder = Environment.GetFolderPath(Environment.SpecialFolder.MyVideos);
+
+    private Key controlKey = Key.Space;
+    private Key previousFrameKey = Key.Left;
+    private Key nextFrameKey = Key.Right;
     #endregion
     
     #region Properties
@@ -21,6 +25,24 @@ public class Settings : ObservableObject
     {
         get => clipOutputFolder;
         set => SetProperty(ref clipOutputFolder, value);
+    }
+
+    public Key ControlKey
+    {
+        get => controlKey;
+        set => SetProperty(ref controlKey, value);
+    }
+    
+    public Key PreviousFrameKey
+    {
+        get => previousFrameKey;
+        set => SetProperty(ref previousFrameKey, value);
+    }
+    
+    public Key NextFrameKey
+    {
+        get => nextFrameKey;
+        set => SetProperty(ref nextFrameKey, value);
     }
 
     // Setter used by deserialization

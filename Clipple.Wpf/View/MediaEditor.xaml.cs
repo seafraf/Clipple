@@ -68,4 +68,28 @@ public partial class MediaEditor
         e.Effects = DragDropEffects.Copy;
         e.Handled = true;
     }
+
+    private void OnPreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        var vm = (ViewModel.MediaEditor)DataContext;
+
+        if (e.Key == App.ViewModel.Settings.ControlKey)
+        {
+            vm.TogglePlayPause();
+        }
+        else if (e.Key == App.ViewModel.Settings.PreviousFrameKey)
+        {
+            vm.ShowFramePrev();
+        }
+        else if (e.Key == App.ViewModel.Settings.NextFrameKey)
+        {
+            vm.ShowFrameNext();
+        }
+        else
+            return;
+        
+        e.Handled = true;
+        FocusManager.SetIsFocusScope(this, true);
+        FocusManager.SetFocusedElement(this, this);
+    }
 }
