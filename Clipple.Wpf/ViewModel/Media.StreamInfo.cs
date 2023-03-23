@@ -53,7 +53,7 @@ public partial class Media
                 throw new FormatException("Media doesn't contain audio or video");
 
             var formatNames = Marshal.PtrToStringAnsi((nint)formatContext->iformat->name)?.Split(",");
-            if (formatNames == null || !formatNames.Any(x => App.ViewModel.ContainerFormatCollection.SupportedFormatNames.Contains(x)))
+            if (formatNames == null || !formatNames.Any(x => App.ContainerFormatCollection.SupportedFormatNames.Contains(x)))
                 throw new NotSupportedException($"{fileInfo.FullName} is not in a supported format");
 
             Duration = TimeSpan.FromSeconds((double)formatContext->duration / ffmpeg.AV_TIME_BASE);

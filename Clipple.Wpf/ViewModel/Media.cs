@@ -8,12 +8,11 @@ using Clipple.Types;
 using Clipple.Util;
 using LiteDB;
 using MaterialDesignThemes.Wpf;
-using Microsoft.Toolkit.Mvvm.ComponentModel;
 using Microsoft.Toolkit.Mvvm.Input;
 
 namespace Clipple.ViewModel;
 
-public partial class Media : ObservableObject
+public partial class Media : AbstractTagContainer
 {
     [BsonCtor]
     public Media(string filePath)
@@ -70,7 +69,6 @@ public partial class Media : ObservableObject
     }
 
     #region Methods
-
     private void CopyAudioStreamFilters(int audioStreamIndex, bool toMedia)
     {
         var a = AudioStreams?.Where(x => x.AudioStreamIndex == audioStreamIndex).FirstOrDefault();
@@ -108,22 +106,18 @@ public partial class Media : ObservableObject
     {
         CopyAudioStreamFilters(audioStreamIndex, true);
     }
-
     #endregion
 
     #region Members
-
     private FileInfo    fileInfo;
     private Clip?       clip;
     private string?     description;
     private int         classIndex = 1; // raw by default
     private MediaClass? @class;
     private ObjectId?   parentId;
-
     #endregion
 
     #region Properties
-
     /// <summary>
     ///     A reference to the media's file info. This can be used to determine the path, file size, etc
     /// </summary>
@@ -218,12 +212,10 @@ public partial class Media : ObservableObject
     [BsonIgnore]
     private string CachePath => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "Clipple", "cache", Id.ToString());
-
     #endregion
 
 
     #region Commands
-
     [BsonIgnore]
     public ICommand StartExportCommand => new RelayCommand(() =>
     {
@@ -238,6 +230,5 @@ public partial class Media : ObservableObject
     [BsonIgnore] public ICommand ExportAudioStreamFiltersCommand => new RelayCommand<int>(ExportAudioStreamFilters);
 
     [BsonIgnore] public ICommand AddTagCommand => new RelayCommand(AddNewTag);
-
     #endregion
 }

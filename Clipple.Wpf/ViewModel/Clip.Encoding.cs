@@ -35,8 +35,8 @@ public partial class Clip
         var videoIndex = VideoCodecIndex;
         var extIndex   = ExtensionIndex;
 
-        ContainerFormat = App.ViewModel.ContainerFormatCollection.SupportedFormats.ElementAtOrDefault(containerFormatIndex) ??
-                          App.ViewModel.ContainerFormatCollection.SupportedFormats.First();
+        ContainerFormat = App.ContainerFormatCollection.SupportedFormats.ElementAtOrDefault(containerFormatIndex) ??
+                          App.ContainerFormatCollection.SupportedFormats.First();
 
         AudioCodecIndex = audioIndex;
         VideoCodecIndex = videoIndex;

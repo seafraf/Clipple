@@ -29,7 +29,7 @@ public class Notifications : ObservableObject
 
     public void NotifyInfo(string message)
     {
-        MessageQueue.Enqueue(message, "OK", p => { }, null, true, false);
+        MessageQueue.Enqueue(message, "OK", p => { }, null, true, false, TimeSpan.FromSeconds(5));
     }
 
     #endregion

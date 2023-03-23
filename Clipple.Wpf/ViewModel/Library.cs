@@ -252,7 +252,7 @@ public class Library : ObservableObject
             }
 
         if (errors.Count > 0)
-            App.Notifications.NotifyException("Errors loading library", errors.ToArray());
+            App.ViewModel.Notifications.NotifyException("Errors loading library", errors.ToArray());
     }
 
     /// <summary>
@@ -393,7 +393,7 @@ public class Library : ObservableObject
     {
         if (importingMedia.Contains(file))
         {
-            App.Notifications.NotifyWarning("File already queued for import");
+            App.ViewModel.Notifications.NotifyWarning("File already queued for import");
             return null;
         }
 
@@ -406,7 +406,7 @@ public class Library : ObservableObject
             }
             else
             {
-                App.Notifications.NotifyWarning("File already imported");
+                App.ViewModel.Notifications.NotifyWarning("File already imported");
                 return null;
             }
         }
@@ -414,13 +414,13 @@ public class Library : ObservableObject
         try
         {
             var media = await AddMediaInternal(file, parentId);
-            App.Notifications.NotifyInfo("Added media to the library!");
+            App.ViewModel.Notifications.NotifyInfo("Added media to the library!");
 
             return media;
         }
         catch (Exception e)
         {
-            App.Notifications.NotifyException("Failed to add media", e);
+            App.ViewModel.Notifications.NotifyException("Failed to add media", e);
             return null;
         }
     }
@@ -431,45 +431,52 @@ public class Library : ObservableObject
     /// <param name="files">The files to add</param>
     /// <param name="source">A name describing the source of the files</param>
     /// <param name="open">Selects one the first successfully opened imported media and opens in the media editor</param>
+    /// <param name="completionCallback">A function called after each media is imported/fails to import.  The number passed is the number of processed items</param>
     /// <returns>Where the files came from</returns>
-    public async Task AddMedias(string[] files, string source, bool open = false)
+    public async Task<List<Media>> AddMedias(string[] files, string source, bool open = false, Action<int>? completionCallback = default)
     {
+        var importedMedia = new List<Media>();
+        
         // This function should only be used on collections of media > 1
         if (files.Length == 1)
         {
             if (await AddMedia(files[0]) is not { } media || !open)
-                return;
+                return importedMedia;
 
             SelectedMedia                   = media;
             App.ViewModel.MediaEditor.Media = media;
-            return;
+            return importedMedia;
         }
 
         var    errors             = new List<Exception>();
-        Media? firstImportedMedia = null;
         foreach (var file in files)
             try
             {
                 if (Database.GetCollection<Media>().Exists(x => x.FilePath.Equals(file, StringComparison.OrdinalIgnoreCase)))
                     throw new DuplicateNameException($"{file} already exists");
 
-                firstImportedMedia ??= await AddMediaInternal(file, null);
+                var media = await AddMediaInternal(file, null);
+                importedMedia.Add(media);
+
+                completionCallback?.Invoke(errors.Count + importedMedia.Count);
             }
             catch (Exception e)
             {
                 errors.Add(e);
             }
 
-        if (firstImportedMedia != null && open)
+        if (importedMedia.FirstOrDefault() is { } first && open)
         {
-            SelectedMedia                   = firstImportedMedia;
-            App.ViewModel.MediaEditor.Media = firstImportedMedia;
+            SelectedMedia                   = first;
+            App.ViewModel.MediaEditor.Media = first;
         }
 
         if (errors.Count == 0)
-            App.Notifications.NotifyInfo($"Added {files.Length} media files from {source}");
+            App.ViewModel.Notifications.NotifyInfo($"Added {files.Length} media files from {source}");
         else
-            App.Notifications.NotifyException($"Failed to import {errors.Count}/{files.Length} media files from {source}", errors.ToArray());
+            App.ViewModel.Notifications.NotifyException($"Failed to import {errors.Count}/{files.Length} media files from {source}", errors.ToArray());
+
+        return importedMedia;
     }
 
     /// <summary>
@@ -627,11 +634,11 @@ public class Library : ObservableObject
 
     public ICommand AddFilterTagCommand => new RelayCommand(() =>
     {
-        var name = App.ViewModel.TagSuggestionRegistry.ActiveTagNames.LastOrDefault();
+        var name = App.TagSuggestionRegistry.ActiveTagNames.LastOrDefault();
         if (name == null)
             return;
 
-        var value = App.ViewModel.TagSuggestionRegistry.Tags.GetValueOrDefault(name)?.ActiveValues.LastOrDefault();
+        var value = App.TagSuggestionRegistry.Tags.GetValueOrDefault(name)?.ActiveValues.LastOrDefault();
         if (value == null)
             return;
 
@@ -653,7 +660,7 @@ public class Library : ObservableObject
     public ICommand AddFilterClassCommand => new RelayCommand(() =>
     {
         foreach (var @class in MediaClass.MediaClasses)
-            if (!FilterClasses.Any(x => x.Class == @class))
+            if (FilterClasses.All(x => x.Class != @class))
             {
                 FilterClasses.Add(new(@class));
                 break;

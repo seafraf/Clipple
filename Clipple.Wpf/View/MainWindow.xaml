@@ -60,13 +60,13 @@
                         <!-- Settings -->
                         <Grid Grid.Column="1"
                               Visibility="{Binding IsSettingsSelected, Converter={StaticResource BooleanToVisibilityConverter}}">
-                            <Label Content="Settings here lol" />
+                            <views:Settings DataContext="{Binding Settings}" />
                         </Grid>
 
                         <!-- 
-                        The tab control here is only used for styling.  Using the TabControl's content presenter would result in recreating tabs when selected, which
-                        is very bad for the performance of these tabs. 
-                    -->
+                            The tab control here is only used for styling.  Using the TabControl's content presenter would result in recreating tabs when selected, which
+                            is very bad for the performance of these tabs. 
+                        -->
                         <TabControl Grid.Column="0" materialDesign:NavigationRailAssist.ShowSelectionBackground="True"
                                     TabStripPlacement="Left"
                                     Style="{StaticResource MaterialDesignNavigatilRailTabControl}">
@@ -105,7 +105,7 @@
             </materialDesign:Transitioner>
             <materialDesign:Snackbar x:Name="Snackbar"
                                      ActionButtonStyle="{StaticResource MaterialDesignSnackbarActionDarkButton}"
-                                     MessageQueue="{Binding MessageQueue, Source={x:Static local:App.Notifications}}"
+                                     MessageQueue="{Binding Notifications.MessageQueue, Source={x:Static local:App.ViewModel}}"
                                      Margin="16 0 16 16" />
         </Grid>
     </materialDesign:DialogHost>

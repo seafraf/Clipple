@@ -53,13 +53,13 @@ public class LibraryEditTagsTask : ObservableObject
             }
         }
 
-        public ObservableCollection<string> NameSuggestions => App.ViewModel.TagSuggestionRegistry.ActiveTagNames;
+        public ObservableCollection<string> NameSuggestions => App.TagSuggestionRegistry.ActiveTagNames;
 
         public ObservableCollection<string> ValueSuggestions
         {
             get
             {
-                var nameInfo = App.ViewModel.TagSuggestionRegistry.Tags.GetValueOrDefault(Name);
+                var nameInfo = App.TagSuggestionRegistry.Tags.GetValueOrDefault(Name);
                 if (nameInfo != null)
                     return nameInfo.ActiveValues;
 
@@ -139,8 +139,8 @@ public class LibraryEditTagsTask : ObservableObject
 
     public ICommand NewTagCommand => new RelayCommand(() =>
     {
-        var name  = App.ViewModel.TagSuggestionRegistry.ActiveTagNames.LastOrDefault("New tag");
-        var value = App.ViewModel.TagSuggestionRegistry.Tags.GetValueOrDefault(name)?.ActiveValues.LastOrDefault() ?? "";
+        var name  = App.TagSuggestionRegistry.ActiveTagNames.LastOrDefault("New tag");
+        var value = App.TagSuggestionRegistry.Tags.GetValueOrDefault(name)?.ActiveValues.LastOrDefault() ?? "";
         var group = new TagGroup(name, value);
 
         foreach (var media in Media)

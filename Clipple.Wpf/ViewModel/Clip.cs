@@ -169,7 +169,7 @@ public partial class Clip : ObservableObject, INotifyDataErrorInfo
     ///     Returns a the full file name including extension for this clip
     /// </summary>
     [BsonIgnore]
-    public string FullFileName => $"{Path.Combine(App.ViewModel.Settings.DefaultOutputFolder, FileName)}.{Extension}";
+    public string FullFileName => $"{Path.Combine(App.ViewModel.Settings.ClipOutputFolder, FileName)}.{Extension}";
 
     /// <summary>
     ///     Full file name

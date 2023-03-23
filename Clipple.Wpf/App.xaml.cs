@@ -2,6 +2,7 @@
 using System.IO;
 using System.Windows;
 using System.Windows.Threading;
+using Clipple.Types;
 using Clipple.View;
 using Clipple.ViewModel;
 using FFmpeg.AutoGen;
@@ -15,15 +16,24 @@ namespace Clipple;
 /// </summary>
 public partial class App
 {
+    static App()
+    {
+        ffmpeg.RootPath                     = LibPath;
+        BsonMapper.Global.EmptyStringToNull = false;
+
+        TagSuggestionRegistry     = new();
+        ContainerFormatCollection = new();
+    }
+
+    public App()
+    {
+        DispatcherUnhandledException += OnDispatcherUnhandledException;
+    }
+    
     /// <summary>
     ///     A reference to the root VM
     /// </summary>
     public static Root ViewModel => (Root)Current.Resources[nameof(Root)];
-
-    /// <summary>
-    ///     Reference to the notifications VM
-    /// </summary>
-    public static Notifications Notifications { get; } = new();
 
     /// <summary>
     ///     A reference to the main window instance.
@@ -40,14 +50,16 @@ public partial class App
     /// </summary>
     public static SemanticVersion? Version { get; private set; }
 
-    public App()
-    {
-        DispatcherUnhandledException += OnDispatcherUnhandledException;
-
-        ffmpeg.RootPath                     = LibPath;
-        BsonMapper.Global.EmptyStringToNull = false;
-    }
-
+    /// <summary>
+    /// Tag suggestion registry
+    /// </summary>
+    public static TagSuggestionRegistry TagSuggestionRegistry { get; }
+    
+    /// <summary>
+    /// Reference to the collection of valid media formats for encoding and decoding.
+    /// </summary>
+    public static ContainerFormatCollection ContainerFormatCollection { get; }
+    
     /// <summary>
     ///     Attempt to handle all uncaught exceptions.  This is mostly here for debugging purposes so that users can send error
     ///     messages
@@ -55,7 +67,7 @@ public partial class App
     /// </summary>
     private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
-        Notifications.NotifyException("Unexpected error", e.Exception);
+        ViewModel.Notifications.NotifyException("Unexpected error", e.Exception);
         e.Handled = true;
     }
 

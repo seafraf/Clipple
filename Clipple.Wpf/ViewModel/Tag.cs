@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
+using Clipple.Types;
 using LiteDB;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
 using Microsoft.Toolkit.Mvvm.Input;
@@ -10,21 +11,23 @@ namespace Clipple.ViewModel;
 
 public class Tag : ObservableObject, IDisposable
 {
-    public Tag(string name, string value, bool hidden = false)
+    [BsonCtor]
+    // ReSharper disable once IntroduceOptionalParameters.Global
+    public Tag(string name, string value) : this(name, value, false)
+    {
+        // Note that this function requires to exist for deserialization.  A default parameter on another constructor 
+        // won't work
+    }
+        
+    public Tag(string name, string value, bool hidden)
     {
         this.name   = name;
         this.value  = value;
         this.hidden = hidden;
-
-        DeleteCommand = new RelayCommand<Media>(media =>
-        {
-            if (!hidden)
-                media?.DeleteTag(this);
-        });
-
+        
         // Register the new tag
         if (!hidden)
-            App.ViewModel.TagSuggestionRegistry.RegisterTag(this);
+            App.TagSuggestionRegistry.RegisterTag(this);
     }
 
     #region Methods
@@ -35,7 +38,7 @@ public class Tag : ObservableObject, IDisposable
     public void Dispose()
     {
         if (!hidden)
-            App.ViewModel.TagSuggestionRegistry.ReleaseTag(this);
+            App.TagSuggestionRegistry.ReleaseTag(this);
     }
 
     public override bool Equals(object? obj)
@@ -68,12 +71,12 @@ public class Tag : ObservableObject, IDisposable
         set
         {
             if (!hidden)
-                App.ViewModel.TagSuggestionRegistry.ReleaseTag(this);
+                App.TagSuggestionRegistry.ReleaseTag(this);
 
             SetProperty(ref name, value);
 
             if (!hidden)
-                App.ViewModel.TagSuggestionRegistry.RegisterTag(this);
+                App.TagSuggestionRegistry.RegisterTag(this);
 
             OnPropertyChanged(nameof(ValueSuggestions));
         }
@@ -87,7 +90,7 @@ public class Tag : ObservableObject, IDisposable
         get => value;
         set
         {
-            var nameInfo = App.ViewModel.TagSuggestionRegistry.Tags.GetValueOrDefault(Name);
+            var nameInfo = App.TagSuggestionRegistry.Tags.GetValueOrDefault(Name);
 
             if (this.value != null && !hidden)
                 nameInfo?.ReleaseValue(this.value);
@@ -103,7 +106,7 @@ public class Tag : ObservableObject, IDisposable
     ///     Helper property.  Returns the list of existing tag names provided by the tag registry.
     /// </summary>
     [BsonIgnore]
-    public ObservableCollection<string> NameSuggestions => App.ViewModel.TagSuggestionRegistry.ActiveTagNames;
+    public ObservableCollection<string> NameSuggestions => App.TagSuggestionRegistry.ActiveTagNames;
 
     /// <summary>
     ///     Helper property.  Returns value suggestions based off of the name of this tag.  Value suggestions are provided by
@@ -114,7 +117,7 @@ public class Tag : ObservableObject, IDisposable
     {
         get
         {
-            var nameInfo = App.ViewModel.TagSuggestionRegistry.Tags.GetValueOrDefault(Name);
+            var nameInfo = App.TagSuggestionRegistry.Tags.GetValueOrDefault(Name);
             if (nameInfo != null)
                 return nameInfo.ActiveValues;
 
@@ -125,8 +128,11 @@ public class Tag : ObservableObject, IDisposable
     #endregion
 
     #region Commands
-
-    [BsonIgnore] public ICommand DeleteCommand { get; }
-
+    [BsonIgnore] 
+    public ICommand DeleteCommand => new RelayCommand<AbstractTagContainer>(media =>
+    {
+        if (!hidden)
+            media?.DeleteTag(this);
+    });
     #endregion
 }

@@ -1,7 +1,13 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Threading.Tasks;
+using System.Windows.Documents;
+using System.Windows.Input;
 using Clipple.Types;
 using Clipple.ViewModel.PersistentData;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
+using Microsoft.Toolkit.Mvvm.Input;
 
 namespace Clipple.ViewModel;
 
@@ -11,14 +17,16 @@ public class Root : ObservableObject
     {
         Updater               = new();
         MediaEditor           = new();
-        TagSuggestionRegistry = new();
-
-        ClipPresetCollection = new(ContainerFormatCollection);
+ 
+        ClipPresetCollection = new(App.ContainerFormatCollection);
 
         // Persistent data
         AppState = PersistentDataHelper.Load<AppState>() ?? new();
+        Settings = PersistentDataHelper.Load<Settings>() ?? new();
 
-        AppState.PropertyChanged += (_, _) => PersistentDataHelper.Save(AppState);
+        AppState.PropertyChanged                  += (_, _) => PersistentDataHelper.Save(AppState);
+        Settings.PropertyChanged                  += (_, _) => PersistentDataHelper.Save(Settings);
+        Settings.FolderWatchers.CollectionChanged += (_, _) => PersistentDataHelper.Save(Settings);
     }
 
     #region Members
@@ -34,19 +42,63 @@ public class Root : ObservableObject
     #endregion
 
     #region Methods
+    private async Task LoadWatchers()
+    {
+        foreach (var folderWatch in Settings.FolderWatchers)
+        {
+            LoadingText = "Searching " + folderWatch.Directory;
+            var files = await folderWatch.FindMedia();
+            if (files.Count <= 0) 
+                continue;
+                
+            LoadingText = $"Importing {files.Count} files from {folderWatch.Directory}";
+            var mediaList = await Library.AddMedias(files.ToArray(), folderWatch.Directory, false, (count) =>
+            {
+                LoadingText = $"Imported {count}/{files.Count} files from {folderWatch.Directory}";
+            });
 
+            // Apply folder watch settings to imported media
+            foreach (var media in mediaList)
+            {
+                media.Class      = folderWatch.Class;
+                media.ClassIndex = folderWatch.ClassIndex;
+                
+                foreach (var tag in folderWatch.Tags)
+                    media.Tags.Add(new(tag.Name, tag.Value));
+            }
+        }
+    }
+
+    private async void ReloadWatchers()
+    {
+        var stopwatch = new Stopwatch();
+        stopwatch.Start();
+        
+        IsLoading = true;
+        await LoadWatchers();
+
+        // Display an ending splash to make it more clear that the reload did anything
+        LoadingText = "Watchers reloaded!";
+        await Task.Delay(2000);
+
+        IsLoading = false;
+    }
+    
     public async Task Load()
     {
         LoadingText = "Checking for updates";
         await Updater.CheckForUpdate();
-
+        
         LoadingText = "Loading library";
         var media = await Library.GetMediaFromDatabase();
 
         LoadingText = "Initialising media";
         await Library.LoadMedia(media);
 
-        // Restore AppState
+        if (Settings.FolderWatchers.Count > 0)
+            await LoadWatchers();
+
+            // Restore AppState
         if (AppState.LibraryMediaId is { } libraryId)
             Library.SelectedMedia = Library.GetMediaById(libraryId);
 
@@ -159,22 +211,12 @@ public class Root : ObservableObject
     /// <summary>
     ///     Reference to the settings
     /// </summary>
-    public Settings Settings { get; } = new();
+    public Settings Settings { get; }
 
     /// <summary>
     ///     Reference to the updater
     /// </summary>
-    public Updater Updater { get; }
-
-    /// <summary>
-    ///     Reference to the tag suggestion registry
-    /// </summary>
-    public TagSuggestionRegistry TagSuggestionRegistry { get; }
-
-    /// <summary>
-    ///     Reference to the collection of valid media formats for encoding and decoding.
-    /// </summary>
-    public ContainerFormatCollection ContainerFormatCollection { get; } = new();
+    private Updater Updater { get; }
 
     /// <summary>
     ///     Collection of clip presets, user and default
@@ -185,6 +227,11 @@ public class Root : ObservableObject
     ///     App state persistent data
     /// </summary>
     public AppState AppState { get; }
+    
+    /// <summary>
+    ///     Reference to the notifications VM
+    /// </summary>
+    public Notifications Notifications { get; } = new();
 
     /// <summary>
     ///     Title for the main window
@@ -194,6 +241,6 @@ public class Root : ObservableObject
     #endregion
 
     #region Commands
-
+    public ICommand ReloadFolderWatchersCommand => new RelayCommand(ReloadWatchers);
     #endregion
 }

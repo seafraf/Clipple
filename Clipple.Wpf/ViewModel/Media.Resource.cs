@@ -28,7 +28,7 @@ public partial class Media
                 await Task.Run(() => RateLimitSemaphore.WaitOne());
                 var engine = new WaveformEngine(FilePath, path, audioStream.AudioStreamIndex);
                 if (await engine.Run() != 0)
-                    App.Notifications.NotifyWarning($"Failed to generate waveform ({audioStream.AudioStreamIndex}) for {FilePath}");
+                    App.ViewModel.Notifications.NotifyWarning($"Failed to generate waveform ({audioStream.AudioStreamIndex}) for {FilePath}");
 
                 RateLimitSemaphore.Release();
             }

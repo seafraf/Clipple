@@ -79,7 +79,7 @@
                                 <Setter Property="materialDesign:TextFieldAssist.PrefixText">
                                     <Setter.Value>
                                         <MultiBinding StringFormat="{}{0}\">
-                                            <Binding Path="Settings.DefaultOutputFolder"
+                                            <Binding Path="Settings.ClipOutputFolder"
                                                      Source="{x:Static local:App.ViewModel}" />
                                         </MultiBinding>
                                     </Setter.Value>
@@ -127,7 +127,7 @@
                     <StackPanel>
                         <ComboBox Margin="0 0 0 4" materialDesign:HintAssist.Hint="Output format"
                                   Style="{StaticResource MaterialDesignFilledComboBox}"
-                                  ItemsSource="{Binding Path=ContainerFormatCollection.SupportedFormats, Source={x:Static local:App.ViewModel}}"
+                                  ItemsSource="{Binding Path=SupportedFormats, Source={x:Static local:App.ContainerFormatCollection}}"
                                   SelectedItem="{Binding Path=Clip.ContainerFormat}"
                                   SelectedIndex="{Binding Path=Clip.ContainerFormatIndex}">
                             <ComboBox.GroupStyle>

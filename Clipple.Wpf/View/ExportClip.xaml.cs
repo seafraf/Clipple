@@ -14,7 +14,7 @@ public partial class ExportClip
 
         App.ViewModel.Settings.PropertyChanged += (s, e) =>
         {
-            if (e.PropertyName != nameof(ViewModel.Settings.DefaultOutputFolder))
+            if (e.PropertyName != nameof(App.ViewModel.Settings.ClipOutputFolder))
                 return;
 
             if (outputFolderWatcher is { } watcher)
@@ -22,6 +22,7 @@ public partial class ExportClip
                 watcher.Created -= OnFileSystemChanged;
                 watcher.Deleted -= OnFileSystemChanged;
                 watcher.Renamed -= OnFileSystemChanged;
+                watcher.Dispose();
             }
 
             CreateWatcher();
@@ -35,10 +36,10 @@ public partial class ExportClip
 
     private void CreateWatcher()
     {
-        if (!Directory.Exists(App.ViewModel.Settings.DefaultOutputFolder))
+        if (!Directory.Exists(App.ViewModel.Settings.ClipOutputFolder))
             return;
 
-        outputFolderWatcher = new(App.ViewModel.Settings.DefaultOutputFolder)
+        outputFolderWatcher = new(App.ViewModel.Settings.ClipOutputFolder)
         {
             NotifyFilter        = NotifyFilters.FileName,
             EnableRaisingEvents = true

@@ -13,11 +13,13 @@ public class ContainerFormatCollection
         SupportedFormats = GetSupportedFormats().ToList();
 
         foreach (var format in SupportedFormats)
+        {
             SupportedFormatNames.UnionWith(format.Names);
+            SupportedExtensions.UnionWith(format.Extensions);
+        }
     }
 
     #region Methods
-
     private static unsafe ContainerFormat? FormatFromNative(byte* namePtr, byte* longNamePtr, byte* extensionsPtr, List<AudioVideoCodec>? supportedCodecIDs = null)
     {
         if (namePtr == null || longNamePtr == null)
@@ -106,14 +108,13 @@ public class ContainerFormatCollection
 
         return encoderIDs;
     }
-
     #endregion
 
     #region Properties
-
-    public List<ContainerFormat> SupportedFormats { get; }
-
-    public HashSet<string> SupportedFormatNames { get; } = new();
-
+    public List<ContainerFormat> SupportedFormats     { get; }
+    
+    public HashSet<string>       SupportedFormatNames { get; } = new();
+    
+    public HashSet<string>       SupportedExtensions  { get; } = new();
     #endregion
 }

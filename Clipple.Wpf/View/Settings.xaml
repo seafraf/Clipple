@@ -3,85 +3,120 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:viewmodel="clr-namespace:Clipple.ViewModel"
+             xmlns:pd="clr-namespace:Clipple.ViewModel.PersistentData"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:types="clr-namespace:Clipple.Types"
+             xmlns:clipple="clr-namespace:Clipple"
              mc:Ignorable="d"
-             d:DesignHeight="450" d:DesignWidth="800" d:DataContext="{d:DesignInstance Type=viewmodel:Settings}" MinWidth="400">
-    <StackPanel>
-        <Expander Header="General">
-            <StackPanel>
-                <CheckBox Content="Create output folder if it doesn't exist" Margin="2" IsChecked="{Binding Path=CreateOutputFolder}" />
-                <TextBox Margin="2" Text="{Binding Path=DefaultOutputFolder}" />
-
-                <Separator Margin="0 8 0 8" />
-
-                <CheckBox Content="Add videos from the ingest folder automatically at startup" Margin="2" IsChecked="{Binding Path=IngestAutomatically}" />
-                <TextBox Margin="2" Text="{Binding Path=IngestFolder}" IsEnabled="{Binding Path=IngestAutomatically}" />
-
-                <Separator Margin="0 8 0 8" />
-
-                <CheckBox Content="Mark new videos for deletion automatically" Margin="2" IsChecked="{Binding Path=DefaultDeleteVideos}" />
-                <CheckBox Content="Mark new clips for removal automatically" Margin="2" IsChecked="{Binding Path=DefaultRemoveClips}" />
-                <CheckBox Content="Start clip processing automatically" Margin="2" IsChecked="{Binding Path=StartProcessingAutomatically}" />
-                <CheckBox Content="Convert Microphone input to mono by default (experimental)" Margin="2" IsChecked="{Binding Path=DefaultMicrophoneMono}" />
-            </StackPanel>
-        </Expander>
-        <Expander Header="Persistence">
-            <StackPanel>
-                <CheckBox Content="Autosave" Margin="2" IsChecked="{Binding Path=AutoSave}" />
-                <CheckBox Content="Save on exit" Margin="2" IsChecked="{Binding Path=SaveOnExit}" />
-                <!--<mah:NumericUpDown mah:TextBoxHelper.Watermark="Autosave frequency (seconds)" mah:TextBoxHelper.UseFloatingWatermark="True" Margin="2" Minimum="1" Value="{Binding Path=AutoSaveFrequency}" />-->
-
-                <Separator Margin="0 8 0 8" />
-            </StackPanel>
-        </Expander>
-        <Expander Header="Key bindings">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="120" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <StackPanel Grid.Column="0">
-                    <Label Content="Play / Pause" Margin="2" />
-                    <Label Content="Next frame" Margin="2" />
-                    <Label Content="Previous frame" Margin="2" />
-                    <Label Content="Toggle Mute" Margin="2" />
-                    <Label Content="Volume up" Margin="2" />
-                    <Label Content="Volume down" Margin="2" />
-                    <Label Content="Next video" Margin="2" />
-                    <Label Content="Previous video" Margin="2" />
-                    <Label Content="Create clip" Margin="2" />
-                    <Label Content="Next clip edge" Margin="2" />
-                    <Label Content="Previous clip edge" Margin="2" />
-                    <Label Content="Manual save" Margin="2" />
-                </StackPanel>
-                <StackPanel Grid.Column="1">
-                    <!--<mah:HotKeyBox Margin="2" HotKey="{Binding Path=ControlHotKey}" />
-                    <mah:HotKeyBox Margin="2" HotKey="{Binding Path=NextFrameHotKey}" />
-                    <mah:HotKeyBox Margin="2" HotKey="{Binding Path=PreviousFrameHotKey}" />
-                    <mah:HotKeyBox Margin="2" HotKey="{Binding Path=ToggleMuteHotKey}" />
-                    <mah:HotKeyBox Margin="2" HotKey="{Binding Path=VolumeUpHotKey}" />
-                    <mah:HotKeyBox Margin="2" HotKey="{Binding Path=VolumeDownHotKey}" />
-                    <mah:HotKeyBox Margin="2" HotKey="{Binding Path=NextVideoHotKey}" />
-                    <mah:HotKeyBox Margin="2" HotKey="{Binding Path=PreviousVideoHotKey}" />
-                    <mah:HotKeyBox Margin="2" HotKey="{Binding Path=CreateClipHotKey}" />
-                    <mah:HotKeyBox Margin="2" HotKey="{Binding Path=NextEdgeHotKey}" />
-                    <mah:HotKeyBox Margin="2" HotKey="{Binding Path=PreviousEdgeHotKey}" />
-                    <mah:HotKeyBox Margin="2" HotKey="{Binding Path=SaveHotKey}" />-->
-                </StackPanel>
-            </Grid>
-        </Expander>
-        <Expander Header="Appearence">
-            <StackPanel>
-                <CheckBox Content="Dark mode" Margin="2" IsChecked="{Binding Path=ThemeIsDark}" />
-                <Grid Margin="2">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="120" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <Label Grid.Column="0" Content="Theme colour" />
-                    <ComboBox Grid.Column="1" ItemsSource="{Binding Path=AvailableColours}" SelectedValue="{Binding Path=ThemeColour}" />
+             d:DesignHeight="1080" d:DesignWidth="1920" d:DataContext="{d:DesignInstance Type=pd:Settings}" MinWidth="400">
+    <materialDesign:Card Margin="8">
+        <TabControl SelectedIndex="1">
+            <TabItem Header="Media Editor">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="16">
+                        <TextBlock Style="{StaticResource MaterialDesignBody1TextBlock}" Text="Coming soon" />
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+            <TabItem Header="Folder watchers">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="8 0 8 0">
+                        <DataGrid CanUserAddRows="False" CanUserDeleteRows="False" CanUserReorderColumns="False" AutoGenerateColumns="False"
+                                  ItemsSource="{Binding FolderWatchers}">
+                                <DataGrid.Columns>
+                                    <DataGridTemplateColumn Header="Directory" Width="Auto">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBox Text="{Binding Directory}" VerticalAlignment="Center" IsReadOnly="True" />
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                    <DataGridTemplateColumn Header="Filter" Width="Auto">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBox Text="{Binding Filter}" VerticalAlignment="Center" IsReadOnly="True" />
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                    <DataGridTemplateColumn Header="Class" Width="Auto">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBox Text="{Binding Class.Name}" VerticalAlignment="Center" IsReadOnly="True" />
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                    <DataGridTemplateColumn Header="Tags" Width="*">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <ItemsControl ItemsSource="{Binding Tags}">
+                                                    <ItemsControl.ItemsPanel>
+                                                        <ItemsPanelTemplate>
+                                                            <StackPanel Orientation="Horizontal" />
+                                                        </ItemsPanelTemplate>
+                                                    </ItemsControl.ItemsPanel>
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <materialDesign:Chip IsEnabled="False" Height="24" Margin="0">
+                                                                <TextBlock>
+                                                                    <Run Text="{Binding Name, StringFormat='{}{0}:'}" />
+                                                                    <Run Text="{Binding Value}" />
+                                                                </TextBlock>
+                                                            </materialDesign:Chip>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                    <DataGridTemplateColumn Width="95" CanUserResize="False" CanUserReorder="False">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Button ToolTip="Edit" Width="30" Height="30"
+                                                            Style="{StaticResource MaterialDesignIconForegroundButton}"
+                                                            Content="{materialDesign:PackIcon Kind=Edit, Size=22}"
+                                                            Command="{Binding DataContext.EditFolderWatchCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+                                                            CommandParameter="{Binding}"/>
+                                                    
+                                                    <Button ToolTip="Remove" Width="30" Height="30"
+                                                            Style="{StaticResource MaterialDesignIconForegroundButton}"
+                                                            Content="{materialDesign:PackIcon Kind=Remove, Size=22}"
+                                                            Command="{Binding DataContext.RemoveFolderWatchCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+                                                            CommandParameter="{Binding}"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                    </ScrollViewer>
+                    
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="Reload" Margin="4 4 8 4" 
+                                Style="{StaticResource MaterialDesignFlatButton}" 
+                                Command="{Binding ReloadFolderWatchersCommand, Source={x:Static clipple:App.ViewModel}}" />
+                        
+                        <Button Content="Create" Margin="4 4 8 4" 
+                                Style="{StaticResource MaterialDesignFlatButton}" 
+                                Command="{Binding AddFolderWatchCommand}" />
+                    </StackPanel>
                 </Grid>
-            </StackPanel>
-        </Expander>
-    </StackPanel>
+            </TabItem>
+            <TabItem Header="Clips">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalAlignment="Stretch">
+                    <StackPanel Margin="16">
+                        <TextBox Style="{StaticResource MaterialDesignFilledTextBox}"
+                                 materialDesign:HintAssist.HelperTextFontSize="12"
+                                 materialDesign:HintAssist.Hint="Clip output folder"
+                                 Text="{Binding ClipOutputFolder}" />
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
+    </materialDesign:Card>
 </UserControl>
