@@ -50,17 +50,17 @@ public partial class Clip
         CropX         = preset.CropX ?? default;
         CropY         = preset.CropY ?? default;
 
-        if (preset.Extension is { } ext)
+        if (first)
         {
-            ExtensionIndex = ContainerFormat.Extensions.IndexOf(ext);
-            Extension      = ExtensionIndex == -1 ? ContainerFormat.Extension : ext;
+            PresetIndex = App.ViewModel.ClipPresetCollection.Presets.IndexOf(preset);
+            InitialiseEncoder();
         }
 
-        if (!first) 
+        if (preset.Extension is not { } ext) 
             return;
         
-        PresetIndex = App.ViewModel.ClipPresetCollection.Presets.IndexOf(preset);
-        InitialiseEncoder();
+        ExtensionIndex = ContainerFormat.Extensions.IndexOf(ext);
+        Extension      = ExtensionIndex == -1 ? ContainerFormat.Extension : ext;
     }
 
     #endregion
