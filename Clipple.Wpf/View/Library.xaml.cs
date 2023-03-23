@@ -67,6 +67,6 @@ public partial class Library
         if (DataContext is not ViewModel.Library vm || e.Key != Key.Delete)
             return;
 
-        ViewModel.Library.OpenDeleteDialogCommand.Execute(((ListView)sender).SelectedItems);
+        ViewModel.Library.OpenDeleteDialogCommand.Execute(((DataGrid)sender).SelectedItems);
     }
 }
