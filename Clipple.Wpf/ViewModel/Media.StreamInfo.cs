@@ -1,16 +1,67 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Clipple.Util.ISOBMFF;
 using FFmpeg.AutoGen;
 using LiteDB;
+using Matroska;
+using Matroska.Models;
+using NEbml.Core;
 
 namespace Clipple.ViewModel;
 
 public partial class Media
 {
     #region Methods
+    private List<string?> GetTrackNames()
+    {
+        // isobmff
+        try
+        {
+            var parser = new SimpleParser(FilePath);
+            parser.Parse();
+
+            return parser.Tracks
+                .Select(x => x.Name)
+                .ToList();
+        }
+        catch (Exception)
+        {
+            // ignored
+        }
+
+        // ebml
+        try
+        {
+            using var fs   = new FileStream(FilePath, FileMode.Open);
+            var       reader = new EbmlReader(fs);
+            
+            // This serves to skip as much of the file as possible reading only the Tracks element that 
+            // we need
+            while (reader.ReadNext())
+            {
+                switch (reader.ElementId.EncodedValue)
+                {
+                    case 0x18538067: // Segment
+                        reader.EnterContainer();
+                        break;
+                    case 0x1654AE6B: // Tracks
+                    {
+                        var tracks = MatroskaSerializer.Deserialize<Tracks>(reader);
+                        return tracks.TrackEntries.Select(x => x.Name).ToList();
+                    }
+                }
+            }
+        }
+        catch (Exception)
+        {
+            // ignored
+        }
+        
+        return new();
+    }
 
     private unsafe void GetMediaInfo()
     {
@@ -18,18 +69,7 @@ public partial class Media
         AVCodecContext*  codecContext  = null;
 
         // Attempt to read names of audio tracks
-        List<Track> audioTracks = new();
-        try
-        {
-            var parser = new SimpleParser(FilePath);
-            parser.Parse();
-
-            audioTracks = parser.Tracks;
-        }
-        catch (Exception)
-        {
-            // ignored
-        }
+        var audioTracks = GetTrackNames();
 
         try
         {
@@ -72,7 +112,7 @@ public partial class Media
                 }
                 else if (stream->codecpar->codec_type == AVMediaType.AVMEDIA_TYPE_AUDIO)
                 {
-                    audioStreams.Add(new(audioTracks.ElementAtOrDefault(i)?.Name ?? $"Stream {audioStreams.Count}", i, audioStreams.Count, stream->codecpar->codec_id));
+                    audioStreams.Add(new(audioTracks.ElementAtOrDefault(i) ?? $"Stream {audioStreams.Count}", i, audioStreams.Count, stream->codecpar->codec_id));
                 }
             }
 
