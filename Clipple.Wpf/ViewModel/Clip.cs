@@ -100,6 +100,7 @@ public partial class Clip : ObservableObject, INotifyDataErrorInfo
     private TimeSpan startTime;
     private TimeSpan duration;
     private string   fileName;
+    private string   extraOptions = string.Empty;
 
     #endregion
 
@@ -163,6 +164,15 @@ public partial class Clip : ObservableObject, INotifyDataErrorInfo
             SetProperty(ref fileName, value);
             NotifyOutputChanged();
         }
+    }
+
+    /// <summary>
+    /// Extra FFMPEG options 
+    /// </summary>
+    public string ExtraOptions
+    {
+        get => extraOptions;
+        set => SetProperty(ref extraOptions, value);
     }
 
     /// <summary>

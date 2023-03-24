@@ -28,6 +28,8 @@ public partial class Clip
     #region Members
 
     private long              videoBitrate = DefaultVideoBitrate;
+    private long              videoBitrateMinOffset;
+    private long              videoBitrateMaxOffset;
     private int               targetFps;
     private int               targetWidth;
     private int               targetHeight;
@@ -42,7 +44,24 @@ public partial class Clip
     #endregion
 
     #region Properties
-
+    /// <summary>
+    /// -minrate (as an offset from video bitrate)
+    /// </summary>
+    public long VideoBitrateMinOffset
+    {
+        get => videoBitrateMinOffset;
+        set => SetProperty(ref videoBitrateMinOffset, value);
+    }
+    
+    /// <summary>
+    /// -maxrate (as an offset from video bitrate)
+    /// </summary>
+    public long VideoBitrateMaxOffset
+    {
+        get => videoBitrateMaxOffset;
+        set => SetProperty(ref videoBitrateMaxOffset, value);
+    }
+    
     /// <summary>
     ///     Video bitrate, kilobits/second.
     ///     If UseTargetSize is true, this will return the bitrate required to reach VideoTargetSize

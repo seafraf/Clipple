@@ -25,9 +25,11 @@ public partial class Clip
 
     public void ApplyPreset(Media media, ClipPreset preset, bool first = false)
     {
-        VideoBitrate     = preset.VideoBitrate ?? DefaultVideoBitrate;
-        AudioBitrate     = preset.AudioBitrate ?? DefaultAudioBitrate;
-        OutputTargetSize = preset.TargetSize ?? DefaultOutputTargetSize;
+        VideoBitrateMinOffset = preset.VideoBitrateMinOffset ?? 0;
+        VideoBitrateMaxOffset = preset.VideoBitrateMaxOffset ?? 0;
+        VideoBitrate          = preset.VideoBitrate ?? DefaultVideoBitrate;
+        AudioBitrate          = preset.AudioBitrate ?? DefaultAudioBitrate;
+        OutputTargetSize      = preset.TargetSize ?? DefaultOutputTargetSize;
 
         TargetWidth  = preset.TargetWidth ?? media.VideoWidth ?? -1;
         TargetHeight = preset.TargetHeight ?? media.VideoHeight ?? -1;
@@ -49,6 +51,8 @@ public partial class Clip
         ShouldCrop    = preset.ShouldCrop ?? default;
         CropX         = preset.CropX ?? default;
         CropY         = preset.CropY ?? default;
+
+        ExtraOptions  = preset.ExtraOptions ?? "";
 
         if (first)
         {

@@ -82,6 +82,7 @@ public class ClipPresetCollection
 
         LoadAudioPreset(containerFormatCollection);
         LoadGifPreset(containerFormatCollection);
+        LoadVp9Preset(containerFormatCollection);
     }
 
     private void LoadAudioPreset(ContainerFormatCollection containerFormatCollection)
@@ -119,6 +120,59 @@ public class ClipPresetCollection
             Fps          = 24,
             TargetWidth  = 1280,
             TargetHeight = 720
+        });
+    }
+
+    private void LoadVp9Preset(ContainerFormatCollection containerFormatCollection)
+    {
+        var defaultContainerIndex = containerFormatCollection.SupportedFormats.FindIndex(x => x.Names.Contains("matroska"));
+        if (defaultContainerIndex == -1)
+            throw new NotSupportedException("matroska not supported by ffmpeg");
+
+        var defaultContainer = containerFormatCollection.SupportedFormats[defaultContainerIndex];
+
+        var defaultVideoCodecIndex = defaultContainer.VideoCodecs.FindIndex(x => x.Name == "libvpx-vp9");
+        if (defaultVideoCodecIndex == -1)
+            throw new NotSupportedException("vp9 not supported by ffmpeg");
+
+        var defaultAudioCodecIndex = defaultContainer.AudioCodecs.FindIndex(x => x.Name == "libopus");
+        if (defaultAudioCodecIndex == -1)
+            throw new NotSupportedException("vorbis not supported by ffmpeg");
+
+        AddPreset(new("2160p, 60fps", "VP9", defaultContainerIndex, defaultVideoCodecIndex, defaultAudioCodecIndex)
+        {
+            VideoBitrate          = 18000,
+            VideoBitrateMinOffset = 9000,
+            VideoBitrateMaxOffset = 8100,
+            Extension             = "webm",
+            ExtraOptions          = "-deadline good -cpu-used 2 -row-mt 1 -threads 10"
+        });
+
+        AddPreset(new("1440p, 60fps", "VP9", defaultContainerIndex, defaultVideoCodecIndex, defaultAudioCodecIndex)
+        {
+            VideoBitrate          = 9000,
+            VideoBitrateMinOffset = 4500,
+            VideoBitrateMaxOffset = 4050,
+            Extension             = "webm",
+            ExtraOptions          = "-deadline good -cpu-used 2 -row-mt 1 -threads 10"
+        });
+
+        AddPreset(new("1080p, 60fps", "VP9", defaultContainerIndex, defaultVideoCodecIndex, defaultAudioCodecIndex)
+        {
+            VideoBitrate          = 3000,
+            VideoBitrateMinOffset = 1500,
+            VideoBitrateMaxOffset = 1350,
+            Extension             = "webm",
+            ExtraOptions          = "-deadline good -cpu-used 2 -row-mt 1 -threads 10"
+        });
+
+        AddPreset(new("720p, 60fps", "VP9", defaultContainerIndex, defaultVideoCodecIndex, defaultAudioCodecIndex)
+        {
+            VideoBitrate          = 1800,
+            VideoBitrateMinOffset = 900,
+            VideoBitrateMaxOffset = 810,
+            Extension             = "webm",
+            ExtraOptions          = "-deadline good -cpu-used 2 -row-mt 1 -threads 10"
         });
     }
 

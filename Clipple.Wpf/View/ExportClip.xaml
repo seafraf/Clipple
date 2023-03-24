@@ -143,13 +143,13 @@
                         </ComboBox>
 
 
-                        <Grid Margin="0 0 0 16">
+                        <Grid Margin="0 0 0 4">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
 
-                            <ComboBox Margin="0 0 4 0" Grid.Column="0"
+                            <ComboBox Margin="0 0 2 0" Grid.Column="0"
                                       materialDesign:HintAssist.Hint="Video codec"
                                       Style="{StaticResource MaterialDesignFilledComboBox}"
                                       ItemsSource="{Binding Clip.ContainerFormat.VideoCodecs}"
@@ -157,7 +157,7 @@
                                       SelectedItem="{Binding Path=Clip.VideoCodec}"
                                       SelectedIndex="{Binding Path=Clip.VideoCodecIndex}" />
 
-                            <ComboBox Margin="4 0 0 0" Grid.Column="1"
+                            <ComboBox Margin="2 0 0 0" Grid.Column="1"
                                       materialDesign:HintAssist.Hint="Audio codec"
                                       Style="{StaticResource MaterialDesignFilledComboBox}"
                                       ItemsSource="{Binding Clip.ContainerFormat.AudioCodecs}"
@@ -165,8 +165,13 @@
                                       SelectedItem="{Binding Path=Clip.AudioCodec}"
                                       SelectedIndex="{Binding Path=Clip.AudioCodecIndex}" />
                         </Grid>
+                        
+                        <TextBox materialDesign:HintAssist.HelperTextFontSize="12"
+                                 materialDesign:HintAssist.Hint="Extra FFMPEG flags"
+                                 Text="{Binding Clip.ExtraOptions, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource MaterialDesignFilledTextBox}" />
 
-                        <CheckBox Content="Two-Pass encoding" Margin="0 0 0 4"
+                        <CheckBox Content="Two-Pass encoding" Margin="0 0 0 16"
                                   IsChecked="{Binding Clip.UseTargetSize}" />
 
                         <TextBlock Margin="0 0 0 8"
@@ -192,11 +197,31 @@
                         </MultiBinding>
                     </Expander.Visibility>
                     <StackPanel>
-                        <TextBox materialDesign:HintAssist.Hint="Video bitrate" Margin="0 0 0 8"
-                                 materialDesign:TextFieldAssist.SuffixText="Bits/second"
-                                 IsEnabled="{Binding Clip.TwoPassEncoding, Converter={StaticResource InverseBooleanConverter}}"
-                                 Style="{StaticResource MaterialDesignFilledTextBox}"
-                                 Text="{Binding Clip.VideoBitrate, UpdateSourceTrigger=PropertyChanged}" />
+                        <Grid Margin="0 0 0 8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" /> 
+                                <ColumnDefinition Width="Auto" /> 
+                                <ColumnDefinition Width="Auto" /> 
+                            </Grid.ColumnDefinitions>
+                            
+                            <TextBox Grid.Column="0" materialDesign:HintAssist.Hint="Target bitrate" Margin="0 0 2 0"
+                                     materialDesign:TextFieldAssist.SuffixText="Bits/second"
+                                     IsEnabled="{Binding Clip.TwoPassEncoding, Converter={StaticResource InverseBooleanConverter}}"
+                                     Style="{StaticResource MaterialDesignFilledTextBox}"
+                                     Text="{Binding Clip.VideoBitrate, UpdateSourceTrigger=PropertyChanged}" />
+                            
+                            <TextBox Grid.Column="1" materialDesign:HintAssist.Hint="Video bitrate min" Margin="2 0 2 0"
+                                     ToolTip="The maximum amount of bits that can the bitrate can go under the target video bitrate.  Leaving this at zero lets the codec decide."
+                                     materialDesign:TextFieldAssist.SuffixText="Bits/second"
+                                     Style="{StaticResource MaterialDesignFilledTextBox}"
+                                     Text="{Binding Clip.VideoBitrateMinOffset, UpdateSourceTrigger=PropertyChanged}" />
+                            
+                            <TextBox Grid.Column="2" materialDesign:HintAssist.Hint="Video bitrate max"  Margin="2 0 0 0"
+                                     ToolTip="The maximum amount of bits that can the bitrate can go over the target video bitrate.  Leaving this at zero lets the codec decide."
+                                     materialDesign:TextFieldAssist.SuffixText="Bits/second"
+                                     Style="{StaticResource MaterialDesignFilledTextBox}"
+                                     Text="{Binding Clip.VideoBitrateMaxOffset, UpdateSourceTrigger=PropertyChanged}" />
+                        </Grid>
 
                         <CheckBox Content="Change video FPS" Margin="0 0 0 4"
                                   IsChecked="{Binding Clip.UseSourceFps, Converter={StaticResource InverseBooleanConverter}}" />
@@ -214,16 +239,16 @@
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="auto" />
+                                <ColumnDefinition Width="auto" MinWidth="120" />
                             </Grid.ColumnDefinitions>
 
-                            <TextBox materialDesign:HintAssist.Hint="Target width" Grid.Column="0" Margin="0 0 4 0"
+                            <TextBox materialDesign:HintAssist.Hint="Target width" Grid.Column="0" Margin="0 0 2 0"
                                      materialDesign:TextFieldAssist.HasTrailingIcon="True"
                                      IsEnabled="{Binding Clip.UseSourceResolution, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource InverseBooleanConverter}}"
                                      Style="{StaticResource MaterialDesignFilledTextBox}"
                                      Text="{Binding Clip.TargetWidth, UpdateSourceTrigger=PropertyChanged}" />
 
-                            <TextBox materialDesign:HintAssist.Hint="Target height" Grid.Column="1" Margin="4 0 0 0"
+                            <TextBox materialDesign:HintAssist.Hint="Target height" Grid.Column="1" Margin="2 0 0 0"
                                      materialDesign:TextFieldAssist.HasTrailingIcon="True"
                                      IsEnabled="{Binding Clip.UseSourceResolution, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource InverseBooleanConverter}}"
                                      Style="{StaticResource MaterialDesignFilledTextBox}"
@@ -240,8 +265,7 @@
                                     <GroupStyle>
                                         <GroupStyle.HeaderTemplate>
                                             <DataTemplate>
-                                                <TextBlock Text="{Binding }"
-                                                           d:DataContext="{d:DesignInstance types:ResolutionPreset}" />
+                                                <TextBlock Text="{Binding Name}" />
                                             </DataTemplate>
                                         </GroupStyle.HeaderTemplate>
                                     </GroupStyle>

@@ -24,6 +24,8 @@ public class ClipPreset : ObservableObject
     private int?   videoCodecIndex;
     private int?   audioCodecIndex;
 
+    private long?   videoBitrateMinOffset;
+    private long?   videoBitrateMaxOffset;
     private long?   videoBitrate;
     private long?   audioBitrate;
     private int?    targetWidth;
@@ -37,6 +39,7 @@ public class ClipPreset : ObservableObject
     private int?    cropWidth;
     private int?    cropHeight;
     private string? extension;
+    private string? extraOptions;
 
     #endregion
 
@@ -59,7 +62,19 @@ public class ClipPreset : ObservableObject
         get => priority;
         set => SetProperty(ref priority, value);
     }
-
+    
+    public long? VideoBitrateMinOffset
+    {
+        get => videoBitrateMinOffset;
+        set => SetProperty(ref videoBitrateMinOffset, value);
+    }
+    
+    public long? VideoBitrateMaxOffset
+    {
+        get => videoBitrateMaxOffset;
+        set => SetProperty(ref videoBitrateMaxOffset, value);
+    }
+    
     public long? VideoBitrate
     {
         get => videoBitrate;
@@ -156,5 +171,10 @@ public class ClipPreset : ObservableObject
         set => SetProperty(ref extension, value);
     }
 
+    public string? ExtraOptions
+    {
+        get => extraOptions;
+        set => SetProperty(ref extraOptions, value);
+    }
     #endregion
 }

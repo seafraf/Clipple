@@ -217,7 +217,7 @@
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock d:DataContext="{d:DesignInstance viewmodel:Media}" 
-                                               Text="{Binding FileInfo.CreationTime}" Style="{StaticResource MaterialDesignBody2TextBlock}"
+                                               Text="{Binding FileInfo.CreationTime, StringFormat=f}" Style="{StaticResource MaterialDesignBody2TextBlock}"
                                                VerticalAlignment="Center" />
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows;
 using Clipple.ViewModel;
 
 namespace Clipple.FFMPEG;
@@ -87,7 +88,21 @@ public class MediaOutput
     private string VideoCodec => Clip.VideoCodec != null ? $"-c:v {Clip.VideoCodec.Name}" : "";
     private string AudioCodec => Clip.AudioCodec != null ? $"-c:a {Clip.AudioCodec.Name}" : "";
 
-    private string VideoBitrate    => $"-b:v {Clip.VideoBitrate}K";
+    private string VideoBitrate
+    {
+        get
+        {
+            var min = "";
+            if (Clip.VideoBitrateMinOffset > 0)
+                min = $" -minrate {Math.Max(0, Clip.VideoBitrate - Clip.VideoBitrateMinOffset)}K";
+            
+            var max = "";
+            if (Clip.VideoBitrateMaxOffset > 0)
+                max = $" -maxrate {Clip.VideoBitrate + Clip.VideoBitrateMaxOffset}K";
+            
+            return $"-b:v {Clip.VideoBitrate}K{min}{max}";
+        }
+    }
     private string AudioBitrate    => $"-b:a {Clip.AudioBitrate}K";
     private string Format          => $"-f {Clip.ContainerFormat.Name}";
     public  bool   TwoPassEncoding => Clip.TwoPassEncoding;
@@ -96,9 +111,10 @@ public class MediaOutput
 
     public override string? ToString()
     {
-        var pass = TwoPassEncoding ? $"-pass {(IsFirstPass ? '1' : '2')} -passlogfile \"{OutputFile}\" " : "";
-
-        var videoArgs = "-vn";
+        var pass        = TwoPassEncoding ? $"-pass {(IsFirstPass ? '1' : '2')} -passlogfile \"{OutputFile}\" " : "";
+        var userOptions = string.IsNullOrWhiteSpace(Clip.ExtraOptions) ? "" : $"{Clip.ExtraOptions} ";
+        
+        var videoArgs   = "-vn";
         if (Clip.ContainerFormat.SupportsVideo)
             videoArgs = $"{VideoFilter} {VideoCodec} {VideoBitrate}";
 
@@ -107,8 +123,8 @@ public class MediaOutput
             audioArgs = $"{AudioFilter} {AudioCodec} {AudioBitrate}";
 
         if (IsFirstPass && TwoPassEncoding)
-            return $"{pass} -stats {audioArgs} {videoArgs} -f null NUL";
+            return $"{userOptions}{pass} -stats {audioArgs} {videoArgs} -f null NUL";
 
-        return $"{pass} -stats {audioArgs} {videoArgs} {Format} \"{OutputFile}\"";
+        return $"{userOptions}{pass} -stats {audioArgs} {videoArgs} {Format} \"{OutputFile}\"";
     }
 }
