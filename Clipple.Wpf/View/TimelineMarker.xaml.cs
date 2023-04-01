@@ -55,15 +55,15 @@ public partial class TimelineMarker
 
         var paddedWidth = ActualWidth - 1;
         
-        Trace.WriteLine("asd");
-
         // Aim to have one marker every 18 pixels, but the total lines should be a multiple of frequency
-        var frequency = 10;
-        var maxLines  = frequency * Math.Round(Math.Floor(paddedWidth / 12) / frequency);
-        var dist      = paddedWidth / maxLines;
+        const int frequency = 10;
+        var       maxLines  = frequency * (int)Math.Round(Math.Floor(paddedWidth / 12) / frequency);
+        var       dist      = paddedWidth / maxLines;
+        if (maxLines == 0)
+            return;
         for (var i = 0; i <= maxLines; i++)
         {
-            var lineTime = Duration * (i / maxLines);
+            var lineTime = Duration * (i / (double)maxLines);
             var x        = Math.Round(i * dist);
 
             var isFirst = i == 0;

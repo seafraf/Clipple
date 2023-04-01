@@ -69,4 +69,13 @@ public partial class Library
 
         ViewModel.Library.OpenDeleteDialogCommand.Execute(((DataGrid)sender).SelectedItems);
     }
+
+    private void OnSizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        if (!e.WidthChanged) 
+            return;
+        
+        InfoColumn.MinWidth = e.NewSize.Width * 0.3;
+        InfoColumn.MaxWidth = e.NewSize.Width * 0.7;
+    }
 }

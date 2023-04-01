@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls.Primitives;
 using System.Windows.Threading;
+using Clipple.Types;
 using Clipple.ViewModel;
 using MaterialDesignThemes.Wpf;
 using Mpv.NET.Player;
@@ -15,18 +17,15 @@ public partial class MediaPreview
     public MediaPreview()
     {
         InitializeComponent();
-
-        MediaPlayer = new(Path.Combine(App.LibPath, "mpv-2.dll"))
-        {
-            KeepOpen = KeepOpen.Always
-        };
-
+        
         var timer = new DispatcherTimer
         {
             Interval = TimeSpan.FromMilliseconds(50)
         };
         timer.Tick += OnSliderTick;
         timer.Start();
+
+        PreviewHostControl.Child = MediaPlayer;
     }
 
     #region Methods
@@ -40,7 +39,7 @@ public partial class MediaPreview
     {
         TogglePlayButton.Content = new PackIcon
         {
-            Kind = MediaPlayer.EndReached ? PackIconKind.Rewind : MediaPlayer.IsPlaying ? PackIconKind.Pause : PackIconKind.Play
+            Kind = MediaPlayer!.EndReached ? PackIconKind.Rewind : MediaPlayer.IsPlaying ? PackIconKind.Pause : PackIconKind.Play
         };
     }
 
@@ -99,17 +98,12 @@ public partial class MediaPreview
 
         if (media?.AudioStreams == null || media.AudioStreams.Length == 0)
         {
-            MediaPlayer.API.SetPropertyString("lavfi-complex", "");
+            MediaPlayer.SetFilter("");
             return;
         }
 
         var inputString = string.Join("", media.AudioStreams.Select(stream => $"[aid{stream.AudioStreamIndex + 1}]"));
-        MediaPlayer.API.SetPropertyString("lavfi-complex", $"{inputString}amix=inputs={media.AudioStreams.Length}[ao]");
-    }
-
-    private void OnLoaded(object sender, RoutedEventArgs e)
-    {
-        MediaPlayer.Handle = PlayerHost.Handle;
+        MediaPlayer.SetFilter($"{inputString}amix=inputs={media.AudioStreams.Length}[ao]");
     }
 
     private void OnSizeChanged(object sender, SizeChangedEventArgs e)
@@ -117,26 +111,25 @@ public partial class MediaPreview
         if (DataContext is not Media media)
             return;
 
-        if (!media.HasVideo || media.VideoWidth is not { } width || media.VideoHeight is not { } height)
+        if (!media.HasVideo || media.VideoWidth is not { } width || media.VideoHeight is not { } height || !e.WidthChanged)
             return;
-
-        if (e.WidthChanged)
-            PlayerHostParent.Height = e.NewSize.Width * ((double)height / width);
+        
+        PreviewHostControl.Height = e.NewSize.Width * ((double)height / width);
     }
 
     private void TogglePlayButtonClick(object sender, RoutedEventArgs e)
     {
-        if (MediaPlayer.EndReached)
+        if (MediaPlayer!.EndReached)
         {
-            MediaPlayer.Position = TimeSpan.Zero;
-            MediaPlayer.Resume();
+            MediaPlayer!.Position = TimeSpan.Zero;
+            MediaPlayer!.Resume();
         }
         else
         {
-            if (MediaPlayer.IsPlaying)
-                MediaPlayer.Pause();
+            if (MediaPlayer!.IsPlaying)
+                MediaPlayer!.Pause();
             else
-                MediaPlayer.Resume();
+                MediaPlayer!.Resume();
         }
 
         UpdatePlayButton();
@@ -144,11 +137,11 @@ public partial class MediaPreview
 
     private void ToggleMuteButtonClick(object sender, RoutedEventArgs e)
     {
-        MediaPlayer.IsMuted = !MediaPlayer.IsMuted;
+        MediaPlayer!.IsMuted = !MediaPlayer!.IsMuted;
 
         ToggleMuteButton.Content = new PackIcon
         {
-            Kind = MediaPlayer.IsMuted ? PackIconKind.VolumeHigh : PackIconKind.VolumeOff
+            Kind = MediaPlayer!.IsMuted ? PackIconKind.VolumeHigh : PackIconKind.VolumeOff
         };
     }
 
@@ -156,9 +149,9 @@ public partial class MediaPreview
     {
         isDragging = true;
 
-        if (MediaPlayer.IsPlaying)
+        if (MediaPlayer!.IsPlaying)
         {
-            MediaPlayer.Pause();
+            MediaPlayer!.Pause();
             resumeAfterDrag = true;
         }
         else
@@ -172,7 +165,7 @@ public partial class MediaPreview
         isDragging = false;
 
         if (resumeAfterDrag)
-            MediaPlayer.Resume();
+            MediaPlayer!.Resume();
 
         UpdateMediaPosition();
     }
@@ -194,8 +187,7 @@ public partial class MediaPreview
     #endregion
 
     #region Properties
-
-    public MpvPlayer MediaPlayer { get; }
+    public HostedMediaPlayer MediaPlayer { get; } = new();
 
     #endregion
 }

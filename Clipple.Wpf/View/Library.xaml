@@ -14,11 +14,11 @@
     <UserControl.Resources>
         <converters:EditClassesConverter x:Key="EditClassesConverter" />
     </UserControl.Resources>
-    <Grid>
+    <Grid SizeChanged="OnSizeChanged">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="4" />
-            <ColumnDefinition Width="520" MinWidth="520" />
+            <ColumnDefinition Width="520" x:Name="InfoColumn" />
         </Grid.ColumnDefinitions>
 
         <materialDesign:Card>

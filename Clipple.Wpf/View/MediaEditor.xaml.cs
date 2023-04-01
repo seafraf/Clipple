@@ -13,28 +13,19 @@ public partial class MediaEditor
     {
         InitializeComponent();
     }
-
-    private void OnLoaded(object sender, RoutedEventArgs e)
-    {
-        var vm = (ViewModel.MediaEditor)DataContext;
-        vm.MediaPlayer.Handle = PlayerHost.Handle;
-
-        if (vm.Media != null)
-            vm.Load(vm.Media.FileInfo.FullName);
-    }
-
+    
     private void OnMouseWheel(object sender, MouseWheelEventArgs e)
     {
         var vm = (ViewModel.MediaEditor)DataContext;
 
-        if (Keyboard.Modifiers == ModifierKeys.Control)
-        {
-            if (e.Delta > 0)
-                vm.ZoomIn.Execute(null);
+        if (Keyboard.Modifiers != ModifierKeys.Control) 
+            return;
+        
+        if (e.Delta > 0)
+            vm.ZoomIn.Execute(null);
 
-            if (e.Delta < 0)
-                vm.ZoomOut.Execute(null);
-        }
+        if (e.Delta < 0)
+            vm.ZoomOut.Execute(null);
     }
 
     private async void OnDrop(object sender, DragEventArgs e)
@@ -91,5 +82,11 @@ public partial class MediaEditor
         e.Handled = true;
         FocusManager.SetIsFocusScope(this, true);
         FocusManager.SetFocusedElement(this, this);
+    }
+
+    private void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        var vm = (ViewModel.MediaEditor)DataContext;
+        MediaPlayerHost.Child = vm.MediaPlayer;
     }
 }

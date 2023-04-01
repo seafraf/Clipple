@@ -33,12 +33,6 @@ public class MediaEditor : ObservableObject
             });
         });
 
-
-        MediaPlayer = new(Path.Combine(App.LibPath, "mpv-2.dll"))
-        {
-            KeepOpen = KeepOpen.Always
-        };
-
         MediaPlayer.PositionChanged += OnMediaPositionChanged;
 
         MediaPlayer.MediaPaused   += (s, e) => OnPropertyChanged(nameof(IsPlaying));
@@ -74,7 +68,7 @@ public class MediaEditor : ObservableObject
     /// <summary>
     /// A reference to the media player
     /// </summary>
-    public MpvPlayer MediaPlayer { get; }
+    public HostedMediaPlayer MediaPlayer { get; } = new();
 
     /// <summary>
     /// Current media time.
@@ -407,7 +401,7 @@ public class MediaEditor : ObservableObject
         if (diff >= FrameTime.Ticks)
             Task.Run(async () =>
             {
-                await MediaPlayer.SeekAsync(time.TotalSeconds);
+                await MediaPlayer.SeekAsync(time);
                 WaitingFirstSeek = false;
                 
                 if (resume)
@@ -534,7 +528,7 @@ public class MediaEditor : ObservableObject
     {
         if (Media?.AudioStreams == null || Media.AudioStreams.Length == 0)
         {
-            MediaPlayer.API.SetPropertyString("lavfi-complex", "");
+            MediaPlayer.SetFilter("");
             return;
         }
 
@@ -561,8 +555,7 @@ public class MediaEditor : ObservableObject
         var filterString = string.Join("; ", stringFilters);
         var inputString  = string.Join("", inputs);
 
-        MediaPlayer.API.SetPropertyString("lavfi-complex",
-            stringFilters.Count == 0 ? $"{inputString}amix=inputs={inputs.Count}[ao]" : $"{filterString}; {inputString}amix=inputs={inputs.Count}[ao]");
+        MediaPlayer.SetFilter(stringFilters.Count == 0 ? $"{inputString}amix=inputs={inputs.Count}[ao]" : $"{filterString}; {inputString}amix=inputs={inputs.Count}[ao]");
     }
 
     #endregion

@@ -6,13 +6,12 @@
              xmlns:viewmodel="clr-namespace:Clipple.ViewModel"
              xmlns:view="clr-namespace:Clipple.View"
              xmlns:types="clr-namespace:Clipple.Types"
-             xmlns:local="clr-namespace:Clipple"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-             xmlns:wf="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
              d:DataContext="{d:DesignInstance Type=viewmodel:MediaEditor}"
              mc:Ignorable="d"
              d:DesignHeight="1080" d:DesignWidth="1920"
-             Loaded="OnLoaded" PreviewMouseWheel="OnMouseWheel" PreviewKeyDown="OnPreviewKeyDown" AllowDrop="True" DragEnter="OnDragEnter" Drop="OnDrop" Background="Transparent">
+             PreviewMouseWheel="OnMouseWheel" PreviewKeyDown="OnPreviewKeyDown" AllowDrop="True" DragEnter="OnDragEnter" Drop="OnDrop" Background="Transparent"
+             Loaded="OnLoaded">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
@@ -120,9 +119,7 @@
                     <RowDefinition Height="auto" />
                 </Grid.RowDefinitions>
 
-                <WindowsFormsHost Grid.Row="0" Visibility="{Binding Media.HasVideo, Converter={StaticResource BooleanToVisibilityConverter}}">
-                    <wf:Panel x:Name="PlayerHost" />
-                </WindowsFormsHost>
+                <Border MinWidth="32" MinHeight="32" Grid.Row="0" x:Name="MediaPlayerHost" Visibility="{Binding Media.HasVideo, Converter={StaticResource BooleanToVisibilityConverter}}" />
 
                 <Grid Grid.Row="0" Visibility="{Binding Media.HasVideo, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
                     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
