@@ -54,6 +54,8 @@ public partial class Clip
 
         ExtraOptions  = preset.ExtraOptions ?? "";
 
+        CreateCustomColorPalette = preset.CreateCustomColorPalette ?? false;
+
         if (first)
         {
             PresetIndex = App.ViewModel.ClipPresetCollection.Presets.IndexOf(preset);

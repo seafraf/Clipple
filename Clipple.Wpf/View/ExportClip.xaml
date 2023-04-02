@@ -9,7 +9,7 @@
              xmlns:types="clr-namespace:Clipple.Types"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              mc:Ignorable="d"
-             d:DesignHeight="450" d:DesignWidth="800" d:DataContext="{d:DesignInstance Type=viewmodel:Media}">
+             d:DesignHeight="900" d:DesignWidth="1200" d:DataContext="{d:DesignInstance Type=viewmodel:Media}">
     <materialDesign:DialogHost Identifier="ExportClip">
         <Grid Margin="16" MinWidth="640" x:Name="TextStyleAnchor">
             <Grid.RowDefinitions>
@@ -234,7 +234,7 @@
 
                         <CheckBox Content="Change video resolution" Margin="0 8 0 4"
                                   IsChecked="{Binding Clip.UseSourceResolution, Converter={StaticResource InverseBooleanConverter}}" />
-
+                        
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
@@ -272,6 +272,8 @@
                                 </ComboBox.GroupStyle>
                             </ComboBox>
                         </Grid>
+                        
+                        <CheckBox Content="Create custom colour palette" Margin="0 4 0 0" IsChecked="{Binding Clip.CreateCustomColorPalette}" />
                     </StackPanel>
                 </Expander>
 

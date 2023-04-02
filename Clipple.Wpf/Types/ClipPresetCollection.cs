@@ -119,7 +119,9 @@ public class ClipPresetCollection
         {
             Fps          = 24,
             TargetWidth  = 1280,
-            TargetHeight = 720
+            TargetHeight = 720,
+            CreateCustomColorPalette = true,
+            ExtraOptions = "-loop 0"
         });
     }
 

@@ -45,6 +45,13 @@ public class MediaOutput
             if (Clip.ShouldCrop)
                 filterOpts.Add($"crop={Clip.CropWidth}:{Clip.CropHeight}:{Clip.CropX}:{Clip.CropY}");
 
+            if (Clip.CreateCustomColorPalette)
+            {
+                filterOpts.Add("split[s0][s1]");
+
+                return $"-filter:v \"{string.Join(", ", filterOpts)};[s0]palettegen[p];[s1][p]paletteuse\" -map 0:v";
+            }
+            
             return filterOpts.Count > 0 ? $"-filter:v \"{string.Join(", ", filterOpts)}\" -map 0:v" : "-map 0:v";
         }
     }

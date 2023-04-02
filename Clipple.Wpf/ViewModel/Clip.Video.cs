@@ -40,6 +40,7 @@ public partial class Clip
     private int               cropWidth;
     private int               cropHeight;
     private ResolutionPreset? resolutionPreset;
+    private bool              createCustomColorPalette;
 
     #endregion
 
@@ -264,5 +265,13 @@ public partial class Clip
         }
     }
 
+    /// <summary>
+    /// Whether or not a custom colour palette should be used for the video
+    /// </summary>
+    public bool CreateCustomColorPalette
+    {
+        get => createCustomColorPalette;
+        set => SetProperty(ref createCustomColorPalette, value);
+    }
     #endregion
 }

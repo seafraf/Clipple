@@ -9,7 +9,7 @@
              mc:Ignorable="d"
              d:DesignHeight="500" d:DesignWidth="500" d:DataContext="{d:DesignInstance Type=viewmodel:Media}" DataContextChanged="OnMediaChanged" SizeChanged="OnSizeChanged">
     <StackPanel>
-            <Border x:Name="PreviewHostControl" />
+            <Border x:Name="PreviewHostControl" Visibility="{Binding HasVideo, Converter={StaticResource ComparisonVisibilityConverter}}" />
 
             <Grid>
                 <Grid.ColumnDefinitions>

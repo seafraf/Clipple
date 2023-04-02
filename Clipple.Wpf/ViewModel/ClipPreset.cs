@@ -40,6 +40,7 @@ public class ClipPreset : ObservableObject
     private int?    cropHeight;
     private string? extension;
     private string? extraOptions;
+    private bool?   createCustomColorPalette;
 
     #endregion
 
@@ -175,6 +176,12 @@ public class ClipPreset : ObservableObject
     {
         get => extraOptions;
         set => SetProperty(ref extraOptions, value);
+    }
+
+    public bool? CreateCustomColorPalette
+    {
+        get => createCustomColorPalette;
+        set => SetProperty(ref createCustomColorPalette, value);
     }
     #endregion
 }
