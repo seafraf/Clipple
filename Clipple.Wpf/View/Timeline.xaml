@@ -35,7 +35,7 @@
                             <ColumnDefinition Width="0*" x:Name="PlayheadButtonColumnSpacerEnd" />
                         </Grid.ColumnDefinitions>
                         <view:TimelineMarker Grid.Column="0" Grid.ColumnSpan="3" MouseLeftButtonDown="OnGoToMarkerClicked"
-                                             Duration="{Binding Path=Duration}" 
+                                             Duration="{Binding Path=Media.Duration}" 
                                              GoToMarkerGrid="{Binding ElementName=GotoMarkerGrid}"/>
                     </Grid>
 
