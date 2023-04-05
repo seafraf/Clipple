@@ -56,10 +56,9 @@ public partial class HostedMediaPlayer : HwndHost
     [DllImport("user32.dll", EntryPoint = "CreateWindowEx", CharSet = CharSet.Unicode)]
     private static extern nint CreateWindowEx(int dwExStyle, string lpszClassName, string lpszWindowName, 
         int style, int x,  int y, int width, int height, nint hwndParent, nint hMenu, nint hInst, [MarshalAs(UnmanagedType.AsAny)] object pvParam);
-    
-    [LibraryImport("user32.dll", EntryPoint = "DestroyWindow")]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool DestroyWindow(nint hwnd);
+
+    [DllImport("user32.dll", EntryPoint = "DestroyWindow", CharSet = CharSet.Unicode)]
+    private static extern bool DestroyWindow(nint hwnd);
 
     private const int WS_CHILD   = 0x40000000;
     private const int WS_VISIBLE = 0x10000000;
