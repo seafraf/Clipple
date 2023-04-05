@@ -11,11 +11,13 @@
              mc:Ignorable="d"
              d:DesignHeight="900" d:DesignWidth="1200" d:DataContext="{d:DesignInstance Type=viewmodel:Media}">
     <materialDesign:DialogHost Identifier="ExportClip">
-        <Grid Margin="16" MinWidth="640" x:Name="TextStyleAnchor">
+        <Grid Margin="16" MinWidth="640">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" />
                 <RowDefinition Height="auto" />
             </Grid.RowDefinitions>
+
+            <TextBlock x:Name="TextStyleAnchor" Visibility="Collapsed" />
 
             <StackPanel Grid.Row="0">
                 <Grid Margin="0 0 0 8">
@@ -189,6 +191,7 @@
                                  Text="{Binding Clip.OutputTargetSize, UpdateSourceTrigger=PropertyChanged}" />
                     </StackPanel>
                 </Expander>
+                
                 <Expander Header="Video" materialDesign:ExpanderAssist.HorizontalHeaderPadding="0 8 0 0">
                     <Expander.Visibility>
                         <MultiBinding Converter="{StaticResource BooleanAllVisibilityConverter}">
@@ -276,7 +279,7 @@
                         <CheckBox Content="Create custom colour palette" Margin="0 4 0 0" IsChecked="{Binding Clip.CreateCustomColorPalette}" />
                     </StackPanel>
                 </Expander>
-
+                
                 <Expander Header="Audio" materialDesign:ExpanderAssist.HorizontalHeaderPadding="0 8 0 0">
                     <Expander.Visibility>
                         <MultiBinding Converter="{StaticResource BooleanAllVisibilityConverter}">
@@ -337,6 +340,20 @@
 
                         <CheckBox Content="Merge enabled audio streams" IsChecked="{Binding Clip.MergeAudio}"
                                   materialDesign:CheckBoxAssist.CheckBoxSize="24" />
+                    </StackPanel>
+                </Expander>
+                
+                <Expander Header="Library" materialDesign:ExpanderAssist.HorizontalHeaderPadding="0 8 0 0">
+                    <StackPanel>
+                        <CheckBox Content="Add clip to library" Margin="0 0 0 8"
+                                  IsChecked="{Binding Clip.AddToLibrary}" />
+
+                        <TextBox materialDesign:HintAssist.Hint="Clip description"
+                                 Style="{StaticResource MaterialDesignFilledTextBox}"
+                                 IsEnabled="{Binding Clip.AddToLibrary}"
+                                 Text="{Binding Clip.Description, UpdateSourceTrigger=PropertyChanged}" />
+                        
+                        <views:TagEditor DataContext="{Binding Clip}" IsEnabled="{Binding AddToLibrary}" />
                     </StackPanel>
                 </Expander>
             </StackPanel>

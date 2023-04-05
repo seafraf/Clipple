@@ -398,49 +398,7 @@
                             </Expander>
 
                             <Expander Header="Tags" IsExpanded="True">
-                                <StackPanel>
-                                    <DataGrid AutoGenerateColumns="False" EnableRowVirtualization="True" SelectionMode="Single" SelectionUnit="FullRow" CanUserAddRows="False"
-                                              CanUserDeleteRows="False"
-                                              Visibility="{Binding SelectedMedia.Tags.Count, Converter={StaticResource InverseComparisonVisibilityConverter}, ConverterParameter={StaticResource IntZero}}"
-                                              ItemsSource="{Binding SelectedMedia.Tags, Mode=OneWay}">
-                                        <DataGrid.Columns>
-                                            <DataGridTemplateColumn Header="Name" Width="auto">
-                                                <DataGridTemplateColumn.CellTemplate>
-                                                    <DataTemplate>
-                                                        <ComboBox IsEditable="True" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
-                                                                  ItemsSource="{Binding NameSuggestions}" />
-                                                    </DataTemplate>
-                                                </DataGridTemplateColumn.CellTemplate>
-                                            </DataGridTemplateColumn>
-
-                                            <DataGridTemplateColumn Header="Value" Width="*">
-                                                <DataGridTemplateColumn.CellTemplate>
-                                                    <DataTemplate>
-                                                        <ComboBox IsEditable="True" Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}"
-                                                                  ItemsSource="{Binding ValueSuggestions}" />
-                                                    </DataTemplate>
-                                                </DataGridTemplateColumn.CellTemplate>
-                                            </DataGridTemplateColumn>
-
-                                            <DataGridTemplateColumn CanUserResize="False" CanUserReorder="False">
-                                                <DataGridTemplateColumn.CellTemplate>
-                                                    <DataTemplate>
-                                                        <Button Width="24" Height="24" Padding="0"
-                                                                Style="{StaticResource MaterialDesignIconForegroundButton}"
-                                                                Command="{Binding DeleteCommand}"
-                                                                CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.SelectedMedia}">
-                                                            <materialDesign:PackIcon Kind="Close" Width="20" Height="20" Margin="0" Padding="0" />
-                                                        </Button>
-                                                    </DataTemplate>
-                                                </DataGridTemplateColumn.CellTemplate>
-                                            </DataGridTemplateColumn>
-                                        </DataGrid.Columns>
-                                    </DataGrid>
-
-                                    <Button Margin="4" Content="Add tag"
-                                            Style="{StaticResource MaterialDesignRaisedDarkButton}"
-                                            Command="{Binding SelectedMedia.AddTagCommand}" />
-                                </StackPanel>
+                                <view:TagEditor DataContext="{Binding SelectedMedia}" />
                             </Expander>
                         </StackPanel>
                     </ScrollViewer>

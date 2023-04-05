@@ -229,6 +229,6 @@ public partial class Media : AbstractTagContainer
 
     [BsonIgnore] public ICommand ExportAudioStreamFiltersCommand => new RelayCommand<int>(ExportAudioStreamFilters);
 
-    [BsonIgnore] public ICommand AddTagCommand => new RelayCommand(AddNewTag);
+    [BsonIgnore] public ICommand AddTagCommand => new RelayCommand(() => AddNewTag());
     #endregion
 }

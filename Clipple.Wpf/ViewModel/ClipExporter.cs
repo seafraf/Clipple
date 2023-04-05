@@ -156,14 +156,18 @@ public class ExportingClip : ObservableObject
     /// </summary>
     private async Task ImportResult()
     {
-        if (media.Clip is not { } clip)
+        if (media.Clip is not { AddToLibrary: true } clip)
             return;
 
         outputMedia = await App.ViewModel.Library.AddMedia(clip.FullFileName, media.Id, true);
         if (outputMedia is { } libraryMedia)
         {
-            libraryMedia.Class      = MediaClass.Clip;
-            libraryMedia.ClassIndex = MediaClass.MediaClasses.IndexOf(MediaClass.Clip);
+            libraryMedia.Class       = MediaClass.Clip;
+            libraryMedia.ClassIndex  = MediaClass.MediaClasses.IndexOf(MediaClass.Clip);
+            libraryMedia.Description = clip.Description;
+            foreach (var tag in clip.Tags)
+                libraryMedia.Tags.Add(new(tag.Name, tag.Value));
+            
             media.Clips.Add(libraryMedia.Id);
         }
     }

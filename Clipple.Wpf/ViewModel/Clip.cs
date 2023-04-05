@@ -5,12 +5,12 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using Clipple.Types;
 using LiteDB;
-using Microsoft.Toolkit.Mvvm.ComponentModel;
 
 namespace Clipple.ViewModel;
 
-public partial class Clip : ObservableObject, INotifyDataErrorInfo
+public partial class Clip : AbstractTagContainer, INotifyDataErrorInfo
 {
 #pragma warning disable CS8618
     /// <summary>

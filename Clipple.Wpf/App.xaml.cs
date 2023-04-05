@@ -18,11 +18,28 @@ public partial class App
 {
     static App()
     {
-        ffmpeg.RootPath                     = LibPath;
-        BsonMapper.Global.EmptyStringToNull = false;
+        var mapper = BsonMapper.Global;
+        
+        ffmpeg.RootPath          = LibPath;
+        mapper.EmptyStringToNull = false;
 
         TagSuggestionRegistry     = new();
         ContainerFormatCollection = new();
+        
+        // Custom serialization
+        mapper.RegisterType<Tag>(
+            serialize: (tag) => new BsonDocument
+            {
+                { "Name", new BsonValue(tag.Name) },
+                { "Value", new BsonValue(tag.Value) },
+            },
+            deserialize: (bson) =>
+            {
+                if (bson["Hidden"] is { IsNull: false } hidden)
+                    return new(bson["Name"].AsString, bson["Value"].AsString, hidden.AsBoolean);
+
+                return new(bson["Name"].AsString, bson["Value"].AsString);
+            });
     }
 
     public App()

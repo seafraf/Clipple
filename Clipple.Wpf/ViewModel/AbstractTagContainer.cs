@@ -1,9 +1,11 @@
 ﻿using System.Collections.ObjectModel;
 using System.Linq;
+using System.Windows.Input;
 using Clipple.ViewModel;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
+using Microsoft.Toolkit.Mvvm.Input;
 
-namespace Clipple.Types;
+namespace Clipple.ViewModel;
 
 public abstract class AbstractTagContainer : ObservableObject
 {
@@ -14,15 +16,15 @@ public abstract class AbstractTagContainer : ObservableObject
     #endregion
     
     #region Methods
-    protected void AddNewTag()
+    protected void AddNewTag(bool hidden = false)
     {
         var tag = Tags.LastOrDefault();
-        AddTag(tag?.Name ?? "New tag", tag?.Value ?? "");
+        AddTag(tag?.Name ?? "New tag", tag?.Value ?? "", hidden);
     }
 
-    private void AddTag(string name, string value)
+    private void AddTag(string name, string value, bool hidden = false)
     {
-        Tags.Add(new(name, value));
+        Tags.Add(new(name, value, hidden));
     }
 
     public void DeleteTag(Tag tag)
@@ -38,5 +40,14 @@ public abstract class AbstractTagContainer : ObservableObject
         
         Tags.Clear();
     }
+    #endregion
+    
+    #region Commands
+    public ICommand AddTagCommand => new RelayCommand(() =>
+    {
+        AddNewTag();
+    });
+
+    public ICommand ClearTagsCommand => new RelayCommand(ClearTags);
     #endregion
 }

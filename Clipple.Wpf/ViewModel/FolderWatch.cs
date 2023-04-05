@@ -105,12 +105,6 @@ public class FolderWatch : AbstractTagContainer, IDisposable
 
     #region Commands
     [BsonIgnore]
-    public ICommand AddTagCommand => new RelayCommand(AddNewTag);
-    
-    [BsonIgnore]
-    public ICommand ClearTagsCommand => new RelayCommand(ClearTags);
-
-    [BsonIgnore]
     public ICommand? SaveCommand => new RelayCommand(() =>
     {
         // Create file system watcher for any saved file system watcher

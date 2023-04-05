@@ -49,10 +49,11 @@ public partial class Media
         if (Clip == null)
             throw new NullReferenceException();
 
-        PropertyChanged         += OnMediaPropertyChanged;
-        Clip.PropertyChanged    += OnClipPropertyChanged;
-        Tags.CollectionChanged  += OnTagsChanged;
-        Clips.CollectionChanged += OnClipsChanged;
+        PropertyChanged             += OnMediaPropertyChanged;
+        Clip.PropertyChanged        += OnClipPropertyChanged;
+        Tags.CollectionChanged      += OnTagsChanged;
+        Clip.Tags.CollectionChanged += OnTagsChanged;
+        Clips.CollectionChanged     += OnClipsChanged;
 
         foreach (var stream in AudioStreams)
             stream.PropertyChanged += OnAudioStreamPropertyChanged;
@@ -75,7 +76,7 @@ public partial class Media
         if (updateTimer != null)
             updateTimer.IsEnabled = true;
 
-        MediaDirty?.Invoke(this, new());
+        MediaDirty?.Invoke(this, EventArgs.Empty);
     }
 
     public void RequestDelete(bool deleteFile)
@@ -88,7 +89,7 @@ public partial class Media
         if (updateTimer != null)
             updateTimer.IsEnabled = false;
 
-        MediaRequestUpdate?.Invoke(this, new());
+        MediaRequestUpdate?.Invoke(this, EventArgs.Empty);
     }
 
     private void OnClipAudioPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -118,7 +119,7 @@ public partial class Media
 
     private void OnTagsChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        if (e.Action == NotifyCollectionChangedAction.Add && e.NewItems != null)
+        if (e is { Action: NotifyCollectionChangedAction.Add, NewItems: { } })
             foreach (Tag item in e.NewItems)
                 item.PropertyChanged += TagPropertyChanged;
 

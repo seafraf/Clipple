@@ -11,15 +11,7 @@ namespace Clipple.ViewModel;
 
 public class Tag : ObservableObject, IDisposable
 {
-    [BsonCtor]
-    // ReSharper disable once IntroduceOptionalParameters.Global
-    public Tag(string name, string value) : this(name, value, false)
-    {
-        // Note that this function requires to exist for deserialization.  A default parameter on another constructor 
-        // won't work
-    }
-        
-    public Tag(string name, string value, bool hidden)
+    public Tag(string name, string value, bool hidden = false)
     {
         this.name   = name;
         this.value  = value;
@@ -37,7 +29,7 @@ public class Tag : ObservableObject, IDisposable
     /// </summary>
     public void Dispose()
     {
-        if (!hidden)
+        if (!Hidden)
             App.TagSuggestionRegistry.ReleaseTag(this);
     }
 
@@ -45,19 +37,16 @@ public class Tag : ObservableObject, IDisposable
     {
         return obj is Tag tag &&
                Name == tag.Name &&
-               Value == tag.Value;
+               Value == tag.Value && 
+               Hidden == tag.Hidden;
     }
 
     #endregion
 
     #region Members
-
-    private readonly bool hidden;
-
     private string name;
-
     private string value;
-
+    private bool   hidden;
     #endregion
 
     #region Properties
@@ -70,12 +59,12 @@ public class Tag : ObservableObject, IDisposable
         get => name;
         set
         {
-            if (!hidden)
+            if (!Hidden)
                 App.TagSuggestionRegistry.ReleaseTag(this);
 
             SetProperty(ref name, value);
 
-            if (!hidden)
+            if (!Hidden)
                 App.TagSuggestionRegistry.RegisterTag(this);
 
             OnPropertyChanged(nameof(ValueSuggestions));
@@ -92,14 +81,23 @@ public class Tag : ObservableObject, IDisposable
         {
             var nameInfo = App.TagSuggestionRegistry.Tags.GetValueOrDefault(Name);
 
-            if (this.value != null && !hidden)
+            if (!Hidden)
                 nameInfo?.ReleaseValue(this.value);
 
             SetProperty(ref this.value, value);
 
-            if (!hidden)
+            if (!Hidden)
                 nameInfo?.RegisterValue(value);
         }
+    }
+
+    /// <summary>
+    /// Hidden tags are not added to the tag suggestion registry
+    /// </summary>
+    public bool Hidden
+    {
+        get => hidden;
+        set => SetProperty(ref hidden, value);
     }
 
     /// <summary>
@@ -131,8 +129,7 @@ public class Tag : ObservableObject, IDisposable
     [BsonIgnore] 
     public ICommand DeleteCommand => new RelayCommand<AbstractTagContainer>(media =>
     {
-        if (!hidden)
-            media?.DeleteTag(this);
+        media?.DeleteTag(this);
     });
     #endregion
 }

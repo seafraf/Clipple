@@ -13,7 +13,7 @@
     <UserControl.Resources>
         <system:Double x:Key="MarkerSize">32</system:Double>
     </UserControl.Resources>
-    <Grid x:Name="Root" SizeChanged="OnSizeChanged">
+    <Grid SizeChanged="OnSizeChanged">
         <Grid.RowDefinitions>
             <RowDefinition Height="0" />
             <RowDefinition Height="*" />
