@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
 using System.IO;
@@ -250,6 +251,9 @@ public class Library : ObservableObject
 
                 errors.Add(e);
             }
+
+        // Default sorting of newest first
+        Media.SortDescriptions.Add(new ($"{nameof(ViewModel.Media.FileInfo)}.{nameof(ViewModel.Media.FileInfo.CreationTime)}", ListSortDirection.Descending));
 
         if (errors.Count > 0)
             App.ViewModel.Notifications.NotifyException("Errors loading library", errors.ToArray());
