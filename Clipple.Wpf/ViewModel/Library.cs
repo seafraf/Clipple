@@ -24,10 +24,14 @@ public class Library : ObservableObject
 {
     public Library()
     {
-        Database = new(Path.Combine(
+        var folder = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            Application.ProductName,
-            "library.db"));
+            Application.ProductName);
+
+        if (!Directory.Exists(folder))
+            Directory.CreateDirectory(folder);
+        
+        Database = new(Path.Combine(folder, "library.db"));
 
         var collection = Database.GetCollection<Media>();
         collection.EnsureIndex(x => x.FilePath, true);
