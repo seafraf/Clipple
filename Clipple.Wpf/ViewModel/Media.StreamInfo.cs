@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Clipple.Util;
 using Clipple.Util.ISOBMFF;
 using FFmpeg.AutoGen;
 using LiteDB;
@@ -73,14 +74,14 @@ public partial class Media
 
         try
         {
-            formatContext = CheckNull(ffmpeg.avformat_alloc_context(),
+            formatContext = FFMPEGHelpers.CheckNull(ffmpeg.avformat_alloc_context(),
                 "ffmpeg couldn't allocate context");
 
-            CheckCode(ffmpeg.avformat_open_input(&formatContext, fileInfo.FullName, null, null),
+            FFMPEGHelpers.CheckCode(ffmpeg.avformat_open_input(&formatContext, fileInfo.FullName, null, null),
                 $"ffmpeg couldn't open {fileInfo.FullName}");
 
             // Load stream information
-            CheckCode(ffmpeg.avformat_find_stream_info(formatContext, null),
+            FFMPEGHelpers.CheckCode(ffmpeg.avformat_find_stream_info(formatContext, null),
                 "couldn't load stream info");
 
             var bestVideoStreamIndex = ffmpeg.av_find_best_stream(formatContext, AVMediaType.AVMEDIA_TYPE_VIDEO, -1, -1, null, 0);
@@ -126,26 +127,6 @@ public partial class Media
             if (codecContext != null)
                 ffmpeg.avcodec_free_context(&codecContext);
         }
-    }
-
-    private unsafe void CheckCode(int code, string error)
-    {
-        if (code >= 0)
-            return;
-        
-        const int bufferSize = 1024;
-        var       buffer     = stackalloc byte[bufferSize];
-        ffmpeg.av_strerror(code, buffer, (ulong)bufferSize);
-
-        throw new InvalidOperationException($"{error}: {Marshal.PtrToStringAnsi((nint)buffer)}");
-    }
-
-    protected unsafe T* CheckNull<T>(T* nullable, string error) where T : unmanaged
-    {
-        if (nullable == null)
-            throw new InvalidOperationException(error);
-
-        return nullable;
     }
 
     #endregion

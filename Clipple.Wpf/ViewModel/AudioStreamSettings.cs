@@ -3,6 +3,7 @@ using System.Windows.Media;
 using Clipple.AudioFilters;
 using FFmpeg.AutoGen;
 using LiteDB;
+using MaterialDesignColors.Recommended;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
 
 namespace Clipple.ViewModel;
@@ -49,11 +50,19 @@ public class AudioStreamSettings : ObservableObject
     #endregion
 
     #region Members
+    private bool enabled = true;
+    private bool isWaveformEnabled = false;
 
-    private ImageSource? waveform;
-
+    private Color[] colors = {
+        RedSwatch.RedA700,
+        IndigoSwatch.IndigoA700,
+        GreenSwatch.GreenA700,
+        PurpleSwatch.PurpleA700,
+        YellowSwatch.YellowA400,
+        OrangeSwatch.OrangeA400
+    };
     #endregion
-
+    
     #region Properties
 
     /// <summary>
@@ -84,11 +93,9 @@ public class AudioStreamSettings : ObservableObject
     public string CodecName => ffmpeg.avcodec_get_name(CodecID);
 
     /// <summary>
-    ///     Whether or not this audio stream is enabled.  When disabled, the audio stream
-    ///     will be muted and will not show a waveform in the timeline.
+    /// Whether or not the audio stream is enabled.  When not enabled, the audio should not be played and should not
+    /// come out in clips.
     /// </summary>
-    private bool enabled = true;
-
     public bool IsEnabled
     {
         get => enabled;
@@ -96,14 +103,20 @@ public class AudioStreamSettings : ObservableObject
     }
 
     /// <summary>
-    ///     An image representing the waveform for this stream
+    /// This property is only 
     /// </summary>
     [BsonIgnore]
-    public ImageSource? Waveform
+    public bool IsWaveformEnabled
     {
-        get => waveform;
-        set => SetProperty(ref waveform, value);
+        get => isWaveformEnabled;
+        set => SetProperty(ref isWaveformEnabled, value);
     }
+    
+    /// <summary>
+    /// Gets a colour that can be used to represent this audio stream.  This is mostly used for waveforms
+    /// </summary>
+    [BsonIgnore]
+    public Color Color => colors[AudioStreamIndex % colors.Length];
 
     /// <summary>
     ///     A list of all audio filters that apply to this stream.  Note the individual audio filter may be disabled.

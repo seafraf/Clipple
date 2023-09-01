@@ -37,8 +37,7 @@ public class Tag : ObservableObject, IDisposable
     {
         return obj is Tag tag &&
                Name == tag.Name &&
-               Value == tag.Value && 
-               Hidden == tag.Hidden;
+               Value == tag.Value;
     }
 
     #endregion

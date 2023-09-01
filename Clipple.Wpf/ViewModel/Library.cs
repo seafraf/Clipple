@@ -243,7 +243,6 @@ public class Library : ObservableObject
                 media.MediaRequestUpdate += OnMediaRequestUpdate;
                 media.MediaDirty         += OnMediaDirty;
                 media.MediaRequestDelete += OnMediaRequestDelete;
-                await media.BuildOrCacheResources();
 
                 Media.AddNewItem(media);
                 Media.CommitNew();
@@ -308,9 +307,7 @@ public class Library : ObservableObject
 
         if (media == SelectedMedia)
             App.Window.LibraryControl.MediaPreview.MediaPlayer.Stop();
-
-        media.DeleteCache();
-
+        
         // Delete the media file if the user has requested that
         if (deleteFile)
             File.Delete(media.FilePath);
@@ -361,7 +358,6 @@ public class Library : ObservableObject
             media.MediaRequestUpdate += OnMediaRequestUpdate;
             media.MediaDirty         += OnMediaDirty;
             media.MediaRequestDelete += OnMediaRequestDelete;
-            await media.BuildOrCacheResources();
 
             Media.AddNewItem(media);
             Media.CommitNew();

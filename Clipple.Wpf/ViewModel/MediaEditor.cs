@@ -59,8 +59,7 @@ public class MediaEditor : ObservableObject
     private MediaPlayerState state = MediaPlayerState.Waiting;
     private bool             isTimelineBusy;
     private bool             isPlayQueued;
-    private bool             showAudioStreamNames;
-
+    
     #endregion
 
     #region Properties
@@ -113,6 +112,12 @@ public class MediaEditor : ObservableObject
 
             if (MediaPlayer.Handle.ToInt64() != -1)
                 Load(value.FileInfo.FullName);
+            
+            // Reset everything to do with waveforms
+            foreach (var audio in value.AudioStreams)
+                audio.IsWaveformEnabled = false;
+            
+            
         }
     }
 
@@ -234,16 +239,6 @@ public class MediaEditor : ObservableObject
 
             OnPropertyChanged();
         }
-    }
-
-    /// <summary>
-    /// Whether or not audio stream names should be drawn on the timeline
-    /// </summary>
-
-    public bool ShowAudioStreamNames
-    {
-        get => showAudioStreamNames;
-        set => SetProperty(ref showAudioStreamNames, value);
     }
 
     /// <summary>

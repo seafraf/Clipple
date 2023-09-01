@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using Clipple.FFMPEG;
+using Clipple.ViewModel;
 
 namespace Clipple.View;
 
@@ -174,9 +175,7 @@ public partial class Timeline
     }
 
     #endregion
-
-    public ViewModel.MediaEditor Context => (ViewModel.MediaEditor)DataContext;
-
+    
     #region Methods
 
     private void SetClipStartClamped(TimeSpan time)
@@ -236,14 +235,14 @@ public partial class Timeline
         var prevRatio = ScrollViewer.HorizontalOffset / prevWidth;
         if (ScrollViewer.HorizontalOffset == 0)
             prevRatio = 0.5;
-
+        
         // The scale require to fit the waveform in the available width
-        var fitScale = TimelineWidth / WaveformEngine.ResolutionX;
-
+        var fitScale = TimelineWidth / Waveform.DoubleResolutionX;
+        
         // Interpolate between the scale required to fit the waveform and 1 (full waveform size)
         Transform.ScaleX = fitScale * (1 - Zoom) + 1 * Zoom;
         UpdateLayout();
-
+        
         var diffWidth = ScrollViewer.ScrollableWidth - prevWidth;
         ScrollViewer.ScrollToHorizontalOffset(ScrollViewer.HorizontalOffset + diffWidth * prevRatio);
     }
@@ -285,7 +284,7 @@ public partial class Timeline
 
     private TimeSpan PixelsToTime(double pixels)
     {
-        var wavePxOnTimeline = WaveformEngine.ResolutionX * Transform.ScaleX;
+        var wavePxOnTimeline = Waveform.DoubleResolutionX * Transform.ScaleX;
         var ticksPerPixel    = Duration.Ticks / wavePxOnTimeline;
         var timePerPixel     = TimeSpan.FromTicks((long)ticksPerPixel);
         return pixels * timePerPixel;
@@ -303,7 +302,7 @@ public partial class Timeline
             lastDragPoint = new(pos.X, lastDragPoint.Y);
             
             var sens             = 1.0 - -diffY / (App.Window.MediaEditor.ActualHeight / 3.0);
-            var wavePxOnTimeline = WaveformEngine.ResolutionX * Transform.ScaleX;
+            var wavePxOnTimeline = Transform.ScaleX;
             var timeDiff         = PixelsToTime(diffX) * Math.Clamp(sens, 0.01, 1);
 
             switch (dragTarget)

@@ -40,36 +40,25 @@
                     </Grid>
 
                     <!-- Background colour and waveforms -->
-                    <Grid Grid.Row="1" MinHeight="65"
-                          MinWidth="{Binding Source={x:Static ffmpeg:WaveformEngine.ResolutionX}}"
+                    <Grid Grid.Row="1" 
+                          MinHeight="{x:Static view:Waveform.DoubleResolutionY}" 
+                          MinWidth="{x:Static view:Waveform.DoubleResolutionX}"
                           LayoutTransform="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Path=Transform}">
+                        <Grid >
+                            
+                        </Grid>
                         <ItemsControl ItemsSource="{Binding Path=Media.AudioStreams}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border BorderThickness="0 1 0 0" BorderBrush="White">
-                                        <Image Height="64" Stretch="Fill" RenderOptions.BitmapScalingMode="Fant"
-                                               Source="{Binding Path=Waveform}"
-                                               Visibility="{Binding Path=IsEnabled, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                                    </Border>
+                                    <view:Waveform 
+                                        AudioStreamIndex="{Binding AudioStreamIndex}"
+                                        Media="{Binding DataContext.Media, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        Visibility="{Binding IsWaveformEnabled, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                     </Grid>
-
-                    <!-- Waveform names -->
-                    <Grid Grid.Row="1" MinHeight="65" Visibility="{Binding Path=ShowAudioStreamNames, Converter={StaticResource BooleanToVisibilityConverter}}">
-                        <ItemsControl ItemsSource="{Binding Path=Media.AudioStreams}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Border>
-                                        <TextBlock Text="{Binding Path=Name}" Height="64" TextAlignment="Center" Style="{StaticResource MaterialDesignHeadline5TextBlock}"
-                                                   Foreground="{DynamicResource PrimaryHueDarkBrush }" />
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </Grid>
-
+                    
                     <!-- Clip bounds -->
                     <Grid Grid.Row="1">
                         <Grid.ColumnDefinitions>

@@ -86,15 +86,22 @@ public class Root : ObservableObject
     
     public async Task Load()
     {
+        var stopwatch = new Stopwatch();
+        
         LoadingText = "Checking for updates";
         await Updater.CheckForUpdate();
         
         LoadingText = "Loading library";
+        stopwatch.Start();
         var media = await Library.GetMediaFromDatabase();
+        Trace.WriteLine($"GetMediaFromDatabase => {stopwatch.ElapsedMilliseconds}ms");
 
         LoadingText = "Initialising media";
+        stopwatch.Restart();
         await Library.LoadMedia(media);
+        Trace.WriteLine($"LoadMedia => {stopwatch.ElapsedMilliseconds}ms");
 
+        stopwatch.Restart();
         if (Settings.FolderWatchers.Count > 0)
             await LoadWatchers();
 
@@ -106,6 +113,7 @@ public class Root : ObservableObject
             MediaEditor.Media = Library.GetMediaById(editorId);
 
         IsLoading = false;
+        Trace.WriteLine($"Other => {stopwatch.ElapsedMilliseconds}ms");
     }
 
     #endregion

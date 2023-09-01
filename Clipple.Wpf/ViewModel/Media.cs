@@ -47,27 +47,6 @@ public partial class Media : AbstractTagContainer
         InitialiseLifeCycle();
     }
 
-    /// <summary>
-    ///     Creates or loads from a cache; audio wave forms.
-    /// </summary>
-    /// <returns>Task</returns>
-    public async Task BuildOrCacheResources()
-    {
-        // Generates waveforms for all audio streams, using cached audio waveforms if available
-        await BuildAudioWaveforms();
-    }
-
-    /// <summary>
-    ///     Delete the cache directory and it's contents.
-    /// </summary>
-    public void DeleteCache()
-    {
-        // Delete cached data (waveforms, folder)
-        var dirInfo = new DirectoryInfo(CachePath);
-        if (dirInfo.Exists)
-            dirInfo.Delete(true);
-    }
-
     #region Methods
     private void CopyAudioStreamFilters(int audioStreamIndex, bool toMedia)
     {
@@ -205,13 +184,6 @@ public partial class Media : AbstractTagContainer
     ///     Clips that this media has produced.
     /// </summary>
     public ObservableCollection<ObjectId> Clips { get; }
-
-    /// <summary>
-    ///     Path used for caching data related to this media
-    /// </summary>
-    [BsonIgnore]
-    private string CachePath => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "Clipple", "cache", Id.ToString());
     #endregion
 
 

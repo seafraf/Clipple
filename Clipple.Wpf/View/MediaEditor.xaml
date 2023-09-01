@@ -72,15 +72,18 @@
                         <ItemsControl ItemsSource="{Binding Path=Media.AudioStreams}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <CheckBox materialDesign:CheckBoxAssist.CheckBoxSize="24"
-                                              IsChecked="{Binding Path=IsEnabled}" Content="{Binding Path=Name}" />
+                                    <StackPanel Orientation="Horizontal">
+                                        <materialDesign:PackIcon Kind="Waveform">
+                                            <materialDesign:PackIcon.Foreground>
+                                                <SolidColorBrush Color="{Binding Color}" />
+                                            </materialDesign:PackIcon.Foreground>
+                                        </materialDesign:PackIcon>
+                                        <CheckBox materialDesign:CheckBoxAssist.CheckBoxSize="24"
+                                                  IsChecked="{Binding IsWaveformEnabled}" Content="{Binding Name}" />
+                                    </StackPanel>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
-
-                        <Label Content="Annotations" Margin="0 10 0 0" />
-                        <CheckBox materialDesign:CheckBoxAssist.CheckBoxSize="24"
-                                  IsChecked="{Binding Path=ShowAudioStreamNames}" Content="Show audio stream names" />
                     </StackPanel>
                 </materialDesign:PopupBox>
 
