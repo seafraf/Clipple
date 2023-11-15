@@ -24,6 +24,15 @@ public class ClipPresetCollection
     /// </summary>
     private void LoadDefault(ContainerFormatCollection containerFormatCollection)
     {
+        LoadVp9Preset(containerFormatCollection);
+        LoadX264Preset(containerFormatCollection);
+        LoadAudioPreset(containerFormatCollection);
+        LoadGifPreset(containerFormatCollection);
+        LoadWidePreset(containerFormatCollection);
+    }
+
+    private void LoadX264Preset(ContainerFormatCollection containerFormatCollection)
+    {
         var defaultContainerIndex = containerFormatCollection.SupportedFormats.FindIndex(x => x.Names.Contains("mp4"));
         if (defaultContainerIndex == -1)
             throw new NotSupportedException("mp4 not supported by ffmpeg");
@@ -38,25 +47,25 @@ public class ClipPresetCollection
         if (defaultAudioCodecIndex == -1)
             throw new NotSupportedException("aac not supported by ffmpeg");
 
-        Preset2160 = AddPreset(new("2160p, 60fps", "Recommended", defaultContainerIndex, defaultVideoCodecIndex, defaultAudioCodecIndex)
+        var p2160 = AddPreset(new("2160p, 60fps", "x264", defaultContainerIndex, defaultVideoCodecIndex, defaultAudioCodecIndex)
         {
             VideoBitrate = 45000,
             Extension    = "mp4"
         });
 
-        Preset1440 = AddPreset(new("1440p, 60fps", "Recommended", defaultContainerIndex, defaultVideoCodecIndex, defaultAudioCodecIndex)
+        var p1440 = AddPreset(new("1440p, 60fps", "x264", defaultContainerIndex, defaultVideoCodecIndex, defaultAudioCodecIndex)
         {
             VideoBitrate = 16000,
             Extension    = "mp4"
         });
 
-        Preset1080 = AddPreset(new("1080p, 60fps", "Recommended", defaultContainerIndex, defaultVideoCodecIndex, defaultAudioCodecIndex)
+        var p1080 = AddPreset(new("1080p, 60fps", "x264", defaultContainerIndex, defaultVideoCodecIndex, defaultAudioCodecIndex)
         {
             VideoBitrate = 8000,
             Extension    = "mp4"
         });
 
-        Preset720 = AddPreset(new("720p, 60fps", "Recommended", defaultContainerIndex, defaultVideoCodecIndex, defaultAudioCodecIndex)
+        var p720 = AddPreset(new("720p, 60fps", "x264", defaultContainerIndex, defaultVideoCodecIndex, defaultAudioCodecIndex)
         {
             VideoBitrate = 5000,
             Extension    = "mp4"
@@ -74,15 +83,16 @@ public class ClipPresetCollection
             TargetSize    = 50.0
         });
 
-        AddPreset(new("Video, 8MB", "Discord", defaultContainerIndex, defaultVideoCodecIndex, defaultAudioCodecIndex)
+        AddPreset(new("Video, 25MB", "Discord", defaultContainerIndex, defaultVideoCodecIndex, defaultAudioCodecIndex)
         {
             UseTargetSize = true,
-            TargetSize    = 8.0
+            TargetSize    = 25.0
         });
 
-        LoadAudioPreset(containerFormatCollection);
-        LoadGifPreset(containerFormatCollection);
-        LoadVp9Preset(containerFormatCollection);
+        Preset2160 ??= p2160;
+        Preset1440 ??= p1440;
+        Preset1080 ??= p1080;
+        Preset720  ??= p720;
     }
 
     private void LoadAudioPreset(ContainerFormatCollection containerFormatCollection)
@@ -141,7 +151,7 @@ public class ClipPresetCollection
         if (defaultAudioCodecIndex == -1)
             throw new NotSupportedException("vorbis not supported by ffmpeg");
 
-        AddPreset(new("2160p, 60fps", "VP9", defaultContainerIndex, defaultVideoCodecIndex, defaultAudioCodecIndex)
+        var p2160 = AddPreset(new("2160p, 60fps", "VP9", defaultContainerIndex, defaultVideoCodecIndex, defaultAudioCodecIndex)
         {
             VideoBitrate          = 18000,
             VideoBitrateMinOffset = 9000,
@@ -150,7 +160,7 @@ public class ClipPresetCollection
             ExtraOptions          = "-deadline good -cpu-used 2 -row-mt 1 -threads 10"
         });
 
-        AddPreset(new("1440p, 60fps", "VP9", defaultContainerIndex, defaultVideoCodecIndex, defaultAudioCodecIndex)
+        var p1440 = AddPreset(new("1440p, 60fps", "VP9", defaultContainerIndex, defaultVideoCodecIndex, defaultAudioCodecIndex)
         {
             VideoBitrate          = 9000,
             VideoBitrateMinOffset = 4500,
@@ -159,7 +169,7 @@ public class ClipPresetCollection
             ExtraOptions          = "-deadline good -cpu-used 2 -row-mt 1 -threads 10"
         });
 
-        AddPreset(new("1080p, 60fps", "VP9", defaultContainerIndex, defaultVideoCodecIndex, defaultAudioCodecIndex)
+        var p1080 = AddPreset(new("1080p, 60fps", "VP9", defaultContainerIndex, defaultVideoCodecIndex, defaultAudioCodecIndex)
         {
             VideoBitrate          = 3000,
             VideoBitrateMinOffset = 1500,
@@ -168,11 +178,56 @@ public class ClipPresetCollection
             ExtraOptions          = "-deadline good -cpu-used 2 -row-mt 1 -threads 10"
         });
 
-        AddPreset(new("720p, 60fps", "VP9", defaultContainerIndex, defaultVideoCodecIndex, defaultAudioCodecIndex)
+        var p720 = AddPreset(new("720p, 60fps", "VP9", defaultContainerIndex, defaultVideoCodecIndex, defaultAudioCodecIndex)
         {
             VideoBitrate          = 1800,
             VideoBitrateMinOffset = 900,
             VideoBitrateMaxOffset = 810,
+            Extension             = "webm",
+            ExtraOptions          = "-deadline good -cpu-used 2 -row-mt 1 -threads 10"
+        });
+        
+        Preset2160 ??= p2160;
+        Preset1440 ??= p1440;
+        Preset1080 ??= p1080;
+        Preset720  ??= p720;
+    }
+    
+    private void LoadWidePreset(ContainerFormatCollection containerFormatCollection)
+    {
+        var defaultContainerIndex = containerFormatCollection.SupportedFormats.FindIndex(x => x.Names.Contains("matroska"));
+        if (defaultContainerIndex == -1)
+            throw new NotSupportedException("matroska not supported by ffmpeg");
+
+        var defaultContainer = containerFormatCollection.SupportedFormats[defaultContainerIndex];
+
+        var defaultVideoCodecIndex = defaultContainer.VideoCodecs.FindIndex(x => x.Name == "libvpx-vp9");
+        if (defaultVideoCodecIndex == -1)
+            throw new NotSupportedException("vp9 not supported by ffmpeg");
+
+        var defaultAudioCodecIndex = defaultContainer.AudioCodecs.FindIndex(x => x.Name == "libopus");
+        if (defaultAudioCodecIndex == -1)
+            throw new NotSupportedException("vorbis not supported by ffmpeg");
+
+        Preset5120_1440 = AddPreset(new("5120x1440, 60fps", "Ultra-wide", defaultContainerIndex, defaultVideoCodecIndex, defaultAudioCodecIndex)
+        {
+            VideoBitrate          = 13500,
+            VideoBitrateMinOffset = 6750,
+            VideoBitrateMaxOffset = 6075,
+            Extension             = "webm",
+            ExtraOptions          = "-deadline good -cpu-used 2 -row-mt 1 -threads 10"
+        });
+
+        AddPreset(new("5120x1440, 60fps, cropped", "Ultra-wide", defaultContainerIndex, defaultVideoCodecIndex, defaultAudioCodecIndex)
+        {
+            VideoBitrate          = 9000,
+            VideoBitrateMinOffset = 4500,
+            VideoBitrateMaxOffset = 4050,
+            CropWidth             = 2560,
+            CropHeight            = 1440,
+            CropX                 = 1280,
+            CropY                 = 0,
+            ShouldCrop            = true,
             Extension             = "webm",
             ExtraOptions          = "-deadline good -cpu-used 2 -row-mt 1 -threads 10"
         });
@@ -201,6 +256,9 @@ public class ClipPresetCollection
     public ClipPreset? Preset1080 { get; private set; }
     public ClipPreset? Preset1440 { get; private set; }
     public ClipPreset? Preset2160 { get; private set; }
+    
+    // ReSharper disable once InconsistentNaming
+    public ClipPreset? Preset5120_1440 { get; private set; }
 
     public ClipPreset? PresetAudio { get; private set; }
 

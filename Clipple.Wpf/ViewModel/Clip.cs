@@ -62,22 +62,30 @@ public partial class Clip : AbstractTagContainer, INotifyDataErrorInfo
         var cpc = App.ViewModel.ClipPresetCollection;
         if (media.HasVideo)
         {
-            // Find closest preset vertical resolution
-            var videoPresets = new[]
+            // 5120x1440? Use the Ultra-wide preset
+            if (media is { VideoWidth: 5120, VideoHeight: 1440 } && cpc.Preset5120_1440 != null)
             {
-                (cpc.Preset2160, 2160),
-                (cpc.Preset1440, 1440),
-                (cpc.Preset1080, 1080),
-                (cpc.Preset720, 720)
-            };
-
-            foreach (var (preset, resolution) in videoPresets)
+                ApplyPreset(media, cpc.Preset5120_1440, true);
+            }
+            else
             {
-                if (preset == null || !(media.VideoHeight >= resolution))
-                    continue;
+                // Find closest preset vertical resolution
+                var videoPresets = new[]
+                {
+                    (cpc.Preset2160, 2160),
+                    (cpc.Preset1440, 1440),
+                    (cpc.Preset1080, 1080),
+                    (cpc.Preset720, 720)
+                };
 
-                ApplyPreset(media, preset, true);
-                break;
+                foreach (var (preset, resolution) in videoPresets)
+                {
+                    if (preset == null || !(media.VideoHeight >= resolution))
+                        continue;
+
+                    ApplyPreset(media, preset, true);
+                    break;
+                }   
             }
         }
         else if (media.HasAudio && cpc.PresetAudio is { } preset)

@@ -122,6 +122,7 @@
                           SelectionUnit="FullRow"
                           CanUserSortColumns="True"
                           AutoGenerateColumns="False"
+                          IsReadOnly="True"
                           MouseDoubleClick="OnDoubleClick"
                           PreviewKeyDown="OnKeyDown"
                           ItemsSource="{Binding Media, IsAsync=True}"
