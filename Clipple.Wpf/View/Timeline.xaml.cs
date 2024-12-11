@@ -276,9 +276,10 @@ public partial class Timeline
     private void DragScroll(double offset)
     {
         if (offset < ScrollViewer.HorizontalOffset)
+        {
             ScrollViewer.ScrollToHorizontalOffset(offset);
-
-        if (offset > TimelineWidth + ScrollViewer.HorizontalOffset)
+        }
+        else if (offset > TimelineWidth + ScrollViewer.HorizontalOffset)
             ScrollViewer.ScrollToHorizontalOffset(offset - TimelineWidth);
     }
 
@@ -302,7 +303,7 @@ public partial class Timeline
             lastDragPoint = new(pos.X, lastDragPoint.Y);
             
             var sens             = 1.0 - -diffY / (App.Window.MediaEditor.ActualHeight / 3.0);
-            var wavePxOnTimeline = Transform.ScaleX;
+            var wavePxOnTimeline = Waveform.DoubleResolutionX * Transform.ScaleX;
             var timeDiff         = PixelsToTime(diffX) * Math.Clamp(sens, 0.01, 1);
 
             switch (dragTarget)
@@ -334,7 +335,8 @@ public partial class Timeline
 
                     if (timeDiff < TimeSpan.Zero)
                         DragScroll(wavePxOnTimeline * (ClipStart / Duration));
-                    else
+                    
+                    if (timeDiff > TimeSpan.Zero)
                         DragScroll(wavePxOnTimeline * ((ClipStart + ClipDuration) / Duration));
 
                     break;
