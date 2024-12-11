@@ -383,15 +383,33 @@
                     <StackPanel>
                         <CheckBox Content="Add clip to library" Margin="0 0 0 8"
                                   IsChecked="{Binding Clip.AddToLibrary}" />
-
+                        
                         <TextBox materialDesign:HintAssist.Hint="Clip description"
                                  Style="{StaticResource MaterialDesignFilledTextBox}"
                                  IsEnabled="{Binding Clip.AddToLibrary}"
                                  Text="{Binding Clip.Description, UpdateSourceTrigger=PropertyChanged}" />
-                        
+                
                         <views:TagEditor DataContext="{Binding Clip}" IsEnabled="{Binding AddToLibrary}" />
                     </StackPanel>
                 </Expander>
+                
+                <Expander Header="Files" materialDesign:ExpanderAssist.HorizontalHeaderPadding="0 8 0 0">
+                    <StackPanel>
+                        <CheckBox Content="Copy timestamp from source" Margin="0 0 0 8"
+                                  IsChecked="{Binding Clip.CopySourceTimestamp}" />
+                        
+                        <CheckBox Content="Delete source video" Margin="0 0 0 8"
+                                  IsChecked="{Binding Clip.DeleteSourceVideo}" />
+                    </StackPanel>
+                </Expander>
+                
+                <StackPanel Orientation="Vertical" Margin="0 16 0 0" Visibility="{Binding Clip.DeleteSourceVideo, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <materialDesign:PackIcon Kind="Warning" Width="48" Height="48" HorizontalAlignment="Center" />
+                    <TextBlock Text="The option 'Delete source video' is enabled!" Style="{StaticResource MaterialDesignBody1TextBlock}" TextAlignment="Center" />
+                    <TextBlock Text="This option will permanently delete the source video once the clip has successfully been processed." Style="{StaticResource MaterialDesignBody2TextBlock}" TextAlignment="Center" />
+                    <TextBlock Text="This action cannot be undone." TextAlignment="Center"  Style="{StaticResource MaterialDesignBody2TextBlock}" />
+                    <materialDesign:PackIcon Kind="Warning" Width="48" Height="48" HorizontalAlignment="Center" />
+                </StackPanel>
             </StackPanel>
 
             <Grid Grid.Row="1">
@@ -414,7 +432,7 @@
                                         <Setter.Value>
                                             <StackPanel Orientation="Horizontal">
                                                 <TextBlock Text="Export" VerticalAlignment="Center" />
-                                                <materialDesign:PackIcon Kind="AlertCircle" Width="18" Height="18" Margin="4 0 0 0" VerticalAlignment="Center" 
+                                                <materialDesign:PackIcon Kind="AlertCircle" Width="18" Height="18" Margin="4 0 0 0" VerticalAlignment="Center"
                                                                          Foreground="{Binding ElementName=TextStyleAnchor, Path=(TextElement.Foreground)}"/>
                                             </StackPanel>
                                         </Setter.Value>

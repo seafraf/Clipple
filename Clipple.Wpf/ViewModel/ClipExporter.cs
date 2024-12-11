@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -128,7 +129,7 @@ public class ExportingClip : ObservableObject
             : ClipExportingStatus.Failed;
 
         if (Status == ClipExportingStatus.Finished)
-            await Application.Current.Dispatcher.Invoke(ImportResult);
+            await Application.Current.Dispatcher.Invoke(OnClipFinished);
     }
 
     private void OnEngineOutput(object? sender, string e)
@@ -151,24 +152,45 @@ public class ExportingClip : ObservableObject
     }
 
     /// <summary>
-    ///     Imports the output clip to the library, setting various properties on the media to link the produced
-    ///     clip to the media.
+    /// Called when the clip has finished processing
     /// </summary>
-    private async Task ImportResult()
+    private async Task OnClipFinished()
     {
-        if (media.Clip is not { AddToLibrary: true } clip)
+        if (media.Clip is not {} clip)
             return;
 
-        outputMedia = await App.ViewModel.Library.AddMedia(clip.FullFileName, media.Id, true);
-        if (outputMedia is { } libraryMedia)
+        FileInfo? clipFileInfo = null;
+        if (clip.AddToLibrary)
         {
-            libraryMedia.Class       = MediaClass.Clip;
-            libraryMedia.ClassIndex  = MediaClass.MediaClasses.IndexOf(MediaClass.Clip);
-            libraryMedia.Description = clip.Description;
-            foreach (var tag in clip.Tags)
-                libraryMedia.Tags.Add(new(tag.Name, tag.Value));
+            outputMedia = await App.ViewModel.Library.AddMedia(clip.FullFileName, media.Id, true);
+            if (outputMedia is { } libraryMedia)
+            {
+                libraryMedia.Class       = MediaClass.Clip;
+                libraryMedia.ClassIndex  = MediaClass.MediaClasses.IndexOf(MediaClass.Clip);
+                libraryMedia.Description = clip.Description;
+                foreach (var tag in clip.Tags)
+                    libraryMedia.Tags.Add(new(tag.Name, tag.Value));
             
-            media.Clips.Add(libraryMedia.Id);
+                media.Clips.Add(libraryMedia.Id);
+                clipFileInfo = outputMedia.FileInfo;
+            }
+        }
+        
+        clipFileInfo ??= new FileInfo(clip.FullFileName);
+        
+        // Copy creation time from the source video if requested
+        if (clip.CopySourceTimestamp)
+            clipFileInfo.CreationTime   = media.FileInfo.CreationTime;
+        
+        if (clip.DeleteSourceVideo)
+        {
+            // Delete before selecting new media... seems counter-intuitive, but the delete function handles all clean
+            // up for the media possibly being used by various video players.  RequestDelete uses the current loaded
+            // media to check whether the video player in the editor needs interrogation.
+            media.RequestDelete(true);
+            
+            App.ViewModel.Library.SelectedMedia = outputMedia;
+            App.ViewModel.MediaEditor.Media     = outputMedia;
         }
     }
 
