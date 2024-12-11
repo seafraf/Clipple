@@ -191,10 +191,13 @@ public partial class Media : AbstractTagContainer
     [BsonIgnore]
     public ICommand StartExportCommand => new RelayCommand(() =>
     {
+        // Close export clip settings dialog
+        DialogHost.Close(null);
+        
         DialogHost.Show(new View.ExportingClip
         {
             DataContext = new ExportingClip(this)
-        }, "ExportClip");
+        });
     });
 
     [BsonIgnore] public ICommand ImportAudioStreamFiltersCommand => new RelayCommand<int>(ImportAudioStreamFilters);

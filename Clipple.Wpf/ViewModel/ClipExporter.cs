@@ -180,9 +180,7 @@ public class ExportingClip : ObservableObject
     {
         // Cancel token just in case the ffmpeg engine is still running
         cancellationTokenSource.Cancel();
-
-        // Close exporting dialog only
-        DialogHost.Close("ExportClip");
+        DialogHost.Close(null);
     });
 
     public ICommand OpenInExplorer => new RelayCommand(() =>
@@ -201,9 +199,7 @@ public class ExportingClip : ObservableObject
     {
         if (outputMedia is not { } output)
             return;
-
-        // Close both dialogs
-        DialogHost.Close("ExportClip");
+        
         DialogHost.Close(null);
 
         // Select the output clip
