@@ -213,8 +213,8 @@ public partial class Timeline
         var clipStartProgress = Math.Min(1.0, Math.Max(0.0, ClipStart / Duration));
         var clipDuration      = Math.Min(1.0, Math.Max(0.0, ClipDuration / Duration));
 
-        // Extra clamping.. why? because the play position given to us by MPV is only millisecond accurate and can
-        // lead to the playhead appearing outside of the clip bounds some times, after being automatically paused
+        // Extra clamping… why? because the play position given to us by MPV is only millisecond accurate and can
+        // lead to the playhead appearing outside the clip bounds sometimes, after being automatically paused
         playheadProgress = Math.Clamp(playheadProgress, clipStartProgress, clipStartProgress + clipDuration);
 
         PlayheadColumnSpacerStart.Width       = new(playheadProgress, GridUnitType.Star);
@@ -231,20 +231,35 @@ public partial class Timeline
 
     private void UpdateZoom()
     {
-        var prevWidth = ScrollViewer.ScrollableWidth;
-        var prevRatio = ScrollViewer.HorizontalOffset / prevWidth;
-        if (ScrollViewer.HorizontalOffset == 0)
-            prevRatio = 0.5;
+        // Record the mouse position and cursor time before applying the zoom
+        var mousePos   = Mouse.GetPosition(ScrollViewer).X - RootScrollable.Margin.Left;
+        var cursorTime = PixelsToTime(Mouse.GetPosition(RootScrollable).X);
+
+        // Actually perform the zoom
+        {
+            // The scale require to fit the waveform in the available width
+            var fitScale = TimelineWidth / Waveform.DoubleResolutionX;
         
-        // The scale require to fit the waveform in the available width
-        var fitScale = TimelineWidth / Waveform.DoubleResolutionX;
+            // Interpolate between the scale required to fit the waveform and 1 (full waveform size)
+            Transform.ScaleX = fitScale * (1 - Zoom) + 1 * Zoom;
+            UpdateLayout();
+        }
+
+        // Try to scroll the timeline so that the time that our cursor was hovering will still hover the same time
+        // after zooming.  E.g: the cursor was on 00:30:00, after the zoom, the zoom should scroll so that the cursor
+        // still points at 00:30:00
+        // 
+        // Note if the cursor is not available, try to perform the same action using the playhead instead (centered)
+        {
+            if (mousePos == 0)
+                mousePos = TimelineWidth / 2;
+
+            if (cursorTime == TimeSpan.Zero)
+                cursorTime = Time;
         
-        // Interpolate between the scale required to fit the waveform and 1 (full waveform size)
-        Transform.ScaleX = fitScale * (1 - Zoom) + 1 * Zoom;
-        UpdateLayout();
-        
-        var diffWidth = ScrollViewer.ScrollableWidth - prevWidth;
-        ScrollViewer.ScrollToHorizontalOffset(ScrollViewer.HorizontalOffset + diffWidth * prevRatio);
+            var pos = Math.Clamp(TimeToPixels(cursorTime) - mousePos, 0, ScrollViewer.ScrollableWidth);
+            ScrollViewer.ScrollToHorizontalOffset(pos);   
+        }
     }
 
     private void DragStart(UIElement element, MouseButtonEventArgs e, DragTarget dragTarget)
@@ -291,56 +306,65 @@ public partial class Timeline
         return pixels * timePerPixel;
     }
 
+    private double TimeToPixels(TimeSpan time)
+    {
+        if (time.Ticks == 0)
+            return 0;
+        
+        var wavePxOnTimeline = Waveform.DoubleResolutionX * Transform.ScaleX;
+        var ticksPerPixel    = Duration.Ticks / wavePxOnTimeline;
+        return time.Ticks / ticksPerPixel;
+    }
+
     private void DragTick(MouseEventArgs e, DragTarget dragTarget)
     {
-        if (IsDragging)
-        {
-            e.Handled = true;
-            var pos   = e.GetPosition(this);
-            var diffX = pos.X - lastDragPoint.X;
-            var diffY = pos.Y - lastDragPoint.Y;
+        if (!IsDragging) return;
+        
+        e.Handled = true;
+        var pos   = e.GetPosition(this);
+        var diffX = pos.X - lastDragPoint.X;
+        var diffY = pos.Y - lastDragPoint.Y;
 
-            lastDragPoint = new(pos.X, lastDragPoint.Y);
+        lastDragPoint = new(pos.X, lastDragPoint.Y);
             
-            var sens             = 1.0 - -diffY / (App.Window.MediaEditor.ActualHeight / 3.0);
-            var wavePxOnTimeline = Waveform.DoubleResolutionX * Transform.ScaleX;
-            var timeDiff         = PixelsToTime(diffX) * Math.Clamp(sens, 0.01, 1);
+        var sens             = 1.0 - -diffY / (App.Window.MediaEditor.ActualHeight / 3.0);
+        var wavePxOnTimeline = Waveform.DoubleResolutionX * Transform.ScaleX;
+        var timeDiff         = PixelsToTime(diffX) * Math.Clamp(sens, 0.01, 1);
 
-            switch (dragTarget)
+        switch (dragTarget)
+        {
+            case DragTarget.Playhead:
             {
-                case DragTarget.Playhead:
-                {
-                    SetTimeClamped(Time + timeDiff);
-                    DragScroll(wavePxOnTimeline * (Time / Duration));
-                    break;
-                }
-                case DragTarget.ClipStart:
-                {
-                    var effectiveDiff = TimeSpan.FromTicks(Math.Max(timeDiff.Ticks, -ClipStart.Ticks));
+                SetTimeClamped(Time + timeDiff);
+                DragScroll(wavePxOnTimeline * (Time / Duration));
+                break;
+            }
+            case DragTarget.ClipStart:
+            {
+                var effectiveDiff = TimeSpan.FromTicks(Math.Max(timeDiff.Ticks, -ClipStart.Ticks));
 
-                    SetClipDurationClamped(ClipDuration - effectiveDiff);
-                    SetClipStartClamped(ClipStart + effectiveDiff);
+                SetClipDurationClamped(ClipDuration - effectiveDiff);
+                SetClipStartClamped(ClipStart + effectiveDiff);
+                DragScroll(wavePxOnTimeline * (ClipStart / Duration));
+                break;
+            }
+            case DragTarget.ClipEnd:
+            {
+                SetClipDurationClamped(ClipDuration + timeDiff);
+                DragScroll(wavePxOnTimeline * ((ClipStart + ClipDuration) / Duration));
+                break;
+            }
+            case DragTarget.Clip:
+            {
+                SetClipStartClamped(ClipStart + timeDiff);
+
+                if (timeDiff < TimeSpan.Zero)
                     DragScroll(wavePxOnTimeline * (ClipStart / Duration));
-                    break;
-                }
-                case DragTarget.ClipEnd:
-                {
-                    SetClipDurationClamped(ClipDuration + timeDiff);
-                    DragScroll(wavePxOnTimeline * ((ClipStart + ClipDuration) / Duration));
-                    break;
-                }
-                case DragTarget.Clip:
-                {
-                    SetClipStartClamped(ClipStart + timeDiff);
-
-                    if (timeDiff < TimeSpan.Zero)
-                        DragScroll(wavePxOnTimeline * (ClipStart / Duration));
                     
-                    if (timeDiff > TimeSpan.Zero)
-                        DragScroll(wavePxOnTimeline * ((ClipStart + ClipDuration) / Duration));
+                if (timeDiff > TimeSpan.Zero)
+                    DragScroll(wavePxOnTimeline * ((ClipStart + ClipDuration) / Duration));
 
-                    break;
-                }
+                break;
             }
         }
     }

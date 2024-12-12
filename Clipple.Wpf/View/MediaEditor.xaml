@@ -10,7 +10,7 @@
              d:DataContext="{d:DesignInstance Type=viewmodel:MediaEditor}"
              mc:Ignorable="d"
              d:DesignHeight="1080" d:DesignWidth="1920"
-             PreviewMouseWheel="OnMouseWheel" PreviewKeyDown="OnPreviewKeyDown" AllowDrop="True" DragEnter="OnDragEnter" Drop="OnDrop" Background="Transparent"
+             PreviewKeyDown="OnPreviewKeyDown" AllowDrop="True" DragEnter="OnDragEnter" Drop="OnDrop" Background="Transparent"
              Loaded="OnLoaded">
     <Grid>
         <Grid.RowDefinitions>
@@ -65,10 +65,7 @@
                                                  Foreground="{StaticResource MaterialDesignDarkForeground}" Margin="6" />
                     </materialDesign:PopupBox.ToggleContent>
                     <StackPanel Margin="10" Width="250">
-                        <Label Content="Timeline zoom" />
-                        <Slider Value="{Binding Path=Zoom}" Minimum="0" Maximum="1" />
-
-                        <Label Content="Audio waveforms" Margin="0 10 0 0" />
+                        <Label Content="Audio waveforms" Margin="0 0 0 0" />
                         <ItemsControl ItemsSource="{Binding Path=Media.AudioStreams}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
@@ -211,14 +208,14 @@
 
 
                 <materialDesign:Card Grid.Row="2" Margin="4">
-                    <view:Timeline
-                        Time="{Binding Path=CurrentTime, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                        ClipStart="{Binding Path=Media.Clip.StartTime, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                        ClipDuration="{Binding Path=Media.Clip.Duration, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                        Duration="{Binding Path=Media.Duration}"
-                        IsDragging="{Binding Path=IsTimelineBusy, UpdateSourceTrigger=PropertyChanged, Mode=OneWayToSource}"
-                        Zoom="{Binding Path=Zoom, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                        ShowAudioStreamNames="{Binding ShowAudioStreamNames, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
+                    <view:Timeline PreviewMouseWheel="OnMouseWheel" 
+                                   Time="{Binding Path=CurrentTime, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                   ClipStart="{Binding Path=Media.Clip.StartTime, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                   ClipDuration="{Binding Path=Media.Clip.Duration, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                   Duration="{Binding Path=Media.Duration}"
+                                   IsDragging="{Binding Path=IsTimelineBusy, UpdateSourceTrigger=PropertyChanged, Mode=OneWayToSource}"
+                                   Zoom="{Binding Path=Zoom, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                   ShowAudioStreamNames="{Binding ShowAudioStreamNames, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
                 </materialDesign:Card>
             </Grid>
         </Grid>
