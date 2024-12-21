@@ -1,10 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Forms;
 using System.Windows.Input;
+using System.Windows.Media.Animation;
 using System.Windows.Threading;
 using Clipple.Types;
 using Clipple.View;
@@ -44,8 +49,8 @@ public class MediaEditor : ObservableObject
         var timelineDragTick = new DispatcherTimer();
         timelineDragTick.Tick += (s, e) =>
         {
-            if (!IsTimelineBusy)
-                CurrentTime = MediaPlayer.Position;
+            if (IsTimelineBusy)
+                Seek(CurrentTime);
         };
 
         timelineDragTick.Interval = TimeSpan.FromMilliseconds(50);
@@ -63,6 +68,10 @@ public class MediaEditor : ObservableObject
     #endregion
 
     #region Properties
+    /// <summary>
+    /// TimeSpan for the skip commands
+    /// </summary>
+    public TimeSpan SkipInterval { get; } = TimeSpan.FromSeconds(30);
 
     /// <summary>
     /// A reference to the media player
@@ -266,7 +275,7 @@ public class MediaEditor : ObservableObject
             if (media is not { Clip: { } clip })
                 return false;
 
-            return clip.EndTime - CurrentTime > FrameTime;
+            return clip.EndTime - CurrentTime >= FrameTime;
         }
     }
     
@@ -280,7 +289,7 @@ public class MediaEditor : ObservableObject
             if (media is not { Clip: { } clip })
                 return false;
 
-            return CurrentTime - clip.StartTime > FrameTime;
+            return CurrentTime - clip.StartTime >= FrameTime;
         }
     }
 
@@ -295,8 +304,13 @@ public class MediaEditor : ObservableObject
     public ICommand OpenExportDialogCommand { get; }
     
     public ICommand ControlCommand          => new RelayCommand(TogglePlayPause);
+        
+    public ICommand SkipBackwardCommand        => new RelayCommand(SkipBackward);
+
     
     public ICommand PreviousFrameCommand    => new RelayCommand(ShowFramePrev);
+    
+    public ICommand SkipForwardCommand        => new RelayCommand(SkipForward);
     
     public ICommand NextFrameCommand        => new RelayCommand(ShowFrameNext);
 
@@ -483,19 +497,78 @@ public class MediaEditor : ObservableObject
     }
 
     /// <summary>
+    /// Skips forward by the skip interval
+    /// </summary>
+    public void SkipForward()
+    {
+        if (media is not { Clip: { } clip }) 
+            return;
+        
+        var time = CurrentTime + SkipInterval;
+            
+        if (time > media.Duration)
+            time = media.Duration;
+
+        if (time > clip.EndTime)
+            clip.EndTime = time;
+            
+        Seek(time);
+    }
+
+    /// <summary>
     /// Runs ShowFrameNext on the main media player then syncs audio
     /// </summary>
     public void ShowFrameNext()
     {
+        // Move clip bounds if necessary
+        if (media is not { Clip: { } clip })
+            return;
+
+        var time = CurrentTime + FrameTime;
+        if (time <= media.Duration && time > clip.EndTime)
+            clip.EndTime = time;
+
         if (State == MediaPlayerState.Ready && !IsTimelineBusy && HasNextFrame)
             MediaPlayer.NextFrame();
     }
 
     /// <summary>
+    /// Skips backwards by the skip interval
+    /// </summary>
+    public void SkipBackward()
+    {
+        if (media is not { Clip: { } clip }) 
+            return;
+        
+        var time = CurrentTime - SkipInterval;
+        
+        if (time < TimeSpan.Zero)
+            time = TimeSpan.Zero;
+
+        if (time < clip.StartTime)
+        {
+            clip.Duration  += (clip.StartTime - time);
+            clip.StartTime =  time;
+        }
+            
+        Seek(time);
+    }
+    
+    /// <summary>
     /// Runs ShowFramePrev on the main media player then syncs audio
     /// </summary>
     public void ShowFramePrev()
     {
+        if (media is not { Clip: { } clip }) 
+            return;
+
+        var time = CurrentTime - FrameTime;
+        if (time >= TimeSpan.Zero && time < clip.StartTime)
+        {
+            clip.Duration += (clip.StartTime - time);
+            clip.StartTime = time;
+        }
+        
         if (State == MediaPlayerState.Ready && !IsTimelineBusy && HasPreviousFrame)
             MediaPlayer.PreviousFrame();
     }

@@ -162,6 +162,11 @@
                                         Command="{Binding PreviousFrameCommand}">
                                     <materialDesign:PackIcon Kind="StepBackward" Width="28" Height="28" />
                                 </Button>
+                                <Button Width="32" Height="32" ToolTip="Next frame" Margin="0 0 0 0"
+                                        Style="{StaticResource MaterialDesignIconButton}"
+                                        Command="{Binding SkipBackwardCommand}">
+                                    <materialDesign:PackIcon Kind="Rewind30" Width="28" Height="28" />
+                                </Button>
                                 <Button Width="32" Height="32" ToolTip="Play" Margin="0 0 4 0"
                                         Style="{StaticResource MaterialDesignIconButton}"
                                         Command="{Binding ControlCommand}">
@@ -181,6 +186,11 @@
                                             </Style>
                                         </materialDesign:PackIcon.Style>
                                     </materialDesign:PackIcon>
+                                </Button>
+                                <Button Width="32" Height="32" ToolTip="Next frame" Margin="0 0 0 0"
+                                        Style="{StaticResource MaterialDesignIconButton}"
+                                        Command="{Binding SkipForwardCommand}">
+                                    <materialDesign:PackIcon Kind="FastForward30" Width="28" Height="28" />
                                 </Button>
                                 <Button Width="32" Height="32" ToolTip="Next frame" Margin="0 0 0 0"
                                         Style="{StaticResource MaterialDesignIconButton}"
