@@ -20,13 +20,13 @@ public partial class TimelineThumb
         nameof(Size),
         typeof(double),
         typeof(TimelineThumb),
-        new FrameworkPropertyMetadata(32.0, FrameworkPropertyMetadataOptions.AffectsRender));
+        new FrameworkPropertyMetadata(24.0, FrameworkPropertyMetadataOptions.AffectsRender));
 
     public static readonly DependencyProperty TimelineMarkerSizeProperty = DependencyProperty.Register(
         nameof(TimelineMarkerSize),
         typeof(double),
         typeof(TimelineThumb),
-        new FrameworkPropertyMetadata(32.0, FrameworkPropertyMetadataOptions.AffectsRender));
+        new FrameworkPropertyMetadata(24.0, FrameworkPropertyMetadataOptions.AffectsRender));
 
     public static readonly DependencyProperty ButtonAlignmentProperty = DependencyProperty.Register(
         nameof(ButtonAlignment),

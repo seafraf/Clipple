@@ -38,7 +38,7 @@ public partial class Waveform : UserControl
     /// <summary>
     /// The height of a Waveform, this number should be uneven to allow a 1px wide line down the middle of the waveform
     /// </summary>
-    private const int ResolutionY = 65;
+    private const int ResolutionY = 49;
     
     /// <summary>
     /// The resolution height as a double, this is required for some XAML bindings
