@@ -357,6 +357,10 @@ public partial class Timeline
             case DragTarget.Clip:
             {
                 SetClipStartClamped(ClipStart + timeDiff);
+                
+                // Move playhead with the clip so that it maintains relative position
+                if (ClipStart > TimeSpan.Zero && ClipStart + ClipDuration < Duration)
+                    SetTimeClamped(Time + timeDiff);
 
                 if (timeDiff < TimeSpan.Zero)
                     DragScroll(wavePxOnTimeline * (ClipStart / Duration));
